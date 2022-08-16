@@ -180,3 +180,20 @@ suspend fun Intake.pivotFeedForwardTest() {
 //        )
     }
 }
+
+suspend fun Shooter.pitchFeedForwardTest() {
+    var _feedForward = 0.0
+    var lastPitch = 0.0
+    periodic {
+        pitchSetPower(_feedForward)
+        if ((pitch - lastPitch) < 0.5) {
+            _feedForward += 0.001
+        } else {
+            pitchSetPower(0.0)
+            println("moved. Hi.")
+            this.stop()
+        }
+        println("feed forward $_feedForward")
+        lastPitch = pitch
+    }
+}
