@@ -49,6 +49,7 @@ object Robot : MeanlibRobot() {
         Limelight
         Climb
         PowerInfo
+        AprilTag
     }
 
     override suspend fun enable() {
@@ -64,6 +65,7 @@ object Robot : MeanlibRobot() {
 //        zeroIntakePivot()
         println("ending enable")
         PowerInfo.enable()
+        AprilTag.enable()
     }
 
     override suspend fun autonomous() {

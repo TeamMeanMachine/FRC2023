@@ -24,6 +24,7 @@ import org.team2471.frc.lib.motion.following.*
 import org.team2471.frc.lib.motion_profiling.MotionCurve
 import org.team2471.frc.lib.motion_profiling.following.SwerveParameters
 import org.team2471.frc.lib.units.*
+import org.team2471.frc2022.OI.driverController
 import kotlin.math.absoluteValue
 import kotlin.math.cos
 import kotlin.math.sin
@@ -376,13 +377,14 @@ object Drive : Subsystem("Drive"), SwerveDrive {
 //            printEncoderValues()
 
             headingSetpoint = OI.driverController.povDirection
-
-            drive(
+            if(!driverController.a) {
+                drive(
                 OI.driveTranslation * limitingFactor,
                 turn * limitingFactor,
                 SmartDashboard.getBoolean("Use Gyro", true) && !DriverStation.isAutonomous(),
                 false
-            )
+                )
+            }
         }
     }
 

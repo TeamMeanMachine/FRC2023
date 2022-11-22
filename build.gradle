@@ -54,11 +54,16 @@ repositories {
     maven { setUrl("https://plugins.gradle.org/m2/")}
     maven { setUrl("https://maven.ctr-electronics.com/release/") }
     maven { setUrl("https://www.revrobotics.com/content/sw/max/sdk/maven/")}
+    maven { setUrl("https://maven.photonvision.org/repository/internal")}
 }
 // Defining my dependencies. In this case, WPILib (+ friends), and vendor libraries.
 // Also defines JUnit 4.
 dependencies {
     implementation "org.team2471.lib:meanlib"
+
+    implementation "org.photonvision:PhotonLib-java:v2023.1.1-beta-6"
+    implementation "org.photonvision:PhotonTargeting-java:v2023.1.1-beta-6"
+
 
     implementation wpi.java.deps.wpilib()
     implementation wpi.java.vendor.java()
