@@ -1,5 +1,7 @@
 package org.team2471.frc2022
 
+import edu.wpi.first.math.geometry.Pose2d
+import edu.wpi.first.math.geometry.Rotation2d
 import edu.wpi.first.networktables.NetworkTableInstance
 import edu.wpi.first.wpilibj.Timer
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser
@@ -8,6 +10,7 @@ import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.photonvision.PhotonCamera
+import org.photonvision.PhotonUtils
 import org.photonvision.targeting.PhotonTrackedTarget
 import org.team2471.frc.lib.coroutines.MeanlibDispatcher
 import org.team2471.frc.lib.coroutines.halt
@@ -18,7 +21,9 @@ import org.team2471.frc.lib.math.round
 import org.team2471.frc.lib.motion.following.drive
 import org.team2471.frc.lib.motion.following.lookupPose
 import org.team2471.frc.lib.motion.following.pose
+import org.team2471.frc.lib.units.asMeters
 import org.team2471.frc.lib.units.degrees
+import org.team2471.frc.lib.units.inches
 import org.team2471.frc.lib.units.radians
 import org.team2471.frc2022.OI.driverController
 import kotlin.math.atan
@@ -144,11 +149,11 @@ object AprilTag : Subsystem("AprilTag") {
                             println("Angle: $angleOffset")
                         }
                         if (lockModeTemp == "Translation" || lockModeTemp == "Rolation") {
-                            xDistanceError = xOffset - 2
+                            xDistanceError = xOffset - 31.inches.asMeters
                             println("Distance: $xDistanceError")
                         }
                         if (lockModeTemp == "To_Target") {
-                            xDistanceError = xOffset - 1
+                            xDistanceError = xOffset - 31.inches.asMeters
                             yawOffset = target.bestCameraToTarget.rotation.z.radians.asDegrees
                             if (yawOffset > 0) {
                                 yawOffset = 180 - yawOffset
