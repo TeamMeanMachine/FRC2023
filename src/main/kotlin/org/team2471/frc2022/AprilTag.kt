@@ -35,6 +35,8 @@ object AprilTag : Subsystem("AprilTag") {
     private val tagTable = photonVisionTable.getSubTable("HD_USB_Camera")
     private val tagIdEntry = photonVisionTable.getEntry("tagid")
     private val translationDampenAmount = photonVisionTable.getEntry("Tranlsation Dampen Amount")
+    private val rotationDampenAmount = photonVisionTable.getEntry("Rotation Dampen Amount")
+    private val horizontalOffset = photonVisionTable.getEntry("Horizontal Offset M")
 
     var camera = PhotonCamera("HD_USB_Camera")
 
@@ -58,7 +60,13 @@ object AprilTag : Subsystem("AprilTag") {
         get()= tagIdEntry.getNumber(0).toInt()
 
     val tda: Int
-        get()= translationDampenAmount.getNumber(5).toInt()
+        get()= translationDampenAmount.getNumber(4).toInt()
+
+    val rda: Int
+        get()= rotationDampenAmount.getNumber(90).toInt()
+
+    val hOffset: Double
+        get()= horizontalOffset.getNumber(0.0).toDouble()
 
 //    val position: Vector2
 //        get() {
@@ -100,7 +108,9 @@ object AprilTag : Subsystem("AprilTag") {
         tagIdEntry.setNumber(0)
         tagIdEntry.setPersistent()
 
-        translationDampenAmount.setNumber(5)
+        translationDampenAmount.setNumber(4)
+        rotationDampenAmount.setNumber(90)
+        horizontalOffset.setNumber(0)
         println("AprilTags Initialized")
 
         SmartDashboard.putData("AprilTag LockMode", lockModeChooser)
@@ -160,8 +170,11 @@ object AprilTag : Subsystem("AprilTag") {
                             } else if (yawOffset < 0) {
                                 yawOffset = -180 - yawOffset
                             }
-
-                            println("Yaw offset ${round(yawOffset,2)} x offset ${round(xOffset,2)} y offset ${round(yOffset,2)}")
+                            println(hOffset)
+                            if (hOffset != 0.0) {
+                                yawOffset -= atan(hOffset/ 31.inches.asMeters).radians.asDegrees
+                                println(atan(hOffset/ 31.inches.asMeters).radians.asDegrees)
+                            }
 
                         }
                         if (lockModeTemp == "Field_Centric") {
@@ -176,7 +189,7 @@ object AprilTag : Subsystem("AprilTag") {
                             yawOffset = 0.0
 
                         }
-                        Drive.drive(Vector2((yDistanceError + yawOffset / 30) / (tda / 2), -xDistanceError / tda), angleOffset / 65, false)
+                        Drive.drive(Vector2((yDistanceError + yawOffset / 30) / (tda / 2), -xDistanceError / tda), angleOffset / rda, false)
                     }
                 }
                 //println(targets)
