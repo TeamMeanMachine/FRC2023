@@ -202,6 +202,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
 //            odometer2Entry.setPersistent()
 //            odometer3Entry.setPersistent()
             println("in drive global scope")
+
 //
             SmartDashboard.setDefaultNumber("DemoSpeed", 0.4)
 //            SmartDashboard.clearPersistent("Demo Speed")
@@ -404,7 +405,9 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         for (moduleCount in 0..3) {
             print("$moduleCount=${round((modules[moduleCount] as Module).analogAngle.asDegrees, 2)}   ")
         }
+        println(" ")
     }
+
 
     fun initializeSteeringMotors() {
         for (moduleCount in 0..3) {

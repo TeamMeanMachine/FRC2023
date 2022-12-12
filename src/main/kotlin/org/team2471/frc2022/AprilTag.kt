@@ -1,5 +1,6 @@
 package org.team2471.frc2022
 
+import edu.wpi.first.math.filter.LinearFilter
 import edu.wpi.first.math.geometry.Pose2d
 import edu.wpi.first.math.geometry.Rotation2d
 import edu.wpi.first.networktables.NetworkTableInstance
@@ -18,14 +19,10 @@ import org.team2471.frc.lib.coroutines.periodic
 import org.team2471.frc.lib.framework.Subsystem
 import org.team2471.frc.lib.math.Vector2
 import org.team2471.frc.lib.math.round
-import org.team2471.frc.lib.motion.following.drive
-import org.team2471.frc.lib.motion.following.lookupPose
-import org.team2471.frc.lib.motion.following.pose
-import org.team2471.frc.lib.units.asMeters
-import org.team2471.frc.lib.units.degrees
-import org.team2471.frc.lib.units.inches
-import org.team2471.frc.lib.units.radians
+import org.team2471.frc.lib.motion.following.*
+import org.team2471.frc.lib.units.*
 import org.team2471.frc2022.OI.driverController
+import kotlin.math.absoluteValue
 import kotlin.math.atan
 
 
@@ -37,8 +34,15 @@ object AprilTag : Subsystem("AprilTag") {
     private val translationDampenAmount = photonVisionTable.getEntry("Tranlsation Dampen Amount")
     private val rotationDampenAmount = photonVisionTable.getEntry("Rotation Dampen Amount")
     private val horizontalOffset = photonVisionTable.getEntry("Horizontal Offset M")
-
+    private val distanceOffset = photonVisionTable.getEntry("Distance Offset In")
+    var autoLock = false
+    var lockedOn = false
+    val xErrorLinearFilter = LinearFilter.movingAverage(4)
+    var xErrorAverage = 0.0
+    val yawErrorLinearFilter = LinearFilter.movingAverage(4)
+    var yawErrorAverage = 0.0
     var camera = PhotonCamera("HD_USB_Camera")
+
 
     //    private val thresholdTable = frontTable.getSubTable("thresholds")
     private val hasTargetEntry =  tagTable.getEntry("hasTarget")
@@ -51,7 +55,7 @@ object AprilTag : Subsystem("AprilTag") {
         addOption("Field_Centric", "Field_Centric")
     }
 
-    private var last_result_time = 0.0
+    private var last_result_time = 999999999990.0
 
     val lockMode: String
     get()= SmartDashboard.getString("AprilTag LockMode/selected", "Rotation")
@@ -67,6 +71,12 @@ object AprilTag : Subsystem("AprilTag") {
 
     val hOffset: Double
         get()= horizontalOffset.getNumber(0.0).toDouble()
+
+    val dOffset: Double
+        get()= distanceOffset.getNumber(0.0).toDouble().inches.asMeters
+
+    val isAligned: Boolean
+        get() = xErrorAverage.absoluteValue < 0.15 && yawErrorAverage.absoluteValue < 2.0
 
 //    val position: Vector2
 //        get() {
@@ -105,12 +115,13 @@ object AprilTag : Subsystem("AprilTag") {
 
 
     init {
-        tagIdEntry.setNumber(0)
+        tagIdEntry.setNumber(24)
         tagIdEntry.setPersistent()
 
         translationDampenAmount.setNumber(4)
         rotationDampenAmount.setNumber(90)
         horizontalOffset.setNumber(0)
+        distanceOffset.setNumber(48)
         println("AprilTags Initialized")
 
         SmartDashboard.putData("AprilTag LockMode", lockModeChooser)
@@ -126,12 +137,22 @@ object AprilTag : Subsystem("AprilTag") {
 //            }
 //        }
     }
+    fun hasTarget(): Boolean {
+        return camera.latestResult.hasTargets()
+    }
+
+    fun resetLastResult() {
+        last_result_time = 999999999999999.0
+    }
 
 //
 
     override suspend fun default() {
         periodic {
             //println(hasTargetEntry.getBoolean(false))
+            if(driverController.a) {
+                resetLastResult()
+            }
             var result = camera.latestResult
             val time = Timer.getFPGATimestamp()
             val latencyPose = Drive.lookupPose(time - result.latencyMillis)
@@ -139,57 +160,68 @@ object AprilTag : Subsystem("AprilTag") {
             val headingDiff = Drive.pose.heading - latencyPose.heading
 
             val hasTargets: Boolean = result.hasTargets()
-            if (result.timestampSeconds != last_result_time) {
-                last_result_time = result.timestampSeconds
-            }
-            if (hasTargets) {
-                val targets: List<PhotonTrackedTarget> = result.getTargets()
-                for (target in targets){
-                    //println(target.fiducialId)
-                    if (target.fiducialId == tagId && driverController.a){
-                        val xOffset = target.bestCameraToTarget.x
-                        val yOffset = target.bestCameraToTarget.y
-                        var yawOffset = 0.0
-                        var angleOffset = 0.0
-                        var xDistanceError = 0.0
-                        var yDistanceError = 0.0
-                        val lockModeTemp = lockMode
-                        if (lockModeTemp == "Rotation" || lockModeTemp == "Rolation" || lockModeTemp == "To_Target") {
-                            angleOffset = -atan(yOffset/xOffset).radians.asDegrees
-                            println("Angle: $angleOffset")
-                        }
-                        if (lockModeTemp == "Translation" || lockModeTemp == "Rolation") {
-                            xDistanceError = xOffset - 31.inches.asMeters
-                            println("Distance: $xDistanceError")
-                        }
-                        if (lockModeTemp == "To_Target") {
-                            xDistanceError = xOffset - 31.inches.asMeters
-                            yawOffset = target.bestCameraToTarget.rotation.z.radians.asDegrees
-                            if (yawOffset > 0) {
-                                yawOffset = 180 - yawOffset
-                            } else if (yawOffset < 0) {
-                                yawOffset = -180 - yawOffset
-                            }
-                            println(hOffset)
-                            if (hOffset != 0.0) {
-                                yawOffset -= atan(hOffset/ 31.inches.asMeters).radians.asDegrees
-                                println(atan(hOffset/ 31.inches.asMeters).radians.asDegrees)
-                            }
 
-                        }
-                        if (lockModeTemp == "Field_Centric") {
-                            yawOffset = target.bestCameraToTarget.rotation.z.radians.asDegrees
-                            if (yawOffset > 0) {
-                                yawOffset = 180 - yawOffset
-                            } else if (yawOffset < 0) {
-                                yawOffset = -180 - yawOffset
-                            }
-                            var aprilTagOffset = Vector2((xOffset * (90 - yawOffset).degrees.cos() ), (xOffset * (90 - yawOffset).degrees.sin() ))
-                            println("aprilTagOffset $aprilTagOffset")
-                            yawOffset = 0.0
 
+           // println("Current Time: ${result.timestampSeconds} last time: $last_result_time")
+            if (result.timestampSeconds <= last_result_time + 0.5) {
+               // println("${hasTargets}")
+                if (hasTargets) {
+                    last_result_time = result.timestampSeconds
+                    val targets: List<PhotonTrackedTarget> = result.getTargets()
+                    for (target in targets){
+                        //println(target.fiducialId)
+                        if (target.fiducialId == tagId && (driverController.a || autoLock)) {
+                            val xOffset = target.bestCameraToTarget.x
+                            val yOffset = target.bestCameraToTarget.y
+                            var yawOffset = 0.0
+                            var angleOffset = 0.0
+                            var xDistanceError = 0.0
+                            var yDistanceError = 0.0
+                            val lockModeTemp = lockMode
+                            if (lockModeTemp == "Rotation" || lockModeTemp == "Rolation" || lockModeTemp == "To_Target") {
+                                angleOffset = -atan(yOffset/xOffset).radians.asDegrees
+                                //println("Angle: $angleOffset")
+                            }
+                            if (lockModeTemp == "Translation" || lockModeTemp == "Rolation") {
+                                xDistanceError = xOffset - dOffset
+                                println("Distance: $xDistanceError")
+                            }
+                            if (lockModeTemp == "To_Target") {
+                                xDistanceError = xOffset - dOffset
+                                yawOffset = target.bestCameraToTarget.rotation.z.radians.asDegrees
+                                if (yawOffset > 0) {
+                                    yawOffset = 180 - yawOffset
+                                } else if (yawOffset < 0) {
+                                    yawOffset = -180 - yawOffset
+                                }
+                                //println(hOffset)
+                                if (hOffset != 0.0) {
+                                    yawOffset -= atan(hOffset/ dOffset).radians.asDegrees
+                                    println(atan(hOffset/ dOffset).radians.asDegrees)
+                                }
+                                println("${xOffset}")
+                            val latencyError = Drive.poseDiff(result.latencyMillis)
+                                xDistanceError -= latencyError.position.length.feet.asMeters
+                                angleOffset -= latencyError.heading.asDegrees
+                            }
+                            xErrorAverage = xErrorLinearFilter.calculate(xDistanceError)
+                            yawErrorAverage = yawErrorLinearFilter.calculate(yawOffset)
+                            Drive.drive(Vector2((yDistanceError + yawOffset / 60) / (tda / 2), (-xDistanceError) / (tda / 2) ), angleOffset / rda, false)
+                            lockedOn = xDistanceError.absoluteValue < 0.1 && yawOffset.absoluteValue < 2.0
+                            println("XDistanceError: $xDistanceError,(${xErrorAverage}), (${yawErrorAverage}) YawOffset: $yawOffset")
+                            /* if (lockModeTemp == "Field_Centric") {
+                             yawOffset = target.bestCameraToTarget.rotation.z.radians.asDegrees
+                             if (yawOffset > 0) {
+                                 yawOffset = 180 - yawOffset
+                             } else if (yawOffset < 0) {
+                                 yawOffset = -180 - yawOffset
+                             }
+                             var aprilTagOffset = Vector2((xOffset * (90 - yawOffset).degrees.cos() ), (xOffset * (90 - yawOffset).degrees.sin() ))
+                             println("aprilTagOffset $aprilTagOffset")
+                             yawOffset = 0.0
+
+                         }*/
                         }
-                        Drive.drive(Vector2((yDistanceError + yawOffset / 30) / (tda / 2), -xDistanceError / tda), angleOffset / rda, false)
                     }
                 }
                 //println(targets)

@@ -7,13 +7,17 @@ import edu.wpi.first.wpilibj.smartdashboard.SendableChooser
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard
 import org.team2471.frc.lib.coroutines.delay
 import org.team2471.frc.lib.coroutines.parallel
+import org.team2471.frc.lib.coroutines.periodic
 import org.team2471.frc.lib.framework.use
+import org.team2471.frc.lib.math.Vector2
+import org.team2471.frc.lib.motion.following.drive
 import org.team2471.frc.lib.motion.following.driveAlongPath
 import org.team2471.frc.lib.motion_profiling.Autonomi
 import org.team2471.frc.lib.units.degrees
 import org.team2471.frc.lib.util.Timer
 import org.team2471.frc.lib.util.measureTimeFPGA
 import java.io.File
+import kotlin.concurrent.timer
 
 private lateinit var autonomi: Autonomi
 
@@ -74,6 +78,7 @@ object AutoChooser {
         addOption("Left Side 2 Auto", "leftSideAuto")
         addOption("Straight Back Shoot Auto", "straightBackShootAuto")
         addOption("Rotary", "rotaryAuto")
+        addOption("April Test Auto", "April Test Auto ")
 
 
 
@@ -137,6 +142,7 @@ object AutoChooser {
             "Right Side 5 Auto" -> right5v3()
             "Straight Back Shoot Auto" -> straightBackShootAuto()
             "Rotary" -> rotaryAuto()
+            "April Test Auto" -> aprilTestAuto()
             else -> println("No function found for ---->$selAuto<-----  ${Robot.recentTimeTaken()}")
         }
         SmartDashboard.putString("autoStatus", "complete")
@@ -246,6 +252,37 @@ object AutoChooser {
         }
         Feeder.autoFeedMode = false
     }
+
+    suspend fun aprilTestAuto() = use(Drive) {
+        println("In aprilTest auto.")
+        val auto = autonomi["April Test Auto"]
+        if (auto != null) {
+            println("inside april auto")
+            Drive.driveAlongPath(auto["Back Wall To Table"], true, 0.0, true)
+            AprilTag.resetLastResult()
+            println("finished")
+            AprilTag.autoLock = true
+            val t = Timer()
+            t.start()
+            val minWait = 0.5
+            val maxWait = 3.0
+
+            periodic {
+                if (!AprilTag.isAligned && t.get() < maxWait) {
+                    println("${t.get()} locked on = ${AprilTag.autoLock}")
+                  /*  println("failed shoot allGood: ${Shooter.allGood} rpmGood ${Shooter.rpmGood} pitchGood ${Shooter.pitchGood} aimGood ${Shooter.aimGood} ")
+                    doneShooting = true
+                    println("doneShooting after $maxWait sec") */
+                } else if (t.get() > minWait)  {
+                    println("broken out")
+                    stop()
+                }
+            }
+            Drive.drive(Vector2(0.0, 0.0), 0.0, false)
+            AprilTag.autoLock = false
+        }
+    }
+
 
     suspend fun carpetBiasTest() = use(Drive) {
         val auto = autonomi["Carpet Bias Test"]
