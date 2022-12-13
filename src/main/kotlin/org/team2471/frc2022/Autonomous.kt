@@ -52,7 +52,6 @@ object AutoChooser {
     }
 
 
-
     private val testAutoChooser = SendableChooser<String?>().apply {
         addOption("None", null)
         addOption("20 Foot Test", "20 Foot Test")
@@ -68,7 +67,6 @@ object AutoChooser {
         setDefaultOption("90 Degree Turn", "90 Degree Turn")
 
 
-
     }
 
     private val autonomousChooser = SendableChooser<String?>().apply {
@@ -79,8 +77,6 @@ object AutoChooser {
         addOption("Straight Back Shoot Auto", "straightBackShootAuto")
         addOption("Rotary", "rotaryAuto")
         addOption("April Test Auto", "April Test Auto ")
-
-
 
 
     }
@@ -138,10 +134,10 @@ object AutoChooser {
         println("Selected Auto = *****************   $selAuto ****************************  ${Robot.recentTimeTaken()}")
         when (selAuto) {
             "Tests" -> testAuto()
-            "Carpet Bias Test" -> carpetBiasTest()
+//            "Carpet Bias Test" -> carpetBiasTest()
             "Right Side 5 Auto" -> right5v3()
             "Straight Back Shoot Auto" -> straightBackShootAuto()
-            "Rotary" -> rotaryAuto()
+//            "Rotary" -> rotaryAuto()
             "April Test Auto" -> aprilTestAuto()
             else -> println("No function found for ---->$selAuto<-----  ${Robot.recentTimeTaken()}")
         }
@@ -258,74 +254,102 @@ object AutoChooser {
         val auto = autonomi["April Test Auto"]
         if (auto != null) {
             println("inside april auto")
-            Drive.driveAlongPath(auto["Back Wall To Table"], true, 0.0, true)
-            AprilTag.resetLastResult()
-            println("finished")
-            AprilTag.autoLock = true
-            val t = Timer()
-            t.start()
-            val minWait = 0.5
-            val maxWait = 3.0
+            var pathDone = false
+            parallel({
+                Drive.driveAlongPath(auto["Back Wall To Table"], true, 0.0, true)
+                println("Done Driving")
+                pathDone = true
+            }, {
+                periodic {
+                    println("Gone to periodic")
+                    AprilTag.resetLastResult()
+                    if (AprilTag.validTarget) {
+                        Drive.position = Vector2(Drive.position.x + AprilTag.xOffset, Drive.position.y)
+                        println("Modified X offset: ${AprilTag.xOffset} Drive.position.x: ${Drive.position.x}")
+                    }
 
-            periodic {
-                if (!AprilTag.isAligned && t.get() < maxWait) {
-                    println("${t.get()} locked on = ${AprilTag.autoLock}")
-                  /*  println("failed shoot allGood: ${Shooter.allGood} rpmGood ${Shooter.rpmGood} pitchGood ${Shooter.pitchGood} aimGood ${Shooter.aimGood} ")
+
+                    if (pathDone) {
+                        this.stop()
+                    }
+                }
+            })
+
+
+            suspend fun aprilTestAuto2() = use(Drive) {
+                println("In aprilTest auto.")
+                val auto = autonomi["April Test Auto"]
+                if (auto != null) {
+                    println("inside april auto")
+                    Drive.driveAlongPath(auto["Back Wall To Table"], true, 0.0, true)
+                    AprilTag.resetLastResult()
+                    println("finished")
+                    AprilTag.autoLock = true
+                    val t = Timer()
+                    t.start()
+                    val minWait = 0.5
+                    val maxWait = 3.0
+
+                    periodic {
+                        if (!AprilTag.isAligned && t.get() < maxWait) {
+                            println("${t.get()} locked on = ${AprilTag.autoLock}")
+                            /*  println("failed shoot allGood: ${Shooter.allGood} rpmGood ${Shooter.rpmGood} pitchGood ${Shooter.pitchGood} aimGood ${Shooter.aimGood} ")
                     doneShooting = true
                     println("doneShooting after $maxWait sec") */
-                } else if (t.get() > minWait)  {
-                    println("broken out")
-                    stop()
+                        } else if (t.get() > minWait) {
+                            println("broken out")
+                            stop()
+                        }
+                    }
+                    Drive.drive(Vector2(0.0, 0.0), 0.0, false)
+                    AprilTag.autoLock = false
                 }
             }
-            Drive.drive(Vector2(0.0, 0.0), 0.0, false)
-            AprilTag.autoLock = false
-        }
-    }
 
 
-    suspend fun carpetBiasTest() = use(Drive) {
-        val auto = autonomi["Carpet Bias Test"]
-        if (auto != null) {
-            var path = auto["01- Forward"]
-            Drive.driveAlongPath(path, false)
-            path = auto["02- Backward"]
-            Drive.driveAlongPath(path, false)
-            path = auto["03- Left"]
-            Drive.driveAlongPath(path, false)
-            path = auto["04- Forward"]
-            Drive.driveAlongPath(path, false)
-            //path = auto["05- Backward"]
-        }
-    }
+            suspend fun carpetBiasTest() = use(Drive) {
+                val auto = autonomi["Carpet Bias Test"]
+                if (auto != null) {
+                    var path = auto["01- Forward"]
+                    Drive.driveAlongPath(path, false)
+                    path = auto["02- Backward"]
+                    Drive.driveAlongPath(path, false)
+                    path = auto["03- Left"]
+                    Drive.driveAlongPath(path, false)
+                    path = auto["04- Forward"]
+                    Drive.driveAlongPath(path, false)
+                    //path = auto["05- Backward"]
+                }
+            }
 
-    suspend fun test8FtStraight() = use(Drive) {
-        val auto = autonomi["Tests"]
-        if (auto != null) {
-            val path = auto["8 Foot Straight"]
-            Drive.driveAlongPath(path, true)
-        }
-    }
-    suspend fun right5() = use(Drive, Shooter, Intake, Feeder) {
-        Limelight.backLedEnabled = true
-        val auto = autonomi["NewAuto"]
-        if (auto != null) {
-            autoShoot()
-            parallel({
-                Intake.changeAngle(Intake.PIVOT_INTAKE)
-                Intake.setIntakePower(Intake.INTAKE_POWER)
-             }, {
-                Drive.driveAlongPath(auto ["4 - 1st Ball"], true)
-            })
-            delay(0.5)
-            Drive.driveAlongPath(auto["5 - 2nd Ball"], false)
-            autoShoot()
-            Drive.driveAlongPath(auto["2 - Grab balls"], false)
-            delay(0.5)
-            Drive.driveAlongPath(auto["3 - Move"], false)
-            autoShoot()
-        }
-    }
+            suspend fun test8FtStraight() = use(Drive) {
+                val auto = autonomi["Tests"]
+                if (auto != null) {
+                    val path = auto["8 Foot Straight"]
+                    Drive.driveAlongPath(path, true)
+                }
+            }
+
+            suspend fun right5() = use(Drive, Shooter, Intake, Feeder) {
+                Limelight.backLedEnabled = true
+                val auto = autonomi["NewAuto"]
+                if (auto != null) {
+                    autoShoot()
+                    parallel({
+                        Intake.changeAngle(Intake.PIVOT_INTAKE)
+                        Intake.setIntakePower(Intake.INTAKE_POWER)
+                    }, {
+                        Drive.driveAlongPath(auto["4 - 1st Ball"], true)
+                    })
+                    delay(0.5)
+                    Drive.driveAlongPath(auto["5 - 2nd Ball"], false)
+                    autoShoot()
+                    Drive.driveAlongPath(auto["2 - Grab balls"], false)
+                    delay(0.5)
+                    Drive.driveAlongPath(auto["3 - Move"], false)
+                    autoShoot()
+                }
+            }
 
 //    suspend fun rightStraight() = use(Drive, Shooter, Intake, Feeder) {
 //        Limelight.backLedEnabled
@@ -363,91 +387,92 @@ object AutoChooser {
 //    }
 
 
-        suspend fun test8FtCircle() = use(Drive) {
-            val auto = autonomi["Tests"]
-            if (auto != null) {
-                val path = auto["8 Foot Circle"]
-                Drive.driveAlongPath(path, true)
+            suspend fun test8FtCircle() = use(Drive) {
+                val auto = autonomi["Tests"]
+                if (auto != null) {
+                    val path = auto["8 Foot Circle"]
+                    Drive.driveAlongPath(path, true)
+                }
             }
-        }
 
 
-    suspend fun test90DegreeTurn() = use(Drive) {
-        val auto = autonomi["Tests"]
-        if (auto != null) {
-            Drive.driveAlongPath(auto["90 Degree Turn"], true, 2.0)
-        }
-    }
-    suspend fun right5v2() = use(Intake, Shooter, Feeder, Drive) {
-        println("In right5 auto.")
-        val auto = autonomi["Right Side 5 Auto"]
-        if (auto != null) {
-            Limelight.backLedEnabled = true
-            Feeder.autoFeedMode = true
-            parallel({
-                Intake.changeAngle(Intake.PIVOT_INTAKE)
-                Intake.setIntakePower(Intake.INTAKE_POWER)
-            }, {
-                Drive.driveAlongPath(auto["1- First Field Cargo"], true)
-            })
-            delay(0.5)
-            Intake.setIntakePower(0.0)
-            autoShootv2(2, 2.5)
-            Intake.setIntakePower(Intake.INTAKE_POWER)
-            Drive.driveAlongPath(auto["2- Field Cargo"], false)
-            Intake.setIntakePower(0.0)
-            autoShootv2(2, 2.5)
-            Intake.setIntakePower(Intake.INTAKE_POWER)
-            Drive.driveAlongPath(auto["3- Feeder Cargo"])
-            delay(0.5)
-            Drive.driveAlongPath(auto["5- Short Shoot"], false)
-            Intake.setIntakePower(0.0)
-            autoShootv2(2, 4.0)
-            Feeder.autoFeedMode = false
-        }
-    }
+            suspend fun test90DegreeTurn() = use(Drive) {
+                val auto = autonomi["Tests"]
+                if (auto != null) {
+                    Drive.driveAlongPath(auto["90 Degree Turn"], true, 2.0)
+                }
+            }
 
-    suspend fun rotaryAuto() = use(Intake, Shooter, Feeder, Drive) {
-        println("In rotary auto.")
-        val auto = autonomi["Straight Back Shoot Auto Right"]
-        if (auto != null) {
-            intake()
-            Limelight.backLedEnabled = true
-            val firstAuto = auto["Straight Back and Shoot"]
-            Drive.position = firstAuto.getPosition(0.0)
-            Drive.heading = firstAuto.headingCurve.getValue(0.0).degrees
-            delay(2.0)
-            Drive.driveAlongPath(auto["Straight Back and Shoot"], false, 7.0)
-            parallel({
-                autoShootv2(1, 4.0, 1.0)
-            }, {
-                powerSave()
-                Intake.changeAngle(Intake.PIVOT_INTAKE)
-            })
-        }
-        Feeder.autoFeedMode = false
-    }
+            suspend fun right5v2() = use(Intake, Shooter, Feeder, Drive) {
+                println("In right5 auto.")
+                val auto = autonomi["Right Side 5 Auto"]
+                if (auto != null) {
+                    Limelight.backLedEnabled = true
+                    Feeder.autoFeedMode = true
+                    parallel({
+                        Intake.changeAngle(Intake.PIVOT_INTAKE)
+                        Intake.setIntakePower(Intake.INTAKE_POWER)
+                    }, {
+                        Drive.driveAlongPath(auto["1- First Field Cargo"], true)
+                    })
+                    delay(0.5)
+                    Intake.setIntakePower(0.0)
+                    autoShootv2(2, 2.5)
+                    Intake.setIntakePower(Intake.INTAKE_POWER)
+                    Drive.driveAlongPath(auto["2- Field Cargo"], false)
+                    Intake.setIntakePower(0.0)
+                    autoShootv2(2, 2.5)
+                    Intake.setIntakePower(Intake.INTAKE_POWER)
+                    Drive.driveAlongPath(auto["3- Feeder Cargo"])
+                    delay(0.5)
+                    Drive.driveAlongPath(auto["5- Short Shoot"], false)
+                    Intake.setIntakePower(0.0)
+                    autoShootv2(2, 4.0)
+                    Feeder.autoFeedMode = false
+                }
+            }
 
-    suspend fun other1() = use(Intake, Shooter, Feeder, Drive) {
-        println("In other1 auto.")
-        val auto = autonomi["1 Ball"]
-        if (auto != null) {
-            intake()
-            Limelight.backLedEnabled = true
-            val firstAuto = auto["Path1"]
-            Drive.position = firstAuto.getPosition(0.0)
-            Drive.heading = firstAuto.headingCurve.getValue(0.0).degrees
-            delay(1.0)
-            Drive.driveAlongPath(auto["Path1"], false)
-            parallel({
-                autoShootv2(1, 4.0, 1.0)
-            }, {
-                powerSave()
-                Intake.changeAngle(Intake.PIVOT_INTAKE)
-            })
-        }
-        Feeder.autoFeedMode = false
-    }
+            suspend fun rotaryAuto() = use(Intake, Shooter, Feeder, Drive) {
+                println("In rotary auto.")
+                val auto = autonomi["Straight Back Shoot Auto Right"]
+                if (auto != null) {
+                    intake()
+                    Limelight.backLedEnabled = true
+                    val firstAuto = auto["Straight Back and Shoot"]
+                    Drive.position = firstAuto.getPosition(0.0)
+                    Drive.heading = firstAuto.headingCurve.getValue(0.0).degrees
+                    delay(2.0)
+                    Drive.driveAlongPath(auto["Straight Back and Shoot"], false, 7.0)
+                    parallel({
+                        autoShootv2(1, 4.0, 1.0)
+                    }, {
+                        powerSave()
+                        Intake.changeAngle(Intake.PIVOT_INTAKE)
+                    })
+                }
+                Feeder.autoFeedMode = false
+            }
+
+            suspend fun other1() = use(Intake, Shooter, Feeder, Drive) {
+                println("In other1 auto.")
+                val auto = autonomi["1 Ball"]
+                if (auto != null) {
+                    intake()
+                    Limelight.backLedEnabled = true
+                    val firstAuto = auto["Path1"]
+                    Drive.position = firstAuto.getPosition(0.0)
+                    Drive.heading = firstAuto.headingCurve.getValue(0.0).degrees
+                    delay(1.0)
+                    Drive.driveAlongPath(auto["Path1"], false)
+                    parallel({
+                        autoShootv2(1, 4.0, 1.0)
+                    }, {
+                        powerSave()
+                        Intake.changeAngle(Intake.PIVOT_INTAKE)
+                    })
+                }
+                Feeder.autoFeedMode = false
+            }
 
 //
 //    suspend fun leftSideAuto() = use(Drive, Shooter, Intake) {
@@ -496,5 +521,7 @@ object AutoChooser {
 //                shoot()
 //            }
 //        }
-    //}
+            //}
+        }
+    }
 }

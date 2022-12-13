@@ -37,6 +37,8 @@ object AprilTag : Subsystem("AprilTag") {
     private val distanceOffset = photonVisionTable.getEntry("Distance Offset In")
     var autoLock = false
     var lockedOn = false
+    var xOffset = 0.0
+    var validTarget = false
     val xErrorLinearFilter = LinearFilter.movingAverage(4)
     var xErrorAverage = 0.0
     val yawErrorLinearFilter = LinearFilter.movingAverage(4)
@@ -149,6 +151,7 @@ object AprilTag : Subsystem("AprilTag") {
 
     override suspend fun default() {
         periodic {
+            validTarget = false
             //println(hasTargetEntry.getBoolean(false))
             if(driverController.a) {
                 resetLastResult()
@@ -166,12 +169,14 @@ object AprilTag : Subsystem("AprilTag") {
             if (result.timestampSeconds <= last_result_time + 0.5) {
                // println("${hasTargets}")
                 if (hasTargets) {
+
                     last_result_time = result.timestampSeconds
-                    val targets: List<PhotonTrackedTarget> = result.getTargets()
+                    val targets: List<PhotonTrackedTarget> = result.getTargets().filter {it.fiducialId == tagId && it.poseAmbiguity < 0.2}
                     for (target in targets){
                         //println(target.fiducialId)
-                        if (target.fiducialId == tagId && (driverController.a || autoLock)) {
-                            val xOffset = target.bestCameraToTarget.x
+                        validTarget = true
+                        xOffset = target.bestCameraToTarget.y/ tda
+                        if (driverController.a || autoLock) {
                             val yOffset = target.bestCameraToTarget.y
                             var yawOffset = 0.0
                             var angleOffset = 0.0
