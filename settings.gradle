@@ -25,4 +25,4 @@ pluginManagement {
         }
     }
 }
-includeBuild('meanlib')
+include('meanlib')
