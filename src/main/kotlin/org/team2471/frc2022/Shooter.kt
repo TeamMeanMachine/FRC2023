@@ -2,7 +2,7 @@ package org.team2471.frc2022
 
 import com.revrobotics.ColorSensorV3
 import edu.wpi.first.math.filter.LinearFilter
-import edu.wpi.first.networktables.EntryListenerFlags
+//import edu.wpi.first.networktables.EntryListenerFlags
 import edu.wpi.first.networktables.NetworkTableInstance
 import edu.wpi.first.wpilibj.DriverStation
 import edu.wpi.first.wpilibj.DutyCycleEncoder
@@ -283,22 +283,22 @@ object Shooter : Subsystem("Shooter") {
             frontRPM20Entry.setPersistent()
         }
 
-        frontPitch5Entry.addListener({ event -> rebuildCurves() }, EntryListenerFlags.kNew or EntryListenerFlags.kUpdate)
-        frontPitch10Entry.addListener({ event -> rebuildCurves() }, EntryListenerFlags.kNew or EntryListenerFlags.kUpdate)
-        frontPitch15Entry.addListener({ event -> rebuildCurves() }, EntryListenerFlags.kNew or EntryListenerFlags.kUpdate)
-        frontPitch20Entry.addListener({ event -> rebuildCurves() }, EntryListenerFlags.kNew or EntryListenerFlags.kUpdate)
-        backPitch5Entry.addListener({ event -> rebuildCurves() }, EntryListenerFlags.kNew or EntryListenerFlags.kUpdate)
-        backPitch10Entry.addListener({ event -> rebuildCurves() }, EntryListenerFlags.kNew or EntryListenerFlags.kUpdate)
-        backPitch15Entry.addListener({ event -> rebuildCurves() }, EntryListenerFlags.kNew or EntryListenerFlags.kUpdate)
-        backPitch20Entry.addListener({ event -> rebuildCurves() }, EntryListenerFlags.kNew or EntryListenerFlags.kUpdate)
-        frontRPM5Entry.addListener({ event -> rebuildCurves() }, EntryListenerFlags.kNew or EntryListenerFlags.kUpdate)
-        frontRPM10Entry.addListener({ event -> rebuildCurves() }, EntryListenerFlags.kNew or EntryListenerFlags.kUpdate)
-        frontRPM15Entry.addListener({ event -> rebuildCurves() }, EntryListenerFlags.kNew or EntryListenerFlags.kUpdate)
-        frontRPM20Entry.addListener({ event -> rebuildCurves() }, EntryListenerFlags.kNew or EntryListenerFlags.kUpdate)
-        backRPM5Entry.addListener({ event -> rebuildCurves() }, EntryListenerFlags.kNew or EntryListenerFlags.kUpdate)
-        backRPM10Entry.addListener({ event -> rebuildCurves() }, EntryListenerFlags.kNew or EntryListenerFlags.kUpdate)
-        backRPM15Entry.addListener({ event -> rebuildCurves() }, EntryListenerFlags.kNew or EntryListenerFlags.kUpdate)
-        backRPM20Entry.addListener({ event -> rebuildCurves() }, EntryListenerFlags.kNew or EntryListenerFlags.kUpdate)
+//        frontPitch5Entry.addListener({ event -> rebuildCurves() }, EntryListenerFlags.kNew or EntryListenerFlags.kUpdate)
+//        frontPitch10Entry.addListener({ event -> rebuildCurves() }, EntryListenerFlags.kNew or EntryListenerFlags.kUpdate)
+//        frontPitch15Entry.addListener({ event -> rebuildCurves() }, EntryListenerFlags.kNew or EntryListenerFlags.kUpdate)
+//        frontPitch20Entry.addListener({ event -> rebuildCurves() }, EntryListenerFlags.kNew or EntryListenerFlags.kUpdate)
+//        backPitch5Entry.addListener({ event -> rebuildCurves() }, EntryListenerFlags.kNew or EntryListenerFlags.kUpdate)
+//        backPitch10Entry.addListener({ event -> rebuildCurves() }, EntryListenerFlags.kNew or EntryListenerFlags.kUpdate)
+//        backPitch15Entry.addListener({ event -> rebuildCurves() }, EntryListenerFlags.kNew or EntryListenerFlags.kUpdate)
+//        backPitch20Entry.addListener({ event -> rebuildCurves() }, EntryListenerFlags.kNew or EntryListenerFlags.kUpdate)
+//        frontRPM5Entry.addListener({ event -> rebuildCurves() }, EntryListenerFlags.kNew or EntryListenerFlags.kUpdate)
+//        frontRPM10Entry.addListener({ event -> rebuildCurves() }, EntryListenerFlags.kNew or EntryListenerFlags.kUpdate)
+//        frontRPM15Entry.addListener({ event -> rebuildCurves() }, EntryListenerFlags.kNew or EntryListenerFlags.kUpdate)
+//        frontRPM20Entry.addListener({ event -> rebuildCurves() }, EntryListenerFlags.kNew or EntryListenerFlags.kUpdate)
+//        backRPM5Entry.addListener({ event -> rebuildCurves() }, EntryListenerFlags.kNew or EntryListenerFlags.kUpdate)
+//        backRPM10Entry.addListener({ event -> rebuildCurves() }, EntryListenerFlags.kNew or EntryListenerFlags.kUpdate)
+//        backRPM15Entry.addListener({ event -> rebuildCurves() }, EntryListenerFlags.kNew or EntryListenerFlags.kUpdate)
+//        backRPM20Entry.addListener({ event -> rebuildCurves() }, EntryListenerFlags.kNew or EntryListenerFlags.kUpdate)
 
 
         rebuildCurves()

@@ -1,6 +1,6 @@
 package org.team2471.frc2022
 
-import edu.wpi.first.networktables.EntryListenerFlags
+import edu.wpi.first.networktables.NetworkTableEvent
 import edu.wpi.first.networktables.NetworkTableInstance
 import edu.wpi.first.wpilibj.DriverStation
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser
@@ -14,6 +14,7 @@ import org.team2471.frc.lib.units.degrees
 import org.team2471.frc.lib.util.Timer
 import org.team2471.frc.lib.util.measureTimeFPGA
 import java.io.File
+import java.util.*
 
 private lateinit var autonomi: Autonomi
 
@@ -33,6 +34,7 @@ private var startingSide = Side.RIGHT
 
 object AutoChooser {
     private val isRedAllianceEntry = NetworkTableInstance.getDefault().getTable("FMSInfo").getEntry("isRedAlliance")
+    private var autonomiEntryTopicSub = NetworkTableInstance.getDefault().getTable("PathVisualizer").getStringTopic("Autonomi").subscribe("")
 
     var cacheFile: File? = null
     var redSide: Boolean = true
@@ -100,11 +102,9 @@ object AutoChooser {
             autonomi = Autonomi()
         }
         println("In Auto Init. Before AddListener. Hi.")
-        NetworkTableInstance.getDefault()
-            .getTable("PathVisualizer")
-            .getEntry("Autonomi").addListener({ event ->
+        NetworkTableInstance.getDefault().addListener(autonomiEntryTopicSub, EnumSet.of(NetworkTableEvent.Kind.kImmediate, NetworkTableEvent.Kind.kPublish, NetworkTableEvent.Kind.kValueAll)) { event ->
                 println("Automous change detected")
-                val json = event.value.string
+                val json = event.valueData.value.string
                 if (json.isNotEmpty()) {
                     val t = measureTimeFPGA {
                         autonomi = Autonomi.fromJsonString(json) ?: Autonomi()
@@ -121,7 +121,7 @@ object AutoChooser {
                     autonomi = Autonomi()
                     DriverStation.reportWarning("Empty autonomi received from network tables", false)
                 }
-            }, EntryListenerFlags.kImmediate or EntryListenerFlags.kNew or EntryListenerFlags.kUpdate)
+            }
     }
 
     suspend fun autonomous() = use(Drive, name = "Autonomous") {
