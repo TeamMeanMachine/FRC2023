@@ -104,7 +104,7 @@ object AutoChooser {
         println("In Auto Init. Before AddListener. Hi.")
         NetworkTableInstance.getDefault().addListener(autonomiEntryTopicSub, EnumSet.of(NetworkTableEvent.Kind.kImmediate, NetworkTableEvent.Kind.kPublish, NetworkTableEvent.Kind.kValueAll)) { event ->
                 println("Automous change detected")
-                val json = event.valueData.value.string
+                val json = event.valueData?.value?.string ?: ""
                 if (json.isNotEmpty()) {
                     val t = measureTimeFPGA {
                         autonomi = Autonomi.fromJsonString(json) ?: Autonomi()
@@ -323,22 +323,6 @@ object AutoChooser {
 //        }
 //    }
 
-
-        suspend fun test8FtCircle() = use(Drive) {
-            val auto = autonomi["Tests"]
-            if (auto != null) {
-                val path = auto["8 Foot Circle"]
-                Drive.driveAlongPath(path, true)
-            }
-        }
-
-
-    suspend fun test90DegreeTurn() = use(Drive) {
-        val auto = autonomi["Tests"]
-        if (auto != null) {
-            Drive.driveAlongPath(auto["90 Degree Turn"], true, 2.0)
-        }
-    }
     suspend fun right5v2() = use(Intake, Shooter, Feeder, Drive) {
         println("In right5 auto.")
         val auto = autonomi["Right Side 5 Auto"]
