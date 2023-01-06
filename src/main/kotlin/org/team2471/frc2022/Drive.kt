@@ -407,7 +407,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
     fun initializeSteeringMotors() {
         for (moduleCount in 0..3) {
             val module = (modules[moduleCount] as Module)
-            module.turnMotor.setRawOffset(module.analogAngle)
+            module.turnMotor.setRawOffset(module.analogAngle.asDegrees)
             println("Module: $moduleCount analogAngle: ${module.analogAngle}")
         }
     }
@@ -511,7 +511,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
             turnMotor.config(20) {
                 // this was from lil bois bench test of swerve
                 feedbackCoefficient = 360.0 / 2048.0 / 21.65  // ~111 ticks per degree // spark max-neo 360.0 / 42.0 / 19.6 // degrees per tick
-                setRawOffsetConfig(analogAngle)
+                setRawOffsetConfig(analogAngle.asDegrees)
                 inverted(true)
                 setSensorPhase(false)
                 pid {

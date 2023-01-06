@@ -121,7 +121,7 @@ object Climb : Subsystem("Climb") {
 //                p(0.000000012) //0.000000008) //2e-8) //1e-5)
 //                d(1e-7)
             }
-            setRawOffsetConfig(angle.degrees) //(-4.5).degrees)
+            setRawOffsetConfig(angle) //(-4.5).degrees)
             currentLimit(45, 50, 1)      //not tested yet but these values after looking at current graph 3/30
         }
         heightMotor.position = 1.0
@@ -159,7 +159,7 @@ object Climb : Subsystem("Climb") {
 
 //                    println("angle: $angle      f: $angleFeedForward")
 
-                    angleMotor.setRawOffset(angle.degrees)
+                    angleMotor.setRawOffset(angle)
                     if ((climbMode && !bungeeTakeOver) || OI.operatorRightX.absoluteValue > 0.1) {
                             if (OI.operatorRightX.absoluteValue > 0.1) {
                                 angleSetpoint += OI.operatorRightX * 0.1
@@ -218,7 +218,7 @@ object Climb : Subsystem("Climb") {
     }
 
     fun zeroClimb() {
-        heightMotor.setRawOffset(0.0.radians)
+        heightMotor.setRawOffset(0.0.toDouble())
         heightSetpoint = 0.0
     }
     fun angleChangeTime(target: Double) : Double {
