@@ -1,4 +1,4 @@
 [submodule "meanlib"]
 	path = meanlib
 	url = https://github.com/TeamMeanMachine/meanlib.git
-	branch = frc2020
+	branch = frc2023
