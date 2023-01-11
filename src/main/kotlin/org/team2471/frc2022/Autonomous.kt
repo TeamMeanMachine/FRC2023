@@ -248,63 +248,105 @@ object AutoChooser {
         }
         Feeder.autoFeedMode = false
     }
+//    suspend fun aprilTestAuto() = use (Drive) {
+//        val auto = autonomi["Bunny Bot Simple"]
+//        if(auto != null) {
+//            var pathDone = false
+//            var path = auto["1 - Forward"]
+//            parallel ({
+//                Drive.driveAlongPath(path, true, 0.0, true)
+//                pathDone = true
+//            }, {
+//                periodic {
+//                    println("Gone to periodic")
+//                    AprilTag.resetLastResult()
+//                    if (AprilTag.validTarget) {
+//                        Drive.position = Vector2(Drive.position.x + AprilTag.xOffset, Drive.position.y)
+//                        println("Modified X offset: ${AprilTag.xOffset} Drive.position.x: ${Drive.position.x}")
+//                    }
+//
+//
+//                    if (pathDone) {
+//                        this.stop()
+//                    }
+//            }})
+////            path = auto["2 - Forward Again"]
+////            Drive.driveAlongPath(path, resetOdometry = false)
+////            parallel({
+////                Armavator.goToOverBinPose()
+////                Armavator.suckMotor.setPercentOutput(-1.0)
+////                Armavator.spitMotor.setPercentOutput(-1.0)
+////                delay(1.0)
+////                Armavator.suckMotor.setPercentOutput(0.0)
+////                Armavator.spitMotor.setPercentOutput(0.0)
+////            }, {
+////                DepthCharge.score(false)
+////            })
+////            Armavator.goToDrivePose()
+//            path = auto["3 - Bin Backup"]
+//            Drive.driveAlongPath(path, false)
+//        }
+//    }
 
     suspend fun aprilTestAuto() = use(Drive) {
+
         println("In aprilTest auto.")
         val auto = autonomi["April Test Auto"]
         if (auto != null) {
-            println("inside april auto")
+//            println("inside april auto")
             var pathDone = false
-            parallel({
-                Drive.driveAlongPath(auto["Back Wall To Table"], true, 0.0, true)
-                println("Done Driving")
-                pathDone = true
-            }, {
-                periodic {
-                    println("Gone to periodic")
-                    AprilTag.resetLastResult()
-                    if (AprilTag.validTarget) {
-                        Drive.position = Vector2(Drive.position.x + AprilTag.xOffset, Drive.position.y)
-                        println("Modified X offset: ${AprilTag.xOffset} Drive.position.x: ${Drive.position.x}")
-                    }
+
+            Drive.driveAlongPath(auto["test"], true, 0.0, true)
+//          println("Done Driving")
+//            pathDone = true
+//                periodic {
+////                    println("Gone to periodic")
+//                    AprilTag.resetLastResult()
+////                    if (Drive.position.y <= -5.0) {
+////
+////                        if (AprilTag.validTarget && !AprilTag.xOffsetRepeat) {
+////                            println("Drive.position.y = ${Drive.position.y}")
+////                            Drive.position = Vector2(Drive.position.x + AprilTag.xOffset, Drive.position.y)
+//////                        println("Modified X offset: ${AprilTag.xOffset} Drive.position.x: ${Drive.position.x}")
+////                        }
+////                    }
+//
+//                    if (pathDone) {
+//                        this.stop()
+//                    }
+//                }
+//            })
 
 
-                    if (pathDone) {
-                        this.stop()
-                    }
-                }
-            })
-
-
-            suspend fun aprilTestAuto2() = use(Drive) {
-                println("In aprilTest auto.")
-                val auto = autonomi["April Test Auto"]
-                if (auto != null) {
-                    println("inside april auto")
-                    Drive.driveAlongPath(auto["Back Wall To Table"], true, 0.0, true)
-                    AprilTag.resetLastResult()
-                    println("finished")
-                    AprilTag.autoLock = true
-                    val t = Timer()
-                    t.start()
-                    val minWait = 0.5
-                    val maxWait = 3.0
-
-                    periodic {
-                        if (!AprilTag.isAligned && t.get() < maxWait) {
-                            println("${t.get()} locked on = ${AprilTag.autoLock}")
-                            /*  println("failed shoot allGood: ${Shooter.allGood} rpmGood ${Shooter.rpmGood} pitchGood ${Shooter.pitchGood} aimGood ${Shooter.aimGood} ")
-                    doneShooting = true
-                    println("doneShooting after $maxWait sec") */
-                        } else if (t.get() > minWait) {
-                            println("broken out")
-                            stop()
-                        }
-                    }
-                    Drive.drive(Vector2(0.0, 0.0), 0.0, false)
-                    AprilTag.autoLock = false
-                }
-            }
+//            suspend fun aprilTestAuto2() = use(Drive) {
+//                println("In aprilTest auto.")
+//                val auto = autonomi["April Test Auto"]
+//                if (auto != null) {
+//                    println("inside april auto")
+//                    Drive.driveAlongPath(auto["Back Wall To Table"], true, 0.0, true)
+//                    AprilTag.resetLastResult()
+//                    println("finished")
+//                    AprilTag.autoLock = true
+//                    val t = Timer()
+//                    t.start()
+//                    val minWait = 0.5
+//                    val maxWait = 3.0
+//
+//                    periodic {
+//                        if (!AprilTag.isAligned && t.get() < maxWait) {
+//                            println("${t.get()} locked on = ${AprilTag.autoLock}")
+//                            /*  println("failed shoot allGood: ${Shooter.allGood} rpmGood ${Shooter.rpmGood} pitchGood ${Shooter.pitchGood} aimGood ${Shooter.aimGood} ")
+//                    doneShooting = true
+//                    println("doneShooting after $maxWait sec") */
+//                        } else if (t.get() > minWait) {
+//                            println("broken out")
+//                            stop()
+//                        }
+//                    }
+//                    Drive.drive(Vector2(0.0, 0.0), 0.0, false)
+//                    AprilTag.autoLock = false
+//                }
+//            }
 
 
             suspend fun carpetBiasTest() = use(Drive) {
@@ -522,6 +564,4 @@ object AutoChooser {
 //            }
 //        }
             //}
-        }
-    }
-}
+        }}}
