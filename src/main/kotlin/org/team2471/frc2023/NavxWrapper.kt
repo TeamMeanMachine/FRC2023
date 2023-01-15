@@ -1,4 +1,4 @@
-package org.team2471.frc2022
+package org.team2471.frc2023
 
 import com.kauailabs.navx.frc.AHRS
 import edu.wpi.first.wpilibj.SPI
@@ -24,8 +24,4 @@ class NavxWrapper : Gyro {
     override fun calibrate() = Unit
 
     override fun reset() = navx.reset()
-
-    //override fun free() = navx.free()
-
-    fun getNavX() = navx
 }
