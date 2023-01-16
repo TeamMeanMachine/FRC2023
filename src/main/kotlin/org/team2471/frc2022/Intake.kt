@@ -237,7 +237,7 @@ object Intake : Subsystem("Intake") {
 
     fun resetPivotOffset(){
         println("resetting intake pivot rawOffset ${pivotAngle.degrees}")
-        intakePivotMotor.setRawOffset(pivotAngle.degrees)
+        intakePivotMotor.setRawOffset(pivotAngle)
         pivotDriverOffset = 0.0
         pivotSetpoint = pivotAngle
     }
