@@ -19,6 +19,7 @@ object AprilTag : Subsystem("AprilTag") {
     private val photonVisionTable = NetworkTableInstance.getDefault().getTable("photonvision")
     private val translationDampenAmount = photonVisionTable.getEntry("Tranlsation Dampen Amount")
     private val tagTable = photonVisionTable.getSubTable("camFront")
+    //hello there
     private val tagIdEntry = photonVisionTable.getEntry("tagid")
     var xOffset = 0.0
     var validTarget = false
