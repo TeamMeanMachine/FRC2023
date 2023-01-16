@@ -18,7 +18,7 @@ import org.team2471.frc2022.OI.driverController
 object AprilTag : Subsystem("AprilTag") {
     private val photonVisionTable = NetworkTableInstance.getDefault().getTable("photonvision")
     private val translationDampenAmount = photonVisionTable.getEntry("Tranlsation Dampen Amount")
-    private val tagTable = photonVisionTable.getSubTable("HD_USB_Camera")
+    private val tagTable = photonVisionTable.getSubTable("camFront")
     private val tagIdEntry = photonVisionTable.getEntry("tagid")
     var xOffset = 0.0
     var validTarget = false
@@ -27,7 +27,7 @@ object AprilTag : Subsystem("AprilTag") {
 //    var xErrorAverage = 0.0
 //    val yawErrorLinearFilter = LinearFilter.movingAverage(4)
 //    var yawErrorAverage = 0.0
-    var camera = PhotonCamera("HD_USB_Camera")
+    var camera = PhotonCamera("camFront")
 
 
     //    private val thresholdTable = frontTable.getSubTable("thresholds")
