@@ -2,8 +2,8 @@ import edu.wpi.first.gradlerio.GradleRIOPlugin
 
 plugins {
     id "java"
-    id "org.jetbrains.kotlin.jvm" version "1.5.31"
-    id "edu.wpi.first.GradleRIO" version "2023.1.1-beta-7"
+    id "org.jetbrains.kotlin.jvm" version "1.7.20"
+    id "edu.wpi.first.GradleRIO" version "2023.2.1"
     id "com.github.gmazzo.buildconfig" version "3.0.0"
 }
 
@@ -61,8 +61,8 @@ repositories {
 dependencies {
     implementation project("meanlib")
 
-    implementation "org.photonvision:PhotonLib-java:v2023.1.1-beta-6"
-    implementation "org.photonvision:PhotonTargeting-java:v2023.1.1-beta-6"
+    implementation "org.photonvision:PhotonLib-java:v2023.1.2"
+    implementation "org.photonvision:PhotonTargeting-java:v2023.1.2"
 
 
     implementation wpi.java.deps.wpilib()
@@ -116,10 +116,10 @@ wrapper {
 }
 
 compileKotlin {
-    kotlinOptions.jvmTarget = JavaVersion.VERSION_11
+    kotlinOptions.jvmTarget = JavaVersion.VERSION_17
     kotlinOptions.freeCompilerArgs += "-Xopt-in=kotlin.RequiresOptIn"
 
-    sourceCompatibility = JavaVersion.VERSION_11
-    targetCompatibility = JavaVersion.VERSION_11
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
 }
 
