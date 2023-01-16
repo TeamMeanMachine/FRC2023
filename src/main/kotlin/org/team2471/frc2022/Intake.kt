@@ -7,6 +7,7 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.team2471.frc.lib.actuators.FalconID
 import org.team2471.frc.lib.actuators.MotorController
+import org.team2471.frc.lib.actuators.SparkMaxID
 import org.team2471.frc.lib.actuators.TalonID
 import org.team2471.frc.lib.control.PDController
 import org.team2471.frc.lib.coroutines.MeanlibDispatcher
@@ -26,6 +27,7 @@ object Intake : Subsystem("Intake") {
 
     val intakeMotor = MotorController(TalonID(Talons.INTAKE))
     val intakePivotMotor = MotorController(FalconID(Falcons.INTAKE_PIVOT))
+
 
     private val table = NetworkTableInstance.getDefault().getTable(Intake.name)
     val currentEntry = table.getEntry("Current")
@@ -120,6 +122,7 @@ object Intake : Subsystem("Intake") {
                 } else if (isCompBot) {
                     println("Intake not reset")
                 }
+
 //                else {
 //                    intakePivotMotor.setRawOffset(PIVOT_BOTTOM.degrees)
 //                    pivotSetpoint = PIVOT_BOTTOM
@@ -298,6 +301,7 @@ object Intake : Subsystem("Intake") {
     override suspend fun default() {
         periodic {
             pivotMotorEntry.setDouble(intakePivotMotor.position)
+
             //currentEntry.setDouble(Shooter.shootingMotor.current)
         }
     //    print(":)")

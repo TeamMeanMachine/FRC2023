@@ -1,6 +1,6 @@
 package org.team2471.frc2022
 
-import edu.wpi.first.networktables.EntryListenerFlags
+import edu.wpi.first.networktables.NetworkTableEvent
 import edu.wpi.first.networktables.NetworkTableInstance
 import edu.wpi.first.wpilibj.DriverStation
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser
@@ -18,6 +18,7 @@ import org.team2471.frc.lib.util.Timer
 import org.team2471.frc.lib.util.measureTimeFPGA
 import java.io.File
 import kotlin.concurrent.timer
+import java.util.*
 
 private lateinit var autonomi: Autonomi
 
@@ -37,6 +38,7 @@ private var startingSide = Side.RIGHT
 
 object AutoChooser {
     private val isRedAllianceEntry = NetworkTableInstance.getDefault().getTable("FMSInfo").getEntry("isRedAlliance")
+    private var autonomiEntryTopicSub = NetworkTableInstance.getDefault().getTable("PathVisualizer").getStringTopic("Autonomi").subscribe("")
 
     var cacheFile: File? = null
     var redSide: Boolean = true
@@ -51,7 +53,6 @@ object AutoChooser {
         addOption("take me home", "take me home")
     }
 
-
     private val testAutoChooser = SendableChooser<String?>().apply {
         addOption("None", null)
         addOption("20 Foot Test", "20 Foot Test")
@@ -65,6 +66,7 @@ object AutoChooser {
         addOption("8 Foot Circle", "8 Foot Circle")
         addOption("Hook Path", "Hook Path")
         setDefaultOption("90 Degree Turn", "90 Degree Turn")
+
 
 
     }
@@ -103,11 +105,9 @@ object AutoChooser {
             autonomi = Autonomi()
         }
         println("In Auto Init. Before AddListener. Hi.")
-        NetworkTableInstance.getDefault()
-            .getTable("PathVisualizer")
-            .getEntry("Autonomi").addListener({ event ->
+        NetworkTableInstance.getDefault().addListener(autonomiEntryTopicSub, EnumSet.of(NetworkTableEvent.Kind.kImmediate, NetworkTableEvent.Kind.kPublish, NetworkTableEvent.Kind.kValueAll)) { event ->
                 println("Automous change detected")
-                val json = event.value.string
+                val json = event.valueData?.value?.string ?: ""
                 if (json.isNotEmpty()) {
                     val t = measureTimeFPGA {
                         autonomi = Autonomi.fromJsonString(json) ?: Autonomi()
@@ -124,7 +124,7 @@ object AutoChooser {
                     autonomi = Autonomi()
                     DriverStation.reportWarning("Empty autonomi received from network tables", false)
                 }
-            }, EntryListenerFlags.kImmediate or EntryListenerFlags.kNew or EntryListenerFlags.kUpdate)
+            }
     }
 
     suspend fun autonomous() = use(Drive, name = "Autonomous") {
@@ -473,6 +473,34 @@ object AutoChooser {
                     Feeder.autoFeedMode = false
                 }
             }
+    suspend fun right5v2() = use(Intake, Shooter, Feeder, Drive) {
+        println("In right5 auto.")
+        val auto = autonomi["Right Side 5 Auto"]
+        if (auto != null) {
+            Limelight.backLedEnabled = true
+            Feeder.autoFeedMode = true
+            parallel({
+                Intake.changeAngle(Intake.PIVOT_INTAKE)
+                Intake.setIntakePower(Intake.INTAKE_POWER)
+            }, {
+                Drive.driveAlongPath(auto["1- First Field Cargo"], true)
+            })
+            delay(0.5)
+            Intake.setIntakePower(0.0)
+            autoShootv2(2, 2.5)
+            Intake.setIntakePower(Intake.INTAKE_POWER)
+            Drive.driveAlongPath(auto["2- Field Cargo"], false)
+            Intake.setIntakePower(0.0)
+            autoShootv2(2, 2.5)
+            Intake.setIntakePower(Intake.INTAKE_POWER)
+            Drive.driveAlongPath(auto["3- Feeder Cargo"])
+            delay(0.5)
+            Drive.driveAlongPath(auto["5- Short Shoot"], false)
+            Intake.setIntakePower(0.0)
+            autoShootv2(2, 4.0)
+            Feeder.autoFeedMode = false
+        }
+    }
 
             suspend fun rotaryAuto() = use(Intake, Shooter, Feeder, Drive) {
                 println("In rotary auto.")
