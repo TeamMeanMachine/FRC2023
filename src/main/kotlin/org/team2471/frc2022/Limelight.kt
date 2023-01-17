@@ -1,15 +1,20 @@
 package org.team2471.frc2022
 
+import edu.wpi.first.apriltag.AprilTagFieldLayout
+import edu.wpi.first.apriltag.AprilTagFields
+import edu.wpi.first.math.Pair
 import edu.wpi.first.math.filter.LinearFilter
+import edu.wpi.first.math.geometry.*
 import edu.wpi.first.networktables.NetworkTableInstance
 import edu.wpi.first.wpilibj.DriverStation
+import edu.wpi.first.wpilibj.Timer.getFPGATimestamp
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import org.team2471.frc2022.Drive.gyro
-import org.team2471.frc2022.Drive.heading
+import org.photonvision.PhotonCamera
+import org.photonvision.RobotPoseEstimator
 import org.team2471.frc.lib.coroutines.MeanlibDispatcher
 import org.team2471.frc.lib.coroutines.halt
 import org.team2471.frc.lib.coroutines.periodic
@@ -17,6 +22,9 @@ import org.team2471.frc.lib.framework.Subsystem
 import org.team2471.frc.lib.math.Vector2
 import org.team2471.frc.lib.motion_profiling.MotionCurve
 import org.team2471.frc.lib.units.*
+import org.team2471.frc2022.Drive.gyro
+import org.team2471.frc2022.Drive.heading
+import java.util.*
 import kotlin.math.*
 
 @OptIn(DelicateCoroutinesApi::class)
@@ -47,6 +55,29 @@ object Limelight : Subsystem("Front Limelight") {
     private var positionXEntry = combinedTable.getEntry("PositionX")
     private var positionYEntry = combinedTable.getEntry("PositionY")
     private var aimErrorEntry = combinedTable.getEntry("Aim Error")
+    val cam = PhotonCamera("camFront")
+
+//    var robotToCam: Transform3d = Transform3d(
+//        Translation3d(17.inches.asMeters, 8.5.inches.asMeters, 24.inches.asMeters),
+//        Rotation3d(0.0, 0.0, 0.0)
+//    ) //Cam mounted facing forward, half a meter forward of center, half a meter up from center.
+//    var camList = MutableList<Pair<PhotonCamera, Transform3d>>(1) {
+//        edu.wpi.first.math.Pair(cam, robotToCam )
+//    }
+//    val aprilField = AprilTagFieldLayout.loadFromResource(AprilTagFields.k2022RapidReact.m_resourceFile)
+//
+//    val robotPoseEstimator = RobotPoseEstimator(aprilField, RobotPoseEstimator.PoseStrategy.LOWEST_AMBIGUITY, camList)
+//
+//    fun getEstimatedGlobalPose(): Pair<Pose2d?, Double>? {
+//        //robotPoseEstimator.setReferencePose(prevEstimatedRobotPose)
+//        val result: Optional<Pair<Pose3d, Double>> = robotPoseEstimator.update()
+//        return if (result.isPresent) {
+//            //println("Has Result")
+//            Pair<Pose2d?, Double>(result.get().first.toPose2d(), result.get().second)
+//        } else {
+//            Pair(null, 0.0)
+//        }
+//    }
 
     private var angleOffsetEntry = Limelight.frontTable.getEntry("Angle Offset Entry")
 
@@ -249,6 +280,7 @@ object Limelight : Subsystem("Front Limelight") {
                 positionXEntry.setDouble(savePosition.x)
                 positionYEntry.setDouble(savePosition.y)
                 aimErrorEntry.setDouble(aimError)
+                //getEstimatedGlobalPose()
 
 //                var leftPressed = false
 //                var rightPressed = false
