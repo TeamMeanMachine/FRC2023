@@ -29,11 +29,14 @@ import kotlin.math.*
 
 @OptIn(DelicateCoroutinesApi::class)
 object Limelight : Subsystem("Front Limelight") {
-    private val combinedTable = NetworkTableInstance.getDefault().getTable("limelight")
     private val frontTable = NetworkTableInstance.getDefault().getTable("limelight-front")
+    private val pvTable = NetworkTableInstance.getDefault().getTable("photonvision")
+    private val combinedTable = NetworkTableInstance.getDefault().getTable("limelight")
     private val backTable = NetworkTableInstance.getDefault().getTable("limelight-back")
 //    private val thresholdTable = frontTable.getSubTable("thresholds")
     private val frontXEntry = frontTable.getEntry("tx")
+    private val pvX = pvTable.getEntry("xpos")
+    private val pvY = pvTable.getEntry("ypos")
     private val backXEntry = backTable.getEntry("tx")
     private val frontYEntry = frontTable.getEntry("ty")
     private val backYEntry = backTable.getEntry("ty")
@@ -57,27 +60,27 @@ object Limelight : Subsystem("Front Limelight") {
     private var aimErrorEntry = combinedTable.getEntry("Aim Error")
     val cam = PhotonCamera("camFront")
 
-//    var robotToCam: Transform3d = Transform3d(
-//        Translation3d(17.inches.asMeters, 8.5.inches.asMeters, 24.inches.asMeters),
-//        Rotation3d(0.0, 0.0, 0.0)
-//    ) //Cam mounted facing forward, half a meter forward of center, half a meter up from center.
-//    var camList = MutableList<Pair<PhotonCamera, Transform3d>>(1) {
-//        edu.wpi.first.math.Pair(cam, robotToCam )
-//    }
-//    val aprilField = AprilTagFieldLayout.loadFromResource(AprilTagFields.k2022RapidReact.m_resourceFile)
-//
-//    val robotPoseEstimator = RobotPoseEstimator(aprilField, RobotPoseEstimator.PoseStrategy.LOWEST_AMBIGUITY, camList)
-//
-//    fun getEstimatedGlobalPose(): Pair<Pose2d?, Double>? {
-//        //robotPoseEstimator.setReferencePose(prevEstimatedRobotPose)
-//        val result: Optional<Pair<Pose3d, Double>> = robotPoseEstimator.update()
-//        return if (result.isPresent) {
-//            //println("Has Result")
-//            Pair<Pose2d?, Double>(result.get().first.toPose2d(), result.get().second)
-//        } else {
-//            Pair(null, 0.0)
-//        }
-//    }
+    var robotToCam: Transform3d = Transform3d(
+        Translation3d(17.inches.asMeters, 8.5.inches.asMeters, 24.inches.asMeters),
+        Rotation3d(0.0, 0.0, 0.0)
+    ) //Cam mounted facing forward, half a meter forward of center, half a meter up from center.
+    var camList = MutableList<Pair<PhotonCamera, Transform3d>>(1) {
+        edu.wpi.first.math.Pair(cam, robotToCam )
+    }
+    val aprilField = AprilTagFieldLayout.loadFromResource(AprilTagFields.k2023ChargedUp.m_resourceFile)
+
+    val robotPoseEstimator = RobotPoseEstimator(aprilField, RobotPoseEstimator.PoseStrategy.LOWEST_AMBIGUITY, camList)
+
+    fun getEstimatedGlobalPose(): Pair<Pose2d?, Double>? {
+        //robotPoseEstimator.setReferencePose(prevEstimatedRobotPose)
+        val result: Optional<Pair<Pose3d, Double>> = robotPoseEstimator.update()
+        return if (result.isPresent) {
+            //println("Has Result")
+            Pair<Pose2d?, Double>(result.get().first.toPose2d(), result.get().second)
+        } else {
+            Pair(null, 0.0)
+        }
+    }
 
     private var angleOffsetEntry = Limelight.frontTable.getEntry("Angle Offset Entry")
 
@@ -280,7 +283,17 @@ object Limelight : Subsystem("Front Limelight") {
                 positionXEntry.setDouble(savePosition.x)
                 positionYEntry.setDouble(savePosition.y)
                 aimErrorEntry.setDouble(aimError)
-                //getEstimatedGlobalPose()
+                println("cam is connected = ${cam.isConnected}")
+                var results = cam.latestResult
+                if (results.hasTargets()) {
+                    println("has targets = ${results.targets.size}")
+                    println("ids = ${results.targets[0].fiducialId}")
+                }
+                val curepos = getEstimatedGlobalPose()?.first ?: Pose2d(0.0,0.0, Rotation2d(0.0))
+                println("${curepos.x} ${curepos.y}")
+                pvX.setDouble(curepos.x)
+                pvY.setDouble(curepos.y)
+
 
 //                var leftPressed = false
 //                var rightPressed = false
