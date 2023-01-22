@@ -60,17 +60,18 @@ object Limelight : Subsystem("Front Limelight") {
     private var aimErrorEntry = combinedTable.getEntry("Aim Error")
     val cam = PhotonCamera("camFront")
 
+
     var robotToCam: Transform3d = Transform3d(
-        Translation3d(17.inches.asMeters, 8.5.inches.asMeters, 24.inches.asMeters),
+        Translation3d(0.0, 0.0, 0.0),
         Rotation3d(0.0, 0.0, 0.0)
     ) //Cam mounted facing forward, half a meter forward of center, half a meter up from center.
     var camList = MutableList<Pair<PhotonCamera, Transform3d>>(1) {
         edu.wpi.first.math.Pair(cam, robotToCam )
     }
-    val aprilField = AprilTagFieldLayout.loadFromResource(AprilTagFields.k2023ChargedUp.m_resourceFile)
+    val aprilField = AprilTagFieldLayout.loadFromResource(AprilTagFields.kDefaultField.m_resourceFile)
 
     val robotPoseEstimator = RobotPoseEstimator(aprilField, RobotPoseEstimator.PoseStrategy.LOWEST_AMBIGUITY, camList)
-
+    //REMEMBER: THIS IS IN METRES FROM THE BOTTOM LEFT CORNER OF THE FIELD
     fun getEstimatedGlobalPose(): Pair<Pose2d?, Double>? {
         //robotPoseEstimator.setReferencePose(prevEstimatedRobotPose)
         val result: Optional<Pair<Pose3d, Double>> = robotPoseEstimator.update()
@@ -283,14 +284,15 @@ object Limelight : Subsystem("Front Limelight") {
                 positionXEntry.setDouble(savePosition.x)
                 positionYEntry.setDouble(savePosition.y)
                 aimErrorEntry.setDouble(aimError)
-                println("cam is connected = ${cam.isConnected}")
+//                println("cam is connected = ${cam.isConnected}")
                 var results = cam.latestResult
-                if (results.hasTargets()) {
-                    println("has targets = ${results.targets.size}")
-                    println("ids = ${results.targets[0].fiducialId}")
-                }
+//                if (results.hasTargets()) {
+//                    println("has targets = ${results.targets.size}")
+//                    println("ids = ${results.targets[0].fiducialId}")
+//                }
+                //REMEMBER: THIS IS IN METRES FROM THE BOTTOM LEFT CORNER OF THE FIELD
                 val curepos = getEstimatedGlobalPose()?.first ?: Pose2d(0.0,0.0, Rotation2d(0.0))
-                println("${curepos.x} ${curepos.y}")
+                println("${curepos.x.meters.asInches} ${curepos.y.meters.asInches}")
                 pvX.setDouble(curepos.x)
                 pvY.setDouble(curepos.y)
 
