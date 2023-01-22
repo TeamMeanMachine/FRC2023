@@ -3,12 +3,16 @@
 package org.team2471.frc2023
 
 import FRC____.BuildConfig
+import edu.wpi.first.wpilibj.DriverStation
 import edu.wpi.first.wpilibj.RobotBase
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard
 import kotlinx.coroutines.DelicateCoroutinesApi
-import org.team2471.bunnybots2022.Drive
+import org.team2471.frc.lib.coroutines.periodic
 import org.team2471.frc.lib.framework.MeanlibRobot
 import org.team2471.frc.lib.units.degrees
-import org.team2471.frc2023.testing.*
+import org.team2471.frc2023.testing.driveTests
+import org.team2471.frc2023.testing.steerFeedbackCoefficientTest
+import org.team2471.frc2023.testing.steeringTests
 import java.net.NetworkInterface
 
 var isCompBot = true
@@ -55,6 +59,7 @@ object Robot : MeanlibRobot() {
         Arm.enable()
         Intake.enable()
         PowerInfo.enable()
+        println("field centric? ${SmartDashboard.getBoolean("Use Gyro", true) && !DriverStation.isAutonomous()}")
         println("ending enable")
     }
 
@@ -76,7 +81,7 @@ object Robot : MeanlibRobot() {
 
     override suspend fun test()  {
         println("test mode begin. Hi.")
-        Drive.driveCircle()
+        Drive.setAngleOffsets()
     }
 
 

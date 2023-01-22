@@ -1,7 +1,6 @@
-package org.team2471.bunnybots2022
+package org.team2471.frc2023
 
 import com.ctre.phoenix.sensors.CANCoder
-import edu.wpi.first.math.filter.LinearFilter
 import edu.wpi.first.math.geometry.Pose2d
 import edu.wpi.first.math.geometry.Rotation2d
 import edu.wpi.first.networktables.NetworkTableEntry
@@ -21,7 +20,6 @@ import org.team2471.frc.lib.framework.Subsystem
 import org.team2471.frc.lib.math.Vector2
 import org.team2471.frc.lib.math.linearMap
 import org.team2471.frc.lib.motion.following.*
-import org.team2471.frc.lib.motion_profiling.MotionCurve
 import org.team2471.frc.lib.motion_profiling.following.SwerveParameters
 import org.team2471.frc.lib.units.*
 import org.team2471.frc2023.CANCoders
@@ -58,8 +56,8 @@ object Drive : Subsystem("Drive"), SwerveDrive {
      * **/
     override val modules: Array<SwerveDrive.Module> = arrayOf(
         Module(
-            MotorController(FalconID(Falcons.DRIVE_FRONTLEFT)),
-            MotorController(FalconID(Falcons.STEER_FRONTLEFT)),
+            MotorController(FalconID(Falcons.LEFT_FRONT_DRIVE)),
+            MotorController(FalconID(Falcons.LEFT_FRONT_STEER)),
             Vector2(-11.5, 14.0),
             Preferences.getDouble("Angle Offset 0",0.0).degrees,
             CANCoders.CANCODER_FRONTLEFT,
@@ -67,8 +65,8 @@ object Drive : Subsystem("Drive"), SwerveDrive {
             0
         ),
         Module(
-            MotorController(FalconID(Falcons.DRIVE_FRONTRIGHT)),
-            MotorController(FalconID(Falcons.STEER_FRONTRIGHT)),
+            MotorController(FalconID(Falcons.RIGHT_FRONT_DRIVE)),
+            MotorController(FalconID(Falcons.RIGHT_FRONT_STEER)),
             Vector2(11.5, 14.0),
             Preferences.getDouble("Angle Offset 1",0.0).degrees,
             CANCoders.CANCODER_FRONTRIGHT,
@@ -76,8 +74,8 @@ object Drive : Subsystem("Drive"), SwerveDrive {
             1
         ),
         Module(
-            MotorController(FalconID(Falcons.DRIVE_REARRIGHT)),
-            MotorController(FalconID(Falcons.STEER_REARRIGHT)),
+            MotorController(FalconID(Falcons.RIGHT_REAR_DRIVE)),
+            MotorController(FalconID(Falcons.RIGHT_REAR_STEER)),
             Vector2(11.5, -14.0),
             Preferences.getDouble("Angle Offset 2",0.0).degrees,
             CANCoders.CANCODER_REARRIGHT,
@@ -85,8 +83,8 @@ object Drive : Subsystem("Drive"), SwerveDrive {
             2
         ),
         Module(
-            MotorController(FalconID(Falcons.DRIVE_REARLEFT)),
-            MotorController(FalconID(Falcons.STEER_REARLEFT)),
+            MotorController(FalconID(Falcons.LEFT_REAR_DRIVE)),
+            MotorController(FalconID(Falcons.LEFT_REAR_STEER)),
             Vector2(-11.5, -14.0),
             Preferences.getDouble("Angle Offset 3",0.0).degrees,
             CANCoders.CANCODER_REARLEFT,
@@ -100,9 +98,9 @@ object Drive : Subsystem("Drive"), SwerveDrive {
     private var gyroOffset = 0.0.degrees
 
     override var heading: Angle
-        get() = gyroOffset - (gyro.angle.degrees.wrap())
+        get() = (gyroOffset + gyro.angle.degrees).wrap()
         set(value) {
-            gyroOffset = value // -gyro.angle.degrees + value
+            gyroOffset = -gyro.angle.degrees + value
             gyro.reset()
         }
 
@@ -260,8 +258,6 @@ object Drive : Subsystem("Drive"), SwerveDrive {
                 turn = OI.driveRotation
             }
 
-            printEncoderValues()
-
             headingSetpoint = OI.driverController.povDirection
 
             drive(
@@ -274,26 +270,6 @@ object Drive : Subsystem("Drive"), SwerveDrive {
     }
 
 
-
-    fun printEncoderValues() {
-//        var totalCurrent=0.0
-//        var totalSpeed=0.0
-//        for (module in 0..modules.size-1) {
-//            totalCurrent += (modules[module] as Module).driveCurrent
-//            totalSpeed += (modules[module] as Module).speed.absoluteValue
-//        }
-//        totalCurrent /= 4.0
-//        totalSpeed /= 4.0
-//        var odometryAcceleration = (totalSpeed - previousAverageSpeed).absoluteValue*50.0
-//        val accel = Vector2(navX.getNavX().worldLinearAccelX.toDouble(), navX.getNavX().worldLinearAccelY.toDouble())
-//  //      println("Accel=${round((accel.length)*32.1,2)},${round(odometryAcceleration,2)}  Current= ${round(totalCurrent,2)}   Speed= ${round(totalSpeed,2) } Current to Speed= ${round(totalCurrent/totalSpeed,2)}  ")
-//        navxAccelEntry.setDouble((accel.length)*32.1)
-//        wheelAccelEntry.setDouble(odometryAcceleration)
-//        averageCurrentEntry.setDouble(totalCurrent)
-//        averageWheelSpeedEntry.setDouble(totalSpeed)
-//
-//        previousAverageSpeed = totalSpeed
-    }
 
     fun initializeSteeringMotors() {
         for (moduleCount in modules.indices) { //changed to modules.indices, untested
@@ -330,6 +306,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         for (element in modules) { //switched from element in 0..modules.size-1, untested
             val module = (element as Module)
             module.driveMotor.coastMode()
+            module.turnMotor.coastMode()
         }
     }
 
@@ -357,7 +334,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
 
         val absoluteAngle: Angle
             get() {
-                return (-canCoder.absolutePosition.degrees - angleOffset).wrap()
+                return (canCoder.absolutePosition.degrees - angleOffset).wrap()
             }
 
         override val treadWear: Double
@@ -402,35 +379,19 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         init {
             println("Drive.module.init")
             turnMotor.config(20) {
-                feedbackCoefficient = 360.0 / 2048.0 / 21.451  // ~111 ticks per degree // spark max-neo 360.0 / 42.0 / 19.6 // degrees per tick
-                setRawOffsetConfig(absoluteAngle.asDegrees)
+                feedbackCoefficient = 360.0 / 2048.0 / 21.428  // 21.451 for bunnybot with same gearing
                 inverted(false)
-                setSensorPhase(true)
+                setSensorPhase(false)
+                setRawOffsetConfig(absoluteAngle.asDegrees)
                 pid {
                     p(0.000002)
 //                    d(0.0000025)
                 }
             }
-
-//            val moduleContLimit: Int = when ((driveMotor.motorID as FalconID).value) {
-//                Falcons.DRIVE_FRONTLEFT -> 60     //added 5 to all
-//                Falcons.DRIVE_FRONTRIGHT -> 60
-//                Falcons.DRIVE_BACKRIGHT -> 70
-//                Falcons.DRIVE_BACKLEFT -> 70
-//                else -> 55
-//            }
-
-//            val modulePeakLimit: Int = when ((driveMotor.motorID as FalconID).value) {
-//                Falcons.DRIVE_FRONTLEFT -> 65    //added 5 to all
-//                Falcons.DRIVE_FRONTRIGHT -> 65
-//                Falcons.DRIVE_BACKRIGHT -> 75
-//                Falcons.DRIVE_BACKLEFT -> 75
-//                else -> 60
-//            }
-
             driveMotor.config {
                 brakeMode()
-                feedbackCoefficient = 1.0 / 2048.0 / 5.857 / 1.09 * 6.25 / 8.0 // spark max-neo 1.0 / 42.0/ 5.857 / fudge factor * 8ft test 2022
+                //                    wheel diam / 12 in per foot * pi / ticks / gear ratio
+                feedbackCoefficient = 4.0 / 12.0 * Math.PI / 2048.0 / 6.75 * (92.5 / 96.0)
                 currentLimit(70, 75, 1)
                 openLoopRamp(0.2)
             }
@@ -459,8 +420,8 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         }
 
         fun setAngleOffset() {
-            Preferences.setDouble("Angle Offset $index", -canCoder.absolutePosition)
-            println("Angle Offset $index = ${-canCoder.absolutePosition}")
+            Preferences.setDouble("Angle Offset $index", canCoder.absolutePosition)
+            println("Angle Offset $index = ${canCoder.absolutePosition}")
         }
     }
 
@@ -471,4 +432,3 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         }
     }
 }
-

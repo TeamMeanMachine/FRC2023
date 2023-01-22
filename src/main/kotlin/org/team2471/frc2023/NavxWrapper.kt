@@ -8,7 +8,7 @@ class NavxWrapper : Gyro {
     private val navx = AHRS(SPI.Port.kMXP)
 
     override fun getAngle(): Double {
-        return -navx.yaw.toDouble()
+        return navx.yaw.toDouble()
     }
 
     fun getRoll(): Double {
@@ -24,4 +24,7 @@ class NavxWrapper : Gyro {
     override fun calibrate() = Unit
 
     override fun reset() = navx.reset()
+
+    var deltaTime: Double = 1.0
+        set(value) {}
 }

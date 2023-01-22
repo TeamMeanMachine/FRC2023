@@ -2,12 +2,12 @@ import edu.wpi.first.gradlerio.GradleRIOPlugin
 
 plugins {
     id "java"
-    id "org.jetbrains.kotlin.jvm" version "1.5.31"
-    id "edu.wpi.first.GradleRIO" version "2023.1.1-beta-7"
+    id "org.jetbrains.kotlin.jvm" version "1.7.20"
+    id "edu.wpi.first.GradleRIO" version "2023.2.1"
     id "com.github.gmazzo.buildconfig" version "3.0.0"
 }
 
-def ROBOT_MAIN_CLASS = "org.team2471.frc2022.Main"
+def ROBOT_MAIN_CLASS = "org.team2471.frc2023.Main"
 
 buildConfig {
     buildConfigField("long", "BUILD_TIME", "${System.currentTimeMillis()}L")
@@ -106,15 +106,15 @@ deployArtifact.jarTask = jar
 wpi.java.configureExecutableTasks(jar)
 
 wrapper {
-    gradleVersion = '7.3.3'
+    gradleVersion = '7.6'
     distributionType = Wrapper.DistributionType.BIN
 }
 
 compileKotlin {
-    kotlinOptions.jvmTarget = JavaVersion.VERSION_11
+    kotlinOptions.jvmTarget = JavaVersion.VERSION_17
     kotlinOptions.freeCompilerArgs += "-Xopt-in=kotlin.RequiresOptIn"
 
-    sourceCompatibility = JavaVersion.VERSION_11
-    targetCompatibility = JavaVersion.VERSION_11
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
 }
 

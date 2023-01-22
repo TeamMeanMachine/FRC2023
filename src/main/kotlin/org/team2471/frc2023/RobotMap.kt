@@ -3,16 +3,17 @@
 package org.team2471.frc2023
 
 object Talons {
-    const val INTAKE_PIVOT = 11
+    const val INTAKE_PIVOT = 14
 }
 
 
 object Sparks {
-    const val SHOULDER = 21
-    const val ELBOW = 22
-    const val WRIST = 23
+    const val SHOULDER_A = 16
+    const val SHOULDER_B = 4
+    const val ELBOW = 2
+    const val WRIST = 17
 
-    const val INTAKE = 24
+//    const val INTAKE = 24
 }
 
 object AnalogSensors {
@@ -22,14 +23,14 @@ object DigitalSensors {
 }
 
 object Falcons {
-    const val DRIVE_FRONTLEFT = 12
-    const val STEER_FRONTLEFT = 13
-    const val DRIVE_FRONTRIGHT = 2
-    const val STEER_FRONTRIGHT = 3
-    const val DRIVE_REARRIGHT = 0
-    const val STEER_REARRIGHT = 1
-    const val DRIVE_REARLEFT = 14
-    const val STEER_REARLEFT = 9
+    const val LEFT_FRONT_DRIVE = 18
+    const val LEFT_FRONT_STEER = 12
+    const val RIGHT_FRONT_DRIVE = 1
+    const val RIGHT_FRONT_STEER = 7
+    const val RIGHT_REAR_DRIVE = 24
+    const val RIGHT_REAR_STEER = 6
+    const val LEFT_REAR_DRIVE = 13
+    const val LEFT_REAR_STEER = 19
 
 }
 
