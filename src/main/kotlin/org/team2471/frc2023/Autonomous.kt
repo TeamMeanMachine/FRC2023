@@ -5,6 +5,7 @@ import edu.wpi.first.networktables.NetworkTableInstance
 import edu.wpi.first.wpilibj.DriverStation
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard
+import org.team2471.bunnybots2022.Drive
 import org.team2471.frc.lib.coroutines.delay
 import org.team2471.frc.lib.coroutines.parallel
 import org.team2471.frc.lib.framework.use
@@ -69,6 +70,7 @@ object AutoChooser {
         addOption("Left Side 2 Auto", "leftSideAuto")
         addOption("Straight Back Shoot Auto", "straightBackShootAuto")
         addOption("Rotary", "rotaryAuto")
+        addOption("Left Side Auto", "leftSideAuto")
 
 
     }
@@ -123,20 +125,42 @@ object AutoChooser {
         }
     }
 
-    suspend fun autonomous() = use(Drive, name = "Autonomous") {
-        println("Got into Auto fun autonomous. Hi. 888888888888888 ${Robot.recentTimeTaken()}")
-        val selAuto = SmartDashboard.getString("Autos/selected", "no auto selected")
-        SmartDashboard.putString("autoStatus", "init")
-        println("Selected Auto = *****************   $selAuto ****************************  ${Robot.recentTimeTaken()}")
-        when (selAuto) {
-            "Tests" -> testAuto()
-            else -> println("No function found for ---->$selAuto<-----  ${Robot.recentTimeTaken()}")
+    suspend fun leftSideAuto() = use(Intake, Arm, Drive) {
+        val auto = autonomi["Left Side Auto"]
+        if (auto != null) {
+            Drive.driveAlongPath(auto["01- GetCube1"])
+            Drive.driveAlongPath(auto["02- DropCube1"])
+            Drive.driveAlongPath(auto["03- GetCube2"])
+            Drive.driveAlongPath(auto["04- DropCube2"])
+            Drive.driveAlongPath(auto["05- ToCharge"])
         }
-        SmartDashboard.putString("autoStatus", "complete")
-        println("finished autonomous  ${Robot.recentTimeTaken()}")
     }
 
-    private suspend fun testAuto() {
+    suspend fun rightSideAuto() = use(Drive, Intake, Arm) {
+        val auto = autonomi["right Side Auto"]
+        if (auto != null) {
+            Drive.driveAlongPath(auto["01- GetCube1"])
+            Drive.driveAlongPath(auto["02- DropCube1"])
+            Drive.driveAlongPath(auto["03- GetCube2"])
+            Drive.driveAlongPath(auto["04- DropCube2"])
+            Drive.driveAlongPath(auto["05- ToCharge"])
+        }
+        suspend fun autonomous() = use(Drive, name = "Autonomous") {
+            println("Got into Auto fun autonomous. Hi. 888888888888888 ${Robot.recentTimeTaken()}")
+            val selAuto = SmartDashboard.getString("Autos/selected", "no auto selected")
+            SmartDashboard.putString("autoStatus", "init")
+            println("Selected Auto = *****************   $selAuto ****************************  ${Robot.recentTimeTaken()}")
+            when (selAuto) {
+        //        "Tests" -> testAuto()
+                else -> println("No function found for ---->$selAuto<-----  ${Robot.recentTimeTaken()}")
+            }
+            SmartDashboard.putString("autoStatus", "complete")
+            println("finished autonomous  ${Robot.recentTimeTaken()}")
+        }
+    }
+}
+
+   /* private suspend fun testAuto() {
         val testPath = SmartDashboard.getString("Tests/selected", "no test selected") // testAutoChooser.selected
         if (testPath != null) {
             val testAutonomous = autonomi["Tests"]
@@ -145,6 +169,8 @@ object AutoChooser {
                 Drive.driveAlongPath(path, true)
             }
         }
-    }
-
+    } *\
 }
+}
+
+    */
