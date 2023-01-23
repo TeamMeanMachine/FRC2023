@@ -122,9 +122,17 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         kHeadingFeedForward = 0.001
     )
 
-    override val carpetFlow = if (DriverStation.getAlliance() == DriverStation.Alliance.Red) Vector2(0.0, 1.0) else Vector2(0.0, -1.0)
-    override val kCarpet = 0.025 // how much downstream and upstream carpet directions affect the distance, for no effect, use  0.0 (2.5% more distance downstream)
-    override val kTread = 0.0//.04 // how much of an effect treadWear has on distance (fully worn tread goes 4% less than full tread)  0.0 for no effect
+    override val carpetFlow : Vector2
+        get() {
+            if (DriverStation.getAlliance() == DriverStation.Alliance.Red) {
+                return Vector2(0.0, 1.0)
+            }
+            else {
+                return Vector2(0.0, -1.0)
+            }
+        }
+    override val kCarpet = 0.0256 //0.025 // how much downstream and upstream carpet directions affect the distance, for no effect, use  0.0 (2.5% more distance downstream)
+    override val kTread = 0.0 //.04 // how much of an effect treadWear has on distance (fully worn tread goes 4% less than full tread)  0.0 for no effect
 
     val autoPDController = PDConstantFController(0.015, 0.04, 0.05)
     val teleopPDController =  PDConstantFController(0.012, 0.09, 0.05)
@@ -268,9 +276,6 @@ object Drive : Subsystem("Drive"), SwerveDrive {
             )
         }
     }
-
-
-
     fun initializeSteeringMotors() {
         for (moduleCount in modules.indices) { //changed to modules.indices, untested
             val module = (modules[moduleCount] as Module)
