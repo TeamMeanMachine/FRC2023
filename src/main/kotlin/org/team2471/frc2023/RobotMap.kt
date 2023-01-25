@@ -13,7 +13,7 @@ object Sparks {
     const val ELBOW = 2
     const val WRIST = 17
 
-//    const val INTAKE = 24
+    const val INTAKE = 30
 }
 
 object AnalogSensors {

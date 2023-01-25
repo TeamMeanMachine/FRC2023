@@ -13,7 +13,7 @@ import org.team2471.frc.lib.input.Controller
 
 
 object Intake : Subsystem("Intake") {
-//    val intakeMotor = MotorController(SparkMaxID(Sparks.INTAKE))
+    val intakeMotor = MotorController(SparkMaxID(Sparks.INTAKE))
     val intakePivotMotor = MotorController(TalonID(Talons.INTAKE_PIVOT))
 
     private val table = NetworkTableInstance.getDefault().getTable(Intake.name)
