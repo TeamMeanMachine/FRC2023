@@ -15,6 +15,10 @@ class NavxWrapper : Gyro {
         return navx.roll.toDouble()
     }
 
+    fun getPitch(): Double {
+        return navx.pitch.toDouble()
+    }
+
     override fun getRate(): Double = navx.rawGyroZ.toDouble()
 
     override fun close() {

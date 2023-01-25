@@ -17,6 +17,7 @@ import org.team2471.frc.lib.control.PDConstantFController
 import org.team2471.frc.lib.control.PDController
 import org.team2471.frc.lib.coroutines.*
 import org.team2471.frc.lib.framework.Subsystem
+import org.team2471.frc.lib.framework.use
 import org.team2471.frc.lib.math.Vector2
 import org.team2471.frc.lib.math.linearMap
 import org.team2471.frc.lib.motion.following.*
@@ -28,6 +29,7 @@ import org.team2471.frc2023.NavxWrapper
 import org.team2471.frc2023.OI
 import kotlin.math.absoluteValue
 import kotlin.math.cos
+import kotlin.math.sign
 import kotlin.math.sin
 
 @OptIn(DelicateCoroutinesApi::class)
@@ -434,6 +436,60 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         for (element in modules) {
             val module = (element as Module)
             module.setAngleOffset()
+        }
+    }
+    suspend fun rampTest() = use(Drive) {
+        var stage=0
+        val driveTimer = Timer()
+        driveTimer.start()
+        println("drive until not level")
+        periodic {
+            drive(Vector2(0.0, 0.3), 0.0, fieldCentric = false)
+            if (gyro.getPitch() > 3.0) {
+                stop()
+            }
+        }
+        driveDistance(Vector2(0.0, 0.25), 60.0.inches)
+        driveDistance(Vector2(0.0, -0.18), 2.5.inches)
+        delay(1.0.seconds)
+        autoBalance()
+        xPose()
+    }
+
+    suspend fun driveDistance(speed: Vector2, distance: Length) = use(Drive) {
+        println("Drive to the center of ramp")
+        var prevPosition = position
+        periodic {
+            drive(speed, 0.0, fieldCentric = false)
+            val distanceTraveled = (position - prevPosition).length.feet
+            println("distance = $distanceTraveled")
+            if (distanceTraveled > distance) {
+                stop()
+            }
+        }
+        drive(Vector2(0.0, 0.0), 0.0)
+    }
+    suspend fun autoBalance() = use(Drive) {
+        val driveTimer = Timer()
+        driveTimer.start()
+        periodic {
+            if (gyro.getPitch().absoluteValue > 2.5) {
+                // constant part for a feed forward, so there's always enough power to move.
+                // plus a proportional part so that the power is higher when steep and less as it flattens.
+                drive(Vector2(0.0, gyro.getPitch().sign * 0.10 + gyro.getPitch() / 200.0), 0.0, fieldCentric = false)
+                println("pitch = ${gyro.getPitch()}")
+                if (driveTimer.get() > 0.5) {
+                    drive(Vector2(0.0, 0.0), 0.0)
+                    if(driveTimer.get() > 1.5) {
+                        driveTimer.reset()
+                    }
+                }
+            }
+            else {
+                drive(Vector2(0.0, 0.0), 0.0)
+                stop()
+            }
+            //  println("Pitch = ${gyro.getNavX().pitch}, Time = ${driveTimer.get()}")
         }
     }
 }
