@@ -141,6 +141,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
     var aimPDController = teleopPDController
 
     var lastPosition : Pose2d = Pose2d()
+    var chargeMode = false
 
     init {
         println("drive init")
@@ -268,14 +269,13 @@ object Drive : Subsystem("Drive"), SwerveDrive {
                 turn = OI.driveRotation
             }
 
-            headingSetpoint = OI.driverController.povDirection
-
             drive(
                 OI.driveTranslation * 1.0,
                 turn * 1.0,
                 SmartDashboard.getBoolean("Use Gyro", true) && !DriverStation.isAutonomous(),
-                false
+                true
             )
+          //  println("headingSetPoint = $headingSetpoint")
         }
     }
     fun initializeSteeringMotors() {
@@ -444,14 +444,14 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         driveTimer.start()
         println("drive until not level")
         periodic {
-            drive(Vector2(0.0, 0.3), 0.0, fieldCentric = false)
+            drive(Vector2(0.0, 0.3), 0.0, fieldCentric = false, true)
             if (gyro.getPitch() > 3.0) {
                 stop()
             }
         }
-        driveDistance(Vector2(0.0, 0.25), 60.0.inches)
+        driveDistance(Vector2(0.0, 0.25), 62.0.inches)
         driveDistance(Vector2(0.0, -0.18), 2.5.inches)
-        delay(1.0.seconds)
+        delay(0.5.seconds)
         autoBalance()
         xPose()
     }
@@ -460,7 +460,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         println("Drive to the center of ramp")
         var prevPosition = position
         periodic {
-            drive(speed, 0.0, fieldCentric = false)
+            drive(speed, 0.0, fieldCentric = false, true)
             val distanceTraveled = (position - prevPosition).length.feet
             println("distance = $distanceTraveled")
             if (distanceTraveled > distance) {
@@ -480,7 +480,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
                 println("pitch = ${gyro.getPitch()}")
                 if (driveTimer.get() > 0.5) {
                     drive(Vector2(0.0, 0.0), 0.0)
-                    if(driveTimer.get() > 1.5) {
+                    if(driveTimer.get() > 1.0) {
                         driveTimer.reset()
                     }
                 }
