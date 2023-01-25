@@ -65,13 +65,9 @@ object AutoChooser {
 
     private val autonomousChooser = SendableChooser<String?>().apply {
         setDefaultOption("Tests", "testAuto")
-        addOption("Right Side 5 Auto", "right5")
-        addOption("Middle 4 Ball", "middle4")
-        addOption("Left Side 2 Auto", "leftSideAuto")
-        addOption("Straight Back Shoot Auto", "straightBackShootAuto")
-        addOption("Rotary", "rotaryAuto")
-        addOption("Left Side Auto", "leftSideAuto")
-
+        addOption("Left Three Auto", "leftThreeAuto")
+        addOption("Left Two Auto", "leftTwoAuto")
+        addOption("Right Three Auto", "rightThreeAuto")
 
     }
 
@@ -125,28 +121,6 @@ object AutoChooser {
         }
     }
 
-    suspend fun leftSideAuto() = use(Intake, Arm, Drive) {
-        val auto = autonomi["Left Side Auto"]
-        if (auto != null) {
-            Drive.driveAlongPath(auto["01- GetCube1"])
-            Drive.driveAlongPath(auto["02- DropCube1"])
-            Drive.driveAlongPath(auto["03- GetCube2"])
-            Drive.driveAlongPath(auto["04- DropCube2"])
-            Drive.driveAlongPath(auto["05- ToCharge"])
-        }
-    }
-
-    suspend fun rightSideAuto() = use(Drive, Intake, Arm) {
-        val auto = autonomi["right Side Auto"]
-        if (auto != null) {
-            Drive.driveAlongPath(auto["01- GetCube1"])
-            Drive.driveAlongPath(auto["02- DropCube1"])
-            Drive.driveAlongPath(auto["03- GetCube2"])
-            Drive.driveAlongPath(auto["04- DropCube2"])
-            Drive.driveAlongPath(auto["05- ToCharge"])
-        }
-
-    }
     suspend fun autonomous() = use(Drive, name = "Autonomous") {
         println("Got into Auto fun autonomous. Hi. 888888888888888 ${Robot.recentTimeTaken()}")
         val selAuto = SmartDashboard.getString("Autos/selected", "no auto selected")
@@ -154,11 +128,46 @@ object AutoChooser {
         println("Selected Auto = *****************   $selAuto ****************************  ${Robot.recentTimeTaken()}")
         when (selAuto) {
             "Tests" -> testAuto()
+            "Left Three Auto" -> leftThreeAuto()
+            "Left Two Auto" -> leftTwoAuto()
+            "Right Three Auto" -> rightThreeAuto()
             else -> println("No function found for ---->$selAuto<-----  ${Robot.recentTimeTaken()}")
         }
         SmartDashboard.putString("autoStatus", "complete")
         println("finished autonomous  ${Robot.recentTimeTaken()}")
     }
+
+    suspend fun leftThreeAuto() = use(Intake, Arm, Drive) {
+        val auto = autonomi["Left Side Auto"]
+        if (auto != null) {
+            Drive.driveAlongPath(auto["01 GetCube1"], true)
+            Drive.driveAlongPath(auto["02 DropCube1"])
+            Drive.driveAlongPath(auto["03 GetCube2"])
+            Drive.driveAlongPath(auto["04 DropCube2"])
+            Drive.driveAlongPath(auto["05 ToCharge"])
+        }
+    }
+    suspend fun leftTwoAuto() = use(Intake, Arm, Drive) {
+        val auto = autonomi["Left Side Auto"]
+        if (auto != null) {
+            Drive.driveAlongPath(auto["01 GetCube1"], true)
+            Drive.driveAlongPath(auto["02 DropCube1"])
+            Drive.driveAlongPath(auto["06 ToCharge2Piece"])
+        }
+    }
+
+    suspend fun rightThreeAuto() = use(Drive, Intake, Arm) {
+        val auto = autonomi["Right Red Auto"]
+        if (auto != null) {
+            Drive.driveAlongPath(auto["01 GetCube1"], true)
+            Drive.driveAlongPath(auto["02 DropCube1"])
+            Drive.driveAlongPath(auto["03 GetCube2"])
+            Drive.driveAlongPath(auto["04 DropCube2"])
+            Drive.driveAlongPath(auto["05 ToCharge"])
+        }
+    }
+
+
     private suspend fun testAuto() {
         val testPath = SmartDashboard.getString("Tests/selected", "no test selected") // testAutoChooser.selected
         if (testPath != null) {
