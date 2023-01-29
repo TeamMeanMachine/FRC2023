@@ -75,6 +75,9 @@ object Arm : Subsystem("Arm") {
                 shoulderEntry.setDouble(shoulderAngle.asDegrees)
                 elbowEntry.setDouble(elbowAngle.asDegrees)
 
+                shoulderMotor.setPositionSetpoint(shoulderSetpoint.asDegrees)
+                elbowMotor.setPositionSetpoint(elbowSetpoint.asDegrees)
+
                 //zeroing
 //                if (!shoulderIsZeroed) println("Shoulder angle is not zeroed")
 //                if (!elbowIsZeroed) println("Elbow angle is not zeroed")

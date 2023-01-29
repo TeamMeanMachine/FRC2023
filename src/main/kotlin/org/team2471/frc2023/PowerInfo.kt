@@ -45,7 +45,6 @@ object PowerInfo : Subsystem("PowerDistribution") {
     }
 
     override suspend fun default() {
-        super.default()
         periodic {
             if (DriverStation.isEnabled()) {
                 try {

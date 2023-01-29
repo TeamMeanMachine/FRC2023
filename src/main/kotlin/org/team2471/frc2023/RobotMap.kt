@@ -4,19 +4,21 @@ package org.team2471.frc2023
 
 object Talons {
     const val INTAKE_PIVOT = 14
+    const val WRIST = 17
 }
 
 
 object Sparks {
     const val SHOULDER_A = 16
     const val SHOULDER_B = 4
-    const val ELBOW = 2
-    const val WRIST = 17
+    const val ELBOW = 30 //2
 
-    const val INTAKE = 30
+
+    const val INTAKE = 2 //30 flipped for testing with ELBOW
 }
 
 object AnalogSensors {
+    const val INTAKE_PIVOT = 1
 }
 
 object DigitalSensors {

@@ -15,13 +15,15 @@ import org.team2471.frc2023.testing.steerFeedbackCoefficientTest
 import org.team2471.frc2023.testing.steeringTests
 import java.net.NetworkInterface
 
-var isCompBot = true
+
+
 
 @DelicateCoroutinesApi
 object Robot : MeanlibRobot() {
-
+    val intake : Intake
     var startMeasureTime = System.nanoTime()
     var lastMeasureTime = startMeasureTime
+    var isCompBot = true
     init {
         val networkInterfaces =  NetworkInterface.getNetworkInterfaces()
         for (iFace in networkInterfaces) {
@@ -48,7 +50,7 @@ object Robot : MeanlibRobot() {
         Drive.heading = 0.0.degrees
 
         AutoChooser
-        Intake
+        intake = Intake
         Arm
         PowerInfo
     }
