@@ -18,8 +18,10 @@ import org.team2471.frc.lib.control.PDController
 import org.team2471.frc.lib.coroutines.*
 import org.team2471.frc.lib.framework.Subsystem
 import org.team2471.frc.lib.framework.use
+import org.team2471.frc.lib.input.Controller //Added by Jeremy on 1-30-23 for power testing
 import org.team2471.frc.lib.math.Vector2
 import org.team2471.frc.lib.math.linearMap
+import org.team2471.frc.lib.math.round
 import org.team2471.frc.lib.motion.following.*
 import org.team2471.frc.lib.motion_profiling.following.SwerveParameters
 import org.team2471.frc.lib.units.*
@@ -61,7 +63,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
             MotorController(FalconID(Falcons.LEFT_FRONT_DRIVE)),
             MotorController(FalconID(Falcons.LEFT_FRONT_STEER)),
             Vector2(-11.5, 14.0),
-            Preferences.getDouble("Angle Offset 0",0.0).degrees,
+            Preferences.getDouble("Angle Offset 0",-8.5).degrees,
             CANCoders.CANCODER_FRONTLEFT,
             odometer0Entry,
             0
@@ -70,7 +72,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
             MotorController(FalconID(Falcons.RIGHT_FRONT_DRIVE)),
             MotorController(FalconID(Falcons.RIGHT_FRONT_STEER)),
             Vector2(11.5, 14.0),
-            Preferences.getDouble("Angle Offset 1",0.0).degrees,
+            Preferences.getDouble("Angle Offset 1",-213.0).degrees,
             CANCoders.CANCODER_FRONTRIGHT,
             odometer1Entry,
             1
@@ -79,7 +81,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
             MotorController(FalconID(Falcons.RIGHT_REAR_DRIVE)),
             MotorController(FalconID(Falcons.RIGHT_REAR_STEER)),
             Vector2(11.5, -14.0),
-            Preferences.getDouble("Angle Offset 2",0.0).degrees,
+            Preferences.getDouble("Angle Offset 2",-159.2).degrees,
             CANCoders.CANCODER_REARRIGHT,
             odometer2Entry,
             2
@@ -88,7 +90,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
             MotorController(FalconID(Falcons.LEFT_REAR_DRIVE)),
             MotorController(FalconID(Falcons.LEFT_REAR_STEER)),
             Vector2(-11.5, -14.0),
-            Preferences.getDouble("Angle Offset 3",0.0).degrees,
+            Preferences.getDouble("Angle Offset 3",-125.9).degrees,
             CANCoders.CANCODER_REARLEFT,
             odometer3Entry,
             3
@@ -236,7 +238,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
 
     override fun preEnable() {
         super.preEnable()
-        initializeSteeringMotors()
+        //initializeSteeringMotors()
         odometer0Entry.setDouble(Preferences.getDouble("odometer 0",0.0))
         odometer1Entry.setDouble(Preferences.getDouble("odometer 1",0.0))
         odometer2Entry.setDouble(Preferences.getDouble("odometer 2",0.0))
@@ -245,7 +247,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
     }
     override fun postEnable(){
         super.postEnable()
-        initializeSteeringMotors()
+       // initializeSteeringMotors()
         println("Initialized From Post Enable")
     }
     override fun onDisable() {
@@ -279,7 +281,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         }
     }
     fun initializeSteeringMotors() {
-        for (moduleCount in modules.indices) { //changed to modules.indices, untested
+        for (moduleCount in 0..3) { //changed to modules.indices, untested
             val module = (modules[moduleCount] as Module)
             module.turnMotor.setRawOffset(module.absoluteAngle.asDegrees)
             println("Module: $moduleCount analogAngle: ${module.absoluteAngle}")
@@ -287,7 +289,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
     }
 
     fun resetDriveMotors() {
-        for (moduleCount in modules.indices) {
+        for (moduleCount in 0..3) {
             val module = (modules[moduleCount] as Module)
             module.driveMotor.restoreFactoryDefaults()
             println("For module $moduleCount, drive motor's factory defaults were restored.")
@@ -321,7 +323,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         val driveMotor: MotorController,
         val turnMotor: MotorController,
         override val modulePosition: Vector2,
-        override val angleOffset: Angle,
+        override var angleOffset: Angle,
         canCoderID: Int,
         private val odometerEntry: NetworkTableEntry,
         val index: Int
@@ -341,7 +343,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
 
         val absoluteAngle: Angle
             get() {
-                return (canCoder.absolutePosition.degrees - angleOffset).wrap()
+                return (-canCoder.absolutePosition.degrees - angleOffset).wrap()
             }
 
         override val treadWear: Double
@@ -427,8 +429,10 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         }
 
         fun setAngleOffset() {
-            Preferences.setDouble("Angle Offset $index", canCoder.absolutePosition)
-            println("Angle Offset $index = ${canCoder.absolutePosition}")
+            val canAngle = -canCoder.absolutePosition
+            Preferences.setDouble("Angle Offset $index", canAngle)
+            angleOffset = canAngle.degrees
+            println("Angle Offset $index = $canAngle")
         }
     }
 
@@ -437,6 +441,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
             val module = (element as Module)
             module.setAngleOffset()
         }
+        // Preferences.
     }
     suspend fun rampTest() = use(Drive) {
         var stage=0
@@ -492,5 +497,45 @@ object Drive : Subsystem("Drive"), SwerveDrive {
             }
             //  println("Pitch = ${gyro.getNavX().pitch}, Time = ${driveTimer.get()}")
         }
+    }
+}
+
+suspend fun Drive.currentTest() = use(this) {
+    var power = 0.0
+    var upPressed = false
+    var downPressed = false
+    periodic {
+        if (OI.driverController.dPad == Controller.Direction.UP) {
+            upPressed = true
+        } else if (OI.driverController.dPad == Controller.Direction.DOWN) {
+            downPressed = true
+        }
+        if (OI.driverController.dPad != Controller.Direction.UP && upPressed) {
+            upPressed = false
+            power += 0.01
+        }
+        if (OI.driverController.dPad != Controller.Direction.DOWN && downPressed) {
+            downPressed = false
+            power -= 0.01
+        }
+//        for (moduleCount in 0..3) {
+//            val module = modules[moduleCount] as Drive.Module
+//        }
+//        println()
+//        println("power: $power")
+        val currModule = modules[2] as Drive.Module
+        currModule.driveMotor.setPercentOutput(power)
+        currModule.turnMotor.setPositionSetpoint(0.0)
+        println("current: ${round(currModule.driveCurrent, 2)}  power: $power")
+    //    val currModule2 = modules[3] as Drive.Module
+      //  currModule2.driveMotor.setPercentOutput(power)
+        //currModule2.turnMotor.setPositionSetpoint(0.0)
+       // println("current: ${round(currModule.driveCurrent, 2)}  power: $power")
+
+    //        drive(
+//            Vector2(0.0, power),
+//            0.0,
+//            false
+//        )
     }
 }

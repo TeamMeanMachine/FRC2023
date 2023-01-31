@@ -52,5 +52,6 @@ object OI {
 
     init {
         driverController::back.whenTrue { Drive.zeroGyro(); Drive.initializeSteeringMotors() }
+        driverController::start.whenTrue {Drive.setAngleOffsets() }
     }
 }

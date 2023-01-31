@@ -100,7 +100,6 @@ object Intake : Subsystem("Intake") {
 
     override suspend fun default() {
         periodic {
-            println("intakePeriodicOn")
             if (OI.driverController.a){
                 intakeMotor.setPercentOutput(-1.0)
             }
