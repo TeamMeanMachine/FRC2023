@@ -6,12 +6,9 @@ import edu.wpi.first.wpilibj.DriverStation
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard
 //import org.team2471.bunnybots2022.Drive
-import org.team2471.frc.lib.coroutines.delay
-import org.team2471.frc.lib.coroutines.parallel
 import org.team2471.frc.lib.framework.use
 import org.team2471.frc.lib.motion.following.driveAlongPath
 import org.team2471.frc.lib.motion_profiling.Autonomi
-import org.team2471.frc.lib.units.degrees
 import org.team2471.frc.lib.util.measureTimeFPGA
 import java.io.File
 import java.util.*
@@ -65,11 +62,15 @@ object AutoChooser {
 
     private val autonomousChooser = SendableChooser<String?>().apply {
         setDefaultOption("Tests", "testAuto")
-        addOption("Left Three Auto", "leftThreeAuto")
-        addOption("Left Two Auto", "leftTwoAuto")
-        addOption("Right Three Auto", "rightThreeAuto")
+        addOption("Outer Three Auto", "outerThreeAuto")
+        addOption("Outer Two Auto", "outerTwoAuto")
+        addOption("Inner Three Auto", "innerThreeAuto")
 
     }
+
+    var numberOfObjects = 3
+    var chargeStation = false
+
 
     init {
 //        DriverStation.reportWarning("Starting auto init warning", false)
@@ -128,27 +129,32 @@ object AutoChooser {
         println("Selected Auto = *****************   $selAuto ****************************  ${Robot.recentTimeTaken()}")
         when (selAuto) {
             "Tests" -> testAuto()
-            "Left Three Auto" -> leftThreeAuto()
-            "Left Two Auto" -> leftTwoAuto()
-            "Right Three Auto" -> rightThreeAuto()
+            "Outer Three Auto" -> outerThreeAuto()
+            "Outer Two Auto" -> outerTwoAuto()
+            "Inner Three Auto" -> innerThreeAuto()
             else -> println("No function found for ---->$selAuto<-----  ${Robot.recentTimeTaken()}")
         }
         SmartDashboard.putString("autoStatus", "complete")
         println("finished autonomous  ${Robot.recentTimeTaken()}")
     }
 
-    suspend fun leftThreeAuto() = use(Intake, Arm, Drive) {
-        val auto = autonomi["Left Side Auto"]
+    suspend fun outerThreeAuto() = use(Intake, Arm, Drive) {
+        val auto = if (DriverStation.getAlliance() == DriverStation.Alliance.Red) autonomi["Outer Red Auto"] else autonomi["Outer Blue Auto"]
+        println("$numberOfObjects number of objects, and charging? $chargeStation")
         if (auto != null) {
-            Drive.driveAlongPath(auto["01 GetCube1"], true)
-            Drive.driveAlongPath(auto["02 DropCube1"])
-            Drive.driveAlongPath(auto["03 GetCube2"])
-            Drive.driveAlongPath(auto["04 DropCube2"])
-            Drive.driveAlongPath(auto["05 ToCharge"])
+            if (numberOfObjects > 1) {
+                Drive.driveAlongPath(auto["01 GetCube1"], true)
+                Drive.driveAlongPath(auto["02 DropCube1"])
+                if (numberOfObjects > 2) {
+                    Drive.driveAlongPath(auto["03 GetCube2"])
+                    Drive.driveAlongPath(auto["04 DropCube2"])
+                    if (chargeStation) Drive.driveAlongPath(auto["05 ToCharge"])
+                } else if (chargeStation) Drive.driveAlongPath(auto["06 ToCharge2Piece"])
+            } else if (chargeStation) Drive.driveAlongPath(auto["07 ToCharge1Piece"])
         }
     }
-    suspend fun leftTwoAuto() = use(Intake, Arm, Drive) {
-        val auto = autonomi["Left Side Auto"]
+    suspend fun outerTwoAuto() = use(Intake, Arm, Drive) {
+        val auto = if (DriverStation.getAlliance() == DriverStation.Alliance.Red) autonomi["Outer Red Auto"] else autonomi["Outer Blue Auto"]
         if (auto != null) {
             Drive.driveAlongPath(auto["01 GetCube1"], true)
             Drive.driveAlongPath(auto["02 DropCube1"])
@@ -156,8 +162,8 @@ object AutoChooser {
         }
     }
 
-    suspend fun rightThreeAuto() = use(Drive, Intake, Arm) {
-        val auto = autonomi["Right Red Auto"]
+    suspend fun innerThreeAuto() = use(Drive, Intake, Arm) {
+        val auto = if (DriverStation.getAlliance() == DriverStation.Alliance.Red) autonomi["Inner Red Auto"] else autonomi["Inner Blue Auto"]
         if (auto != null) {
             Drive.driveAlongPath(auto["01 GetCube1"], true)
             Drive.driveAlongPath(auto["02 DropCube1"])
