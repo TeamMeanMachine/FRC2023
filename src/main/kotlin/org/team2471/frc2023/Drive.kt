@@ -104,8 +104,8 @@ object Drive : Subsystem("Drive"), SwerveDrive {
     override var heading: Angle
         get() = (gyroOffset + gyro.angle.degrees).wrap()
         set(value) {
-            gyroOffset = -gyro.angle.degrees + value
             gyro.reset()
+            gyroOffset = -gyro.angle.degrees + value
         }
 
     override val headingRate: AngularVelocity
@@ -163,6 +163,8 @@ object Drive : Subsystem("Drive"), SwerveDrive {
             val headingEntry = table.getEntry("Heading")
             val xEntry = table.getEntry("X")
             val yEntry = table.getEntry("Y")
+            val poseEntry = table.getEntry("advantageScopePose")
+
 
             val aimErrorEntry = table.getEntry("Aim Error")
             val useGyroEntry = table.getEntry("Use Gyro")
@@ -194,6 +196,9 @@ object Drive : Subsystem("Drive"), SwerveDrive {
                 xEntry.setDouble(x)
                 yEntry.setDouble(y)
                 headingEntry.setDouble(heading.asDegrees)
+                val modX = y.feet.asMeters + fieldCenterOffset.y
+                val modY = -x.feet.asMeters + fieldCenterOffset.x
+                poseEntry.setDoubleArray(doubleArrayOf(modX,modY,-heading.asDegrees))
                 absoluteAngle0Entry.setDouble((modules[0] as Module).absoluteAngle.asDegrees)
                 absoluteAngle1Entry.setDouble((modules[1] as Module).absoluteAngle.asDegrees)
                 absoluteAngle2Entry.setDouble((modules[2] as Module).absoluteAngle.asDegrees)
@@ -527,9 +532,19 @@ suspend fun Drive.currentTest() = use(this) {
 //        }
 //        println()
 //        println("power: $power")
-        val currModule = modules[2] as Drive.Module
+        var currModule = modules[0] as Drive.Module
         currModule.driveMotor.setPercentOutput(power)
         currModule.turnMotor.setPositionSetpoint(0.0)
+        currModule = modules[1] as Drive.Module
+        currModule.driveMotor.setPercentOutput(power)
+        currModule.turnMotor.setPositionSetpoint(0.0)
+        currModule = modules[2] as Drive.Module
+        currModule.driveMotor.setPercentOutput(power)
+        currModule.turnMotor.setPositionSetpoint(0.0)
+        currModule = modules[3] as Drive.Module
+        currModule.driveMotor.setPercentOutput(power)
+        currModule.turnMotor.setPositionSetpoint(0.0)
+        
         println("current: ${round(currModule.driveCurrent, 2)}  power: $power")
     //    val currModule2 = modules[3] as Drive.Module
       //  currModule2.driveMotor.setPercentOutput(power)
