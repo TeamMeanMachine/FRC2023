@@ -145,6 +145,10 @@ object Drive : Subsystem("Drive"), SwerveDrive {
     var lastPosition : Pose2d = Pose2d()
     var chargeMode = false
 
+
+    val isHumanDriving
+        get() = OI.driveTranslation.length != 0.0 || OI.driveRotation != 0.0
+
     init {
         println("drive init")
         initializeSteeringMotors()

@@ -20,7 +20,6 @@ import java.net.NetworkInterface
 
 @DelicateCoroutinesApi
 object Robot : MeanlibRobot() {
-    val intake : Intake
     var startMeasureTime = System.nanoTime()
     var lastMeasureTime = startMeasureTime
     var isCompBot = true
@@ -50,7 +49,8 @@ object Robot : MeanlibRobot() {
         Drive.heading = 0.0.degrees
 
         AutoChooser
-        intake = Intake
+        NodeDeckHub
+        Intake
         Arm
         PowerInfo
     }
