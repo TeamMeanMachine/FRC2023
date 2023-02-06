@@ -124,6 +124,7 @@ suspend fun Intake.pivotTest() = use(this) {
             upPressed = true
         } else if (OI.driverController.dPad == Controller.Direction.DOWN) {
             downPressed = true
+
         }
         if (OI.driverController.dPad != Controller.Direction.UP && upPressed) {
             upPressed = false
