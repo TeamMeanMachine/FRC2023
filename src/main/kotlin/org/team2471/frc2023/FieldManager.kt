@@ -1,8 +1,6 @@
 package org.team2471.frc2023
 
 import edu.wpi.first.math.geometry.Translation2d
-import edu.wpi.first.math.geometry.Translation3d
-import edu.wpi.first.math.util.Units
 import org.team2471.frc.lib.math.Vector2
 import org.team2471.frc.lib.units.asFeet
 import org.team2471.frc.lib.units.asMeters
@@ -12,21 +10,12 @@ import org.team2471.frc.lib.units.meters
 object FieldManager {
     val fieldDimensions = Vector2(26.9375.feet.asMeters,54.0.feet.asMeters)
     val fieldCenterOffset = fieldDimensions/2.0
-//    val nodeList: HashMap<Int, ScoringNode>
+    val nodeList: HashMap<Int, ScoringNode> = HashMap<Int, ScoringNode> ()
 
 
     init {
-        // X layout
-        val outerY = Units.inchesToMeters(54.25)
-        val lowY = outerY - Units.inchesToMeters(14.25) / 2.0 // Centered when under cube nodes
-        val midY = outerY - Units.inchesToMeters(22.75)
-        val highY = outerY - Units.inchesToMeters(39.75)
-        // Y layout
-        val nodeFirstX = Units.inchesToMeters(20.19)
-        val nodeSeparationX = Units.inchesToMeters(22.0)
-
         for (n in 0 until 53) {
-            //relying on Int math uses the floor
+            //relying on Int uses Floor
             val column = n / 3
             val row = n.mod(3)
             val isCubeColumn = column.mod(3) == 1
@@ -35,12 +24,11 @@ object FieldManager {
             val level = Level.values()[row]
             val gamePiece = GamePiece.values()[0]
 
-            val pos = Vector2((36.0 - 22.0 * column)/12.0, (-309.0 + row * 17.0 - if (row == 2) - 4.0 else 0.0)/12.0)
+            //x cord of node 0 - the space between each node * column #, y cord of top node + space between each node * row #
+            val pos = Vector2((36.0 - 22.0 * column)/12.0, (-308.5 + 17 * row - if (row == 2) 4.0 else 0.0)/12.0)
+            //todo: only has the correct cords for RED nodes!!!
 
-
-
-
-//            nodeList.put(n, ScoringNode(scoringType, level, pos)
+            nodeList.put(n, ScoringNode(scoringType, level, pos))
         }
     }
 
