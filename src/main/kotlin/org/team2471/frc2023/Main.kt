@@ -45,6 +45,7 @@ object Robot : MeanlibRobot() {
         }
         println("NEVER GONNA GIVE YOU UP")
         println(BuildConfig.BUILD_TIME)
+        FieldManager
         Drive.zeroGyro()
         Drive.heading = 0.0.degrees
 

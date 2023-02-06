@@ -25,7 +25,7 @@ suspend fun goScore() = use(Drive, Arm, Intake, name = "goScore") {
         if (!OI.operatorController.x || Drive.isHumanDriving) {
             stop()
         }
-
-        println(NodeDeckHub.selectedNode)
+        val scoringPos = FieldConstants.Grids.high3dTranslations[NodeDeckHub.selectedNode.toInt()]
+        println()
     }
 }
