@@ -52,6 +52,9 @@ object OI {
 
     init {
         driverController::back.whenTrue { Drive.zeroGyro(); Drive.initializeSteeringMotors() }
-        driverController::start.whenTrue {Drive.setAngleOffsets() }
+        driverController::start.whenTrue {Drive.calibrateRobotPosition() }
+        operatorController::x.whenTrue { scoreIfReady() }
+        driverController::a.whenTrue { Drive.dynamicDriveThreeFeetY()}
+        driverController::b.whenTrue { Drive.dynamicGoToFeeder()}
     }
 }

@@ -23,12 +23,10 @@ import org.team2471.frc.lib.math.Vector2
 import org.team2471.frc.lib.math.linearMap
 import org.team2471.frc.lib.math.round
 import org.team2471.frc.lib.motion.following.*
+import org.team2471.frc.lib.motion_profiling.MotionCurve
+import org.team2471.frc.lib.motion_profiling.Path2D
 import org.team2471.frc.lib.motion_profiling.following.SwerveParameters
 import org.team2471.frc.lib.units.*
-import org.team2471.frc2023.CANCoders
-import org.team2471.frc2023.Falcons
-import org.team2471.frc2023.NavxWrapper
-import org.team2471.frc2023.OI
 import kotlin.math.absoluteValue
 import kotlin.math.cos
 import kotlin.math.sign
@@ -50,6 +48,10 @@ object Drive : Subsystem("Drive"), SwerveDrive {
     val absoluteAngle1Entry = table.getEntry("Analog Angle 1")
     val absoluteAngle2Entry = table.getEntry("Analog Angle 2")
     val absoluteAngle3Entry = table.getEntry("Analog Angle 3")
+    val motorAngle0Entry = table.getEntry("Motor Angle 0")
+    val motorAngle1Entry = table.getEntry("Motor Angle 1")
+    val motorAngle2Entry = table.getEntry("Motor Angle 2")
+    val motorAngle3Entry = table.getEntry("Motor Angle 3")
 
     val fieldObject = Field2d()
     val fieldDimensions = Vector2(26.9375.feet.asMeters,54.0.feet.asMeters)
@@ -63,7 +65,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
             MotorController(FalconID(Falcons.LEFT_FRONT_DRIVE)),
             MotorController(FalconID(Falcons.LEFT_FRONT_STEER)),
             Vector2(-11.5, 14.0),
-            Preferences.getDouble("Angle Offset 0",-8.5).degrees,
+            Preferences.getDouble("Angle Offset 0",-5.625).degrees,
             CANCoders.CANCODER_FRONTLEFT,
             odometer0Entry,
             0
@@ -72,7 +74,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
             MotorController(FalconID(Falcons.RIGHT_FRONT_DRIVE)),
             MotorController(FalconID(Falcons.RIGHT_FRONT_STEER)),
             Vector2(11.5, 14.0),
-            Preferences.getDouble("Angle Offset 1",-213.0).degrees,
+            Preferences.getDouble("Angle Offset 1",-292.23).degrees,
             CANCoders.CANCODER_FRONTRIGHT,
             odometer1Entry,
             1
@@ -81,7 +83,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
             MotorController(FalconID(Falcons.RIGHT_REAR_DRIVE)),
             MotorController(FalconID(Falcons.RIGHT_REAR_STEER)),
             Vector2(11.5, -14.0),
-            Preferences.getDouble("Angle Offset 2",-159.2).degrees,
+            Preferences.getDouble("Angle Offset 2",-194.94).degrees,
             CANCoders.CANCODER_REARRIGHT,
             odometer2Entry,
             2
@@ -90,7 +92,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
             MotorController(FalconID(Falcons.LEFT_REAR_DRIVE)),
             MotorController(FalconID(Falcons.LEFT_REAR_STEER)),
             Vector2(-11.5, -14.0),
-            Preferences.getDouble("Angle Offset 3",-125.9).degrees,
+            Preferences.getDouble("Angle Offset 3",-204.17).degrees,
             CANCoders.CANCODER_REARLEFT,
             odometer3Entry,
             3
@@ -120,7 +122,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         gyroRateCorrection = 0.0,
         kpPosition = 0.32,
         kdPosition = 0.6,
-        kPositionFeedForward = 0.0,
+        kPositionFeedForward = 0.05,
         kpHeading = 0.008,
         kdHeading = 0.01,
         kHeadingFeedForward = 0.001
@@ -159,7 +161,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
 //            odometer2Entry.setPersistent()
 //            odometer3Entry.setPersistent()
             println("in drive global scope")
-
+//            println(${setAngleOffsets()})
             val headingEntry = table.getEntry("Heading")
             val xEntry = table.getEntry("X")
             val yEntry = table.getEntry("Y")
@@ -203,6 +205,10 @@ object Drive : Subsystem("Drive"), SwerveDrive {
                 absoluteAngle1Entry.setDouble((modules[1] as Module).absoluteAngle.asDegrees)
                 absoluteAngle2Entry.setDouble((modules[2] as Module).absoluteAngle.asDegrees)
                 absoluteAngle3Entry.setDouble((modules[3] as Module).absoluteAngle.asDegrees)
+//                motorAngle0Entry.setDouble((modules[0] as Module).angle.wrap().asDegrees)
+//                motorAngle1Entry.setDouble((modules[1] as Module).angle.wrap().asDegrees)
+//                motorAngle2Entry.setDouble((modules[2] as Module).angle.wrap().asDegrees)
+//                motorAngle3Entry.setDouble((modules[3] as Module).angle.wrap().asDegrees)
 
                 val lastRobotFieldXY = robotFieldEntry.getDoubleArray(defaultXYPos)
                 val lastX = lastRobotFieldXY[0]
@@ -286,7 +292,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
                 SmartDashboard.getBoolean("Use Gyro", true) && !DriverStation.isAutonomous(),
                 true
             )
-          //  println("headingSetPoint = $headingSetpoint")
+            println("headingSetPoint = $headingSetpoint")
         }
     }
     fun initializeSteeringMotors() {
@@ -409,7 +415,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
             driveMotor.config {
                 brakeMode()
                 //                    wheel diam / 12 in per foot * pi / ticks / gear ratio
-                feedbackCoefficient = 4.0 / 12.0 * Math.PI / 2048.0 / 6.75 * (92.5 / 96.0)
+                feedbackCoefficient = 4.0 / 12.0 * Math.PI / 2048.0 / 5.42 * (94.0 / 96.0)
                 currentLimit(70, 75, 1)
                 openLoopRamp(0.2)
             }
@@ -444,13 +450,12 @@ object Drive : Subsystem("Drive"), SwerveDrive {
             println("Angle Offset $index = $canAngle")
         }
     }
-
     fun setAngleOffsets() {
         for (element in modules) {
             val module = (element as Module)
             module.setAngleOffset()
         }
-        // Preferences.
+        initializeSteeringMotors()
     }
     suspend fun rampTest() = use(Drive) {
         var stage=0
@@ -507,6 +512,40 @@ object Drive : Subsystem("Drive"), SwerveDrive {
             //  println("Pitch = ${gyro.getNavX().pitch}, Time = ${driveTimer.get()}")
         }
     }
+    suspend fun dynamicDriveThreeFeetY() = use(Drive){
+        val newPath = Path2D("newPath")
+        newPath.addEasePoint(0.0,0.0)
+        newPath.addEasePoint(2.5, 1.0)
+        newPath.addVector2(position)
+        newPath.addPoint(position.x,position.y+3.0)
+        newPath.addHeadingPoint(0.0, heading.asDegrees)
+        Drive.driveAlongPath(newPath)
+    }
+
+    suspend fun dynamicGoToFeeder() = use(Drive){
+        val newPath = Path2D("newPath")
+        newPath.addEasePoint(0.0,0.0)
+        val p1 = position
+        val p2 = Vector2(11.0,16.0)
+        val distance = (p2 - p1).length
+        val rateCurve = MotionCurve()
+        rateCurve.setMarkBeginOrEndKeysToZeroSlope(false)
+        rateCurve.storeValue(1.0, 2.0)  // distance, rate
+        rateCurve.storeValue(8.0, 6.0)  // distance, rate
+        val rate = rateCurve.getValue(distance) // ft per sec
+        val time = distance / rate
+        newPath.addEasePoint(time, 1.0)
+        newPath.addVector2(p1)
+        newPath.addVector2(p2)
+        newPath.addHeadingPoint(0.0, heading.asDegrees)
+        newPath.addHeadingPoint(time, 0.0)
+        Drive.driveAlongPath(newPath)
+    }
+
+    suspend fun calibrateRobotPosition() = use(Drive) {
+        position = Vector2(11.5, -24.75)
+        heading= 0.0.degrees
+    }
 }
 
 suspend fun Drive.currentTest() = use(this) {
@@ -521,11 +560,11 @@ suspend fun Drive.currentTest() = use(this) {
         }
         if (OI.driverController.dPad != Controller.Direction.UP && upPressed) {
             upPressed = false
-            power += 0.01
+            power += 0.001
         }
         if (OI.driverController.dPad != Controller.Direction.DOWN && downPressed) {
             downPressed = false
-            power -= 0.01
+            power -= 0.001
         }
 //        for (moduleCount in 0..3) {
 //            val module = modules[moduleCount] as Drive.Module
