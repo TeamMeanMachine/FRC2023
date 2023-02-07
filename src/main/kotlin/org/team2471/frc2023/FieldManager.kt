@@ -36,8 +36,6 @@ object FieldManager {
 
             nodeList.put(n, ScoringNode(scoringType, level, pos))
         }
-        println(nodeList)
-        println("NODE 0: ${nodeList[0]}")
     }
 
     fun convertWPIToTMM(wpiDimens: Translation2d): Vector2{
