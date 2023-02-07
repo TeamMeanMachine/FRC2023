@@ -14,7 +14,7 @@ object FieldManager {
 
 
     init {
-        for (n in 0 until 53) {
+        for (n in 0 until 54) {
             //relying on Int uses Floor
             val column = n / 3
             val row = n.mod(3)

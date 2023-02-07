@@ -519,7 +519,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         newPath.addVector2(position)
         newPath.addPoint(position.x,position.y+3.0)
         newPath.addHeadingPoint(0.0, heading.asDegrees)
-        Drive.driveAlongPath(newPath)
+        Drive.driveAlongPath(newPath){ abortPath() }
     }
 
     suspend fun dynamicGoToFeeder() = use(Drive){
@@ -539,13 +539,40 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         newPath.addVector2(p2)
         newPath.addHeadingPoint(0.0, heading.asDegrees)
         newPath.addHeadingPoint(time, 0.0)
-        Drive.driveAlongPath(newPath)
+        Drive.driveAlongPath(newPath) { abortPath() }
     }
 
+    suspend fun dynamicGoToScore(goalPosition: Vector2) = use(Drive){
+        val newPath = Path2D("newPath")
+        newPath.addEasePoint(0.0,0.0)
+        val p1 = position
+        val p2 = Vector2(2.0,-10.0)
+        val p3 = Vector2(2.0,-19.0)
+        val p4 = Vector2(goalPosition.x,-21.0)
+        val distance = (p2 - p1).length + (p4 - p3).length + (p3 - p2).length
+        val rateCurve = MotionCurve()
+        rateCurve.setMarkBeginOrEndKeysToZeroSlope(false)
+        rateCurve.storeValue(1.0, 2.0)  // distance, rate
+        rateCurve.storeValue(8.0, 6.0)  // distance, rate
+        val rate = rateCurve.getValue(distance) // ft per sec
+        val time = distance / rate
+        newPath.addEasePoint(time, 1.0)
+        newPath.addVector2(p1)
+        newPath.addVector2(p2)
+        newPath.addVector2(p3)
+        newPath.addVector2(p4)
+        newPath.addHeadingPoint(0.0, heading.asDegrees)
+        newPath.addHeadingPoint(time, 0.0)
+        Drive.driveAlongPath(newPath){ abortPath() }
+    }
     suspend fun calibrateRobotPosition() = use(Drive) {
         position = Vector2(11.5, -24.75)
         heading= 0.0.degrees
     }
+}
+
+fun Drive.abortPath(): Boolean {
+    return OI.driverController.leftThumbstick.length > 0.01
 }
 
 suspend fun Drive.currentTest() = use(this) {
