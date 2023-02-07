@@ -23,13 +23,22 @@ object FieldManager {
             var scoringType = if (isBoth) GamePiece.BOTH else if (isCubeColumn) GamePiece.CUBE else GamePiece.CONE
             val level = Level.values()[row]
             val gamePiece = GamePiece.values()[0]
+            var pos = Vector2(0.0, 0.0)
 
-            //x cord of node 0 - the space between each node * column #, y cord of top node + space between each node * row #
-            val pos = Vector2((36.0 - 22.0 * column)/12.0, (-308.5 + 17 * row - if (row == 2) 4.0 else 0.0)/12.0)
+            if (n > 26) {
+                //x cord of node 0 - the space between each node * column #, y cord of blue top node - space between each node * row #
+                pos = Vector2((36.0 - 22.0 * column)/12.0, (308.5 - 17 * row + if (row == 2) 4.0 else 0.0)/12.0)
+            } else {
+                //x cord of node 0 - the space between each node * column #, y cord of red top node + space between each node * row #
+                pos = Vector2((36.0 - 22.0 * column)/12.0, (-308.5 + 17 * row - if (row == 2) 4.0 else 0.0)/12.0)
+            }
+
             //todo: only has the correct cords for RED nodes!!!
 
             nodeList.put(n, ScoringNode(scoringType, level, pos))
         }
+        println(nodeList)
+        println("NODE 0: ${nodeList[0]}")
     }
 
     fun convertWPIToTMM(wpiDimens: Translation2d): Vector2{
