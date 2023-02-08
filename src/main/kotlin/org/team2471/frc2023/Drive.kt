@@ -292,7 +292,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
                 SmartDashboard.getBoolean("Use Gyro", true) && !DriverStation.isAutonomous(),
                 true
             )
-            println("headingSetPoint = $headingSetpoint")
+//            println("headingSetPoint = $headingSetpoint")
         }
     }
     fun initializeSteeringMotors() {

@@ -17,7 +17,7 @@ import kotlin.math.absoluteValue
 
 
 object Intake : Subsystem("Intake") {
-    val wristMotor = MotorController(TalonID(Talons.WRIST))
+    val wristMotor = MotorController(SparkMaxID(Sparks.WRIST))
     val pivotMotor = MotorController(TalonID(Talons.INTAKE_PIVOT))
     val intakeMotor = MotorController(SparkMaxID(Sparks.INTAKE))
 //    val wristSensor = hall effect
@@ -28,11 +28,12 @@ object Intake : Subsystem("Intake") {
     val wristEntry = table.getEntry("Wrist Angle")
     val wristSetpointEntry = table.getEntry("Wrist Setpoint")
     val pivotEntry = table.getEntry("Pivot Angle")
+    val pivotAnalogEntry = table.getEntry("Pivot Analog Angle")
     val pivotSetpointEntry = table.getEntry("Pivot Setpoint")
 
     val wristAngle: Angle
         get() = wristMotor.position.degrees + wristOffset
-    var wristOffset = 0.0.degrees
+    var wristOffset = 90.0.degrees
     var wristSetpoint: Angle = wristAngle
         get() = wristSetpointEntry.getDouble(0.0).degrees
         set(value) {
@@ -40,12 +41,15 @@ object Intake : Subsystem("Intake") {
             wristSetpointEntry.setDouble(field.asDegrees)
         }
     val pivotAngle: Angle
-        get() = (analogPivotAngle + (if ((motorPivotAngle - analogPivotAngle).asDegrees.absoluteValue > 90.0) 180.0.degrees else 0.0.degrees) + pivotOffset).wrap()
-    val analogPivotAngle: Angle
-        get() = (pivotSensor.value / 2.0).degrees
-    val motorPivotAngle: Angle
-        get() = pivotMotor.position.degrees
-    var pivotOffset = 0.0.degrees
+        get() = (pivotAnalogAngle + pivotOffset).wrap()
+    val pivotAnalogAngle: Angle
+        get() = ((pivotSensor.value - 15) / 4080.0 * 180.0).degrees  //(((pivotSensor.value - 1665.0) / 4095.0 * 180.0)).degrees.wrap() // -72.65.degrees
+    var prevPivotAnalog = pivotAnalogAngle
+    val deltaPivotAnalog: Angle
+        get() = pivotAnalogAngle - prevPivotAnalog
+    var inOtherZone: Boolean = false
+    val pivotOffset: Angle
+        get() = (-73.0 + if (inOtherZone) 180.0 else 0.0).degrees
     var pivotSetpoint: Angle = pivotAngle
         get() = pivotSetpointEntry.getDouble(0.0).degrees
         set(value) {
@@ -61,20 +65,21 @@ object Intake : Subsystem("Intake") {
 
     init {
         wristMotor.config(20) {
-//            feedbackCoefficient
+            feedbackCoefficient = 261.0 / 1273.0 * 208.1 / 359.0 //redo!
             brakeMode()
-//            pid
+//            pid     //percentOutput(0.1) started moving
             currentLimit(20, 30, 1)
         }
         pivotMotor.config(20) {
 //            feedbackCoefficient   // degrees in a rotation, ticks per rotation
+            inverted(true)
             brakeMode()
-//            pid
-            currentLimit(20, 30, 1)
+//            pid     // percentOutput 0.2
+            currentLimit(30, 40, 1)
         }
         intakeMotor.config {
-            coastMode()
-            currentLimit(20, 40, 1)
+            brakeMode()
+            currentLimit(30, 40, 1)
         }
 
         pivotMotor.position = pivotSensor.value.toDouble()
@@ -83,9 +88,12 @@ object Intake : Subsystem("Intake") {
             periodic {
                 wristEntry.setDouble(wristAngle.asDegrees)
                 pivotEntry.setDouble(pivotAngle.asDegrees)
+                pivotAnalogEntry.setDouble(pivotAnalogAngle.asDegrees)
 
-                wristMotor.setPositionSetpoint(wristSetpoint.asDegrees)
-                pivotMotor.setPositionSetpoint(pivotSetpoint.asDegrees)
+                if (deltaPivotAnalog.asDegrees.absoluteValue > 100.0) inOtherZone = !inOtherZone
+
+//                wristMotor.setPositionSetpoint(wristSetpoint.asDegrees)
+//                pivotMotor.setPositionSetpoint(pivotSetpoint.asDegrees)
 
                 //zeroing wrist
 //                if (!wristIsReset) println("Wrist angle is not zeroed")
@@ -94,6 +102,8 @@ object Intake : Subsystem("Intake") {
 //                    wristAngle = 0.0.degrees
 //                    wristIsReset = true
 //                }
+//                if ((pivotAnalogAngle.asDegrees > 80.0 && prevPivotAnalog.asDegrees < -80.0) ||) inOtherZone = !inOtherZone
+                prevPivotAnalog = pivotAnalogAngle
             }
         }
     }

@@ -10,9 +10,7 @@ import kotlinx.coroutines.DelicateCoroutinesApi
 import org.team2471.frc.lib.coroutines.periodic
 import org.team2471.frc.lib.framework.MeanlibRobot
 import org.team2471.frc.lib.units.degrees
-import org.team2471.frc2023.testing.driveTests
-import org.team2471.frc2023.testing.steerFeedbackCoefficientTest
-import org.team2471.frc2023.testing.steeringTests
+import org.team2471.frc2023.testing.*
 import java.net.NetworkInterface
 
 
@@ -84,7 +82,7 @@ object Robot : MeanlibRobot() {
 
     override suspend fun test()  {
         println("test mode begin. Hi.")
-       Drive.currentTest()
+       Arm.pidTest()
        // Drive.setAngleOffsets()
 //        Drive.driveTests()
 //        Drive.steeringTests()
