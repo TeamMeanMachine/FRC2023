@@ -14,7 +14,7 @@ object FieldManager {
 
 
     init {
-        for (n in 0 until 53) {
+        for (n in 0 until 54) {
             //relying on Int uses Floor
             val column = n / 3
             val row = n.mod(3)
@@ -23,10 +23,16 @@ object FieldManager {
             var scoringType = if (isBoth) GamePiece.BOTH else if (isCubeColumn) GamePiece.CUBE else GamePiece.CONE
             val level = Level.values()[row]
             val gamePiece = GamePiece.values()[0]
+            var pos = Vector2(0.0, 0.0)
 
-            //x cord of node 0 - the space between each node * column #, y cord of top node + space between each node * row #
-            val pos = Vector2((36.0 - 22.0 * column)/12.0, (-308.5 + 17 * row - if (row == 2) 4.0 else 0.0)/12.0)
-            //todo: only has the correct cords for RED nodes!!!
+            if (n > 26) {
+                //x cord of node 0 - the space between each node * column #, y cord of blue top node - space between each node * row #
+                val newRow = (53 - n).mod(3)
+                pos = Vector2((36.0 - 22.0 * column)/12.0, (308.5 - 17 * newRow + if (newRow == 2) 4.0 else 0.0)/12.0)
+            } else {
+                //x cord of node 0 - the space between each node * column #, y cord of red top node + space between each node * row #
+                pos = Vector2((36.0 - 22.0 * column)/12.0, (-308.5 + 17 * row - if (row == 2) 4.0 else 0.0)/12.0)
+            }
 
             nodeList.put(n, ScoringNode(scoringType, level, pos))
         }
