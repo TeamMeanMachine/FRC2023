@@ -90,8 +90,8 @@ object Arm : Subsystem("Arm") {
                 shoulderCurve.storeValue(30.0, -0.09)
                 shoulderCurve.storeValue(65.0, -0.13)
 
-                shoulderMotor.setPositionSetpoint(shoulderSetpoint.asDegrees, sFeedForward)
-                println("shoulder feed forward: $sFeedForward")
+//                shoulderMotor.setPositionSetpoint(shoulderSetpoint.asDegrees, sFeedForward)
+//                println("shoulder feed forward: $sFeedForward")
 //                elbowMotor.setPositionSetpoint(elbowSetpoint.asDegrees)
 
                 //zeroing

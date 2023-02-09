@@ -6,11 +6,13 @@ import edu.wpi.first.wpilibj.AnalogInput
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.team2471.frc.lib.actuators.*
+import org.team2471.frc.lib.control.PDController
 import org.team2471.frc.lib.coroutines.MeanlibDispatcher
 import org.team2471.frc.lib.coroutines.periodic
 import org.team2471.frc.lib.framework.Subsystem
 import org.team2471.frc.lib.framework.use
 import org.team2471.frc.lib.input.Controller
+import org.team2471.frc.lib.math.round
 import org.team2471.frc.lib.units.Angle
 import org.team2471.frc.lib.units.degrees
 import kotlin.math.absoluteValue
@@ -47,6 +49,7 @@ object Intake : Subsystem("Intake") {
     var prevPivotAnalog = pivotAnalogAngle
     val deltaPivotAnalog: Angle
         get() = pivotAnalogAngle - prevPivotAnalog
+    var prevPivotAngle = pivotAngle
     var inOtherZone: Boolean = false
     val pivotOffset: Angle
         get() = (-73.0 + if (inOtherZone) 180.0 else 0.0).degrees
@@ -56,6 +59,7 @@ object Intake : Subsystem("Intake") {
             field = value
             pivotSetpointEntry.setDouble(value.asDegrees)
         }
+    val pivotPDController = PDController(0.03, 0.04)   //0.35, 0.03
 
     var wristIsReset = false
 
@@ -71,10 +75,8 @@ object Intake : Subsystem("Intake") {
             currentLimit(20, 30, 1)
         }
         pivotMotor.config(20) {
-//            feedbackCoefficient   // degrees in a rotation, ticks per rotation
             inverted(true)
             brakeMode()
-//            pid     // percentOutput 0.2
             currentLimit(30, 40, 1)
         }
         intakeMotor.config {
@@ -83,6 +85,8 @@ object Intake : Subsystem("Intake") {
         }
 
         pivotMotor.position = pivotSensor.value.toDouble()
+
+        var maxPower = 0.0
 
         GlobalScope.launch(MeanlibDispatcher) {
             periodic {
@@ -93,7 +97,11 @@ object Intake : Subsystem("Intake") {
                 if (deltaPivotAnalog.asDegrees.absoluteValue > 100.0) inOtherZone = !inOtherZone
 
 //                wristMotor.setPositionSetpoint(wristSetpoint.asDegrees)
-//                pivotMotor.setPositionSetpoint(pivotSetpoint.asDegrees)
+
+                val power = pivotPDController.update(pivotSetpoint.asDegrees - pivotAngle.asDegrees)
+                pivotMotor.setPercentOutput(power)
+                if (power > maxPower) maxPower = power
+                println("pivotSetpoint: ${pivotSetpoint.asDegrees}       pdController: ${round(power, 3)}        maxPower: $maxPower")
 
                 //zeroing wrist
 //                if (!wristIsReset) println("Wrist angle is not zeroed")

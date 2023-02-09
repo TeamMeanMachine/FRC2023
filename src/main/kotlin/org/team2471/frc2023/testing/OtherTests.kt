@@ -5,6 +5,7 @@ import org.team2471.frc.lib.framework.use
 import org.team2471.frc.lib.input.Controller
 import org.team2471.frc.lib.units.degrees
 import org.team2471.frc2023.Arm
+import org.team2471.frc2023.Intake
 import org.team2471.frc2023.OI
 
 suspend fun Arm.feedForwardTest() = use(Arm) {
@@ -19,5 +20,11 @@ suspend fun Arm.feedForwardTest() = use(Arm) {
 suspend fun Arm.pidTest() = use(Arm) {
     periodic {
         shoulderSetpoint = (OI.operatorLeftY * 50).degrees
+    }
+}
+
+suspend fun Intake.pidTest() = use(Arm) {
+    periodic {
+        pivotSetpoint = (OI.operatorLeftY * 180).degrees
     }
 }
