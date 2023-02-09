@@ -62,6 +62,7 @@ object Robot : MeanlibRobot() {
         Arm.enable()
         Intake.enable()
         PowerInfo.enable()
+        SignalLights.enable()
         println("field centric? ${SmartDashboard.getBoolean("Use Gyro", true) && !DriverStation.isAutonomous()}")
         println("ending enable")
     }
@@ -96,6 +97,7 @@ object Robot : MeanlibRobot() {
         Arm.disable()
         Intake.disable()
         PowerInfo.disable()
+        SignalLights.disable()
     }
 
     private fun initTimeMeasurement(){
