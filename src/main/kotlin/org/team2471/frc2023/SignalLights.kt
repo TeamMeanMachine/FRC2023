@@ -9,20 +9,28 @@ object SignalLights : Subsystem("SignalLights") {
     private val serial = SerialPort(9600, SerialPort.Port.kUSB1)
 
     init {
-
     }
-
+    fun flashYellow() {
+        serial.write(byteArrayOf('y'.code.toByte()), 1)
+    }
+    fun flashPurple(){
+        serial.write(byteArrayOf('p'.code.toByte()), 1)
+    }
+    fun rainbow(){
+        serial.write(byteArrayOf('r'.code.toByte()), 1)
+    }
     override suspend fun default() {
         periodic {
-            if (OI.operatorController.x)
-                // Pattern - red, white, black scroll
-                serial.write(byteArrayOf('t'.code.toByte()), 1)
-            else if (OI.operatorController.y)
+            if (OI.operatorController.y) {
                 // Pattern - yellow flashing
-                serial.write(byteArrayOf('y'.code.toByte()), 1)
+                flashYellow()
+            }
+            else if (OI.operatorController.x) {
+                // Pattern - purple flashing
+                flashPurple()
+            }
         }
     }
-
     override fun preEnable() {
         super.preEnable()
 
