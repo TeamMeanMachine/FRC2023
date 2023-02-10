@@ -82,7 +82,7 @@ object Robot : MeanlibRobot() {
 
     override suspend fun test()  {
         println("test mode begin. Hi.")
-       Intake.pidTest()
+       Arm.pidTest()
        // Drive.setAngleOffsets()
 //        Drive.driveTests()
 //        Drive.steeringTests()

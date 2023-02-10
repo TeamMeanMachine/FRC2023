@@ -11,7 +11,7 @@ import org.team2471.frc2023.OI
 suspend fun Arm.feedForwardTest() = use(Arm) {
     var power = 0.0
     periodic {
-        shoulderMotor.setPercentOutput(power)
+        elbowMotor.setPercentOutput(power)
         println("power: $power")
         power += 0.003
     }
@@ -19,7 +19,7 @@ suspend fun Arm.feedForwardTest() = use(Arm) {
 
 suspend fun Arm.pidTest() = use(Arm) {
     periodic {
-        shoulderSetpoint = (OI.operatorLeftY * 50).degrees
+        elbowSetpoint = (OI.operatorLeftY * 40).degrees
     }
 }
 
