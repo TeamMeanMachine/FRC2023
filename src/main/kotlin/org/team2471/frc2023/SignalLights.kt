@@ -19,15 +19,29 @@ object SignalLights : Subsystem("SignalLights") {
     fun rainbow(){
         serial.write(byteArrayOf('r'.code.toByte()), 1)
     }
+    fun start(){
+        serial.write(byteArrayOf('s'.code.toByte()), 1)
+    }
+    fun off(){
+
+        serial.write(byteArrayOf('o'.code.toByte()), 1)
+    }
     override suspend fun default() {
         periodic {
             if (OI.operatorController.y) {
                 // Pattern - yellow flashing
                 flashYellow()
+                //flashYellow()
             }
             else if (OI.operatorController.x) {
                 // Pattern - purple flashing
                 flashPurple()
+                //flashPurple()
+            }
+            else if (OI.operatorController.x){
+                if(OI.operatorController.y){
+                    rainbow()
+                }
             }
         }
     }
@@ -35,14 +49,14 @@ object SignalLights : Subsystem("SignalLights") {
         super.preEnable()
 
         // Set starting pattern - Red
-        serial.write(byteArrayOf('s'.code.toByte()), 1)
+        start()
     }
 
     override fun onDisable() {
         super.onDisable()
 
         // Blank LEDs
-        serial.write(byteArrayOf('o'.code.toByte()), 1)
+        off()
     }
 
 }

@@ -1,11 +1,10 @@
 package org.team2471.frc2023
 
+import edu.wpi.first.math.geometry.Pose2d
+import edu.wpi.first.math.geometry.Rotation2d
 import edu.wpi.first.math.geometry.Translation2d
 import org.team2471.frc.lib.math.Vector2
-import org.team2471.frc.lib.units.asFeet
-import org.team2471.frc.lib.units.asMeters
-import org.team2471.frc.lib.units.feet
-import org.team2471.frc.lib.units.meters
+import org.team2471.frc.lib.units.*
 
 object FieldManager {
     val fieldDimensions = Vector2(26.9375.feet.asMeters,54.0.feet.asMeters)
@@ -37,6 +36,11 @@ object FieldManager {
             nodeList.put(n, ScoringNode(scoringType, level, pos))
         }
     }
+    fun convertTMMtoWPI(x:Length, y:Length, heading: Angle):Pose2d{
+        val modX = -y.asMeters + fieldCenterOffset.y
+        val modY = x.asMeters + fieldCenterOffset.x
+        return Pose2d(modX,modY, Rotation2d(-Drive.heading.asDegrees))
+    }
 
     fun convertWPIToTMM(wpiDimens: Translation2d): Vector2{
         val modX = wpiDimens.y + fieldCenterOffset.y
@@ -48,3 +52,4 @@ object FieldManager {
 fun Translation2d.toTMMField():Vector2 {
     return FieldManager.convertWPIToTMM(this)
 }
+
