@@ -1,5 +1,6 @@
 package org.team2471.frc2023.testing
 
+import org.team2471.frc.lib.coroutines.delay
 import org.team2471.frc.lib.coroutines.periodic
 import org.team2471.frc.lib.framework.use
 import org.team2471.frc.lib.input.Controller
@@ -27,4 +28,8 @@ suspend fun Intake.pidTest() = use(Arm) {
     periodic {
         pivotSetpoint = (OI.operatorLeftY * 180).degrees
     }
+}
+
+suspend fun Arm.springTest() = use(Arm) {
+    elbowMotor.setPercentOutput(0.4)
 }
