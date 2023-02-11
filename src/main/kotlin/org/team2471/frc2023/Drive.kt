@@ -199,9 +199,11 @@ object Drive : Subsystem("Drive"), SwerveDrive {
                 xEntry.setDouble(x)
                 yEntry.setDouble(y)
                 headingEntry.setDouble(heading.asDegrees)
-                val modX = -y.feet.asMeters + fieldCenterOffset.y
-                val modY = x.feet.asMeters + fieldCenterOffset.x
-                poseEntry.setDoubleArray(doubleArrayOf(modX,modY,-heading.asDegrees))
+                //val modX = y.feet.asMeters + fieldCenterOffset.y
+                //val modY = -x.feet.asMeters + fieldCenterOffset.x
+                //poseEntry.setDoubleArray(doubleArrayOf(modX,modY,-heading.asDegrees))
+                val poseWPI = FieldManager.convertTMMtoWPI(x.feet, y.feet, heading)
+                poseEntry.setDoubleArray(doubleArrayOf(poseWPI.x, poseWPI.y, poseWPI.rotation.degrees))
                 absoluteAngle0Entry.setDouble((modules[0] as Module).absoluteAngle.asDegrees)
                 absoluteAngle1Entry.setDouble((modules[1] as Module).absoluteAngle.asDegrees)
                 absoluteAngle2Entry.setDouble((modules[2] as Module).absoluteAngle.asDegrees)
