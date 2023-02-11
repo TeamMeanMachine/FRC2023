@@ -47,12 +47,15 @@ object Arm : Subsystem("Arm") {
             field = value.asDegrees.coerceIn(ELBOW_BOTTOM, ELBOW_TOP).degrees
             elbowSetpointEntry.setDouble(field.asDegrees)
         }
+    val eFeedForward: Double
+        get() = elbowCurve.getValue(elbowAngle.asDegrees)
+    val elbowCurve = MotionCurve()
 
     var shoulderIsZeroed = false
     var elbowIsZeroed = false
 
-    val SHOULDER_BOTTOM = -40.0
-    val SHOULDER_TOP = 40.0
+    val SHOULDER_BOTTOM = -30.0
+    val SHOULDER_TOP = 30.0
     val ELBOW_BOTTOM = -120.0
     val ELBOW_TOP = 120.0
 
@@ -64,14 +67,17 @@ object Arm : Subsystem("Arm") {
             inverted(true)    //a is inverted
             followersInverted(false) //--spark max WAS inverted in rev hardware client -> advanced, check if weird
             pid {
-                p(0.000002)
+                p(0.0000017)
+                d(0.000001)
             }
             currentLimit(50, 60, 1)
         }
         elbowMotor.config(20) {
             feedbackCoefficient = 242.0 / 2183.0
             brakeMode()
-            //pid{}    //took about 0.1 percent output to move up
+            pid{
+                p(0.00000000001)
+            }
             currentLimit(30, 40, 1)
         }
         shoulderIsZeroed = false
@@ -90,9 +96,16 @@ object Arm : Subsystem("Arm") {
                 shoulderCurve.storeValue(30.0, -0.09)
                 shoulderCurve.storeValue(65.0, -0.13)
 
+                elbowCurve.storeValue(-90.0, -0.14)
+                elbowCurve.storeValue(-40.0, -0.09)
+                elbowCurve.storeValue(0.0, 0.0)
+                elbowCurve.storeValue(40.0, 0.15)
+                elbowCurve.storeValue(90.0, 0.3)
+
                 shoulderMotor.setPositionSetpoint(shoulderSetpoint.asDegrees, sFeedForward)
-//                println("shoulder feed forward: $sFeedForward")
-//                elbowMotor.setPositionSetpoint(elbowSetpoint.asDegrees)
+                elbowMotor.setPositionSetpoint(elbowSetpoint.asDegrees, eFeedForward)
+                println("eFeedForward: $eFeedForward")
+//                println("elbow feed forward: $sFeedForward")
 
                 //zeroing
 //                if (!shoulderIsZeroed) println("Shoulder angle is not zeroed")
@@ -107,5 +120,11 @@ object Arm : Subsystem("Arm") {
 //                }
             }
         }
+    }
+    fun shoulderCoastMode() {
+        shoulderMotor.coastMode()
+    }
+    fun shoulderBrakeMode() {
+        shoulderMotor.brakeMode()
     }
 }
