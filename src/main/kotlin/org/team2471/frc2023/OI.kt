@@ -56,7 +56,9 @@ object OI {
             Drive.initializeSteeringMotors() }
         driverController::start.whenTrue {Drive.calibrateRobotPosition() }
         operatorController::x.whenTrue { scoreIfReady() }
-        driverController::a.whenTrue { Drive.dynamicDriveThreeFeetY()}
-        driverController::b.whenTrue { Drive.dynamicGoToFeeder()}
+       // driverController::a.whenTrue { Drive.dynamicDriveThreeFeetY()}
+       // driverController::b.whenTrue { Drive.dynamicGoToFeeder()}
+        driverController::leftBumper.whenTrue {Arm.shoulderCoastMode()}
+        driverController::rightBumper.whenTrue {Arm.shoulderBrakeMode()}
     }
 }

@@ -12,10 +12,9 @@ import org.team2471.frc.lib.coroutines.periodic
 import org.team2471.frc.lib.framework.Subsystem
 import org.team2471.frc.lib.framework.use
 import org.team2471.frc.lib.input.Controller
-import org.team2471.frc.lib.math.round
 import org.team2471.frc.lib.units.Angle
 import org.team2471.frc.lib.units.degrees
-import kotlin.math.absoluteValue
+import org.team2471.frc.lib.util.Timer
 
 
 object Intake : Subsystem("Intake") {
@@ -32,6 +31,8 @@ object Intake : Subsystem("Intake") {
     val pivotEntry = table.getEntry("Pivot Angle")
     val pivotAnalogEntry = table.getEntry("Pivot Analog Angle")
     val pivotSetpointEntry = table.getEntry("Pivot Setpoint")
+    val intakeCurrentEntry = table.getEntry("Intake Currrent")
+    val intakePowerEntry = table.getEntry("Intake Power")
 
     val wristAngle: Angle
         get() = wristMotor.position.degrees + wristOffset
@@ -66,6 +67,8 @@ object Intake : Subsystem("Intake") {
     const val WRIST_BOTTOM = -40.0
     const val WRIST_TOP = 40.0
     const val INTAKE_POWER = 0.7
+    const val INTAKE_HOLD = 0.05
+    const val INTAKE_DETECT_CONE = 70
 
     init {
         wristMotor.config(20) {
@@ -93,6 +96,8 @@ object Intake : Subsystem("Intake") {
                 wristEntry.setDouble(wristAngle.asDegrees)
                 pivotEntry.setDouble(pivotAngle.asDegrees)
                 pivotAnalogEntry.setDouble(pivotAnalogAngle.asDegrees)
+                intakeCurrentEntry.setDouble(intakeMotor.current)
+
 
                 if (pivotAnalogAngle >= 120.0.degrees && prevPivotAnalog < 20.0.degrees) pivotConversionOffset += 180.0.degrees
                 if (pivotAnalogAngle < 20.0.degrees && prevPivotAnalog >= 120.0.degrees) pivotConversionOffset -= 180.0.degrees
@@ -123,17 +128,37 @@ object Intake : Subsystem("Intake") {
     }
 
     override suspend fun default() {
+        val t = Timer()
+        var isTimerStarted = false
+
         periodic {
-            if (OI.driverController.a){
-                intakeMotor.setPercentOutput(-1.0)
+            if (OI.driverController.a) {
+                  //-1.0
+
+                if (!isTimerStarted) {
+                    t.start()
+                    isTimerStarted = true
+                    intakeMotor.setPercentOutput(-INTAKE_POWER)
+              //      println("timer is started")
+                }
+                else if(t.get() > 0.2) {
+                    if (intakeMotor.current > INTAKE_DETECT_CONE) {
+                        intakeMotor.setPercentOutput(-INTAKE_HOLD)  //1.0
+                    }
+                } else {
+                //    println("Min Timer not Reached → ${t.get()}")
+                }
             }
             else if (OI.driverController.b){
-                intakeMotor.setPercentOutput(1.0)
+                intakeMotor.setPercentOutput(INTAKE_POWER)  //1.0
             }
             else{
                 intakeMotor.setPercentOutput(0.5 * OI.driverController.leftTrigger - 0.5 * OI.driverController.rightTrigger)
+                isTimerStarted = false
             }
+
         }
+
     }
 }
 
