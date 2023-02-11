@@ -101,7 +101,7 @@ object Intake : Subsystem("Intake") {
                 val power = pivotPDController.update(pivotSetpoint.asDegrees - pivotAngle.asDegrees)
                 pivotMotor.setPercentOutput(power)
                 if (power > maxPower) maxPower = power
-                println("pivotSetpoint: ${pivotSetpoint.asDegrees}       pdController: ${round(power, 3)}        maxPower: $maxPower")
+//                println("pivotSetpoint: ${pivotSetpoint.asDegrees}       pdController: ${round(power, 3)}        maxPower: $maxPower")
 
                 //zeroing wrist
 //                if (!wristIsReset) println("Wrist angle is not zeroed")
@@ -147,15 +147,15 @@ suspend fun Intake.pivotTest() = use(this) {
         if (OI.driverController.dPad != Controller.Direction.UP && upPressed) {
             upPressed = false
             angle += 10.degrees
-            println("up = ${angle}")
+//            println("up = ${angle}")
         }
         if (OI.driverController.dPad != Controller.Direction.DOWN && downPressed) {
             downPressed = false
             angle -= 10.degrees
-            println("down = ${angle}")
+//            println("down = ${angle}")
         }
         pivotSetpoint = angle
-        println("angle = ${angle}")
+//        println("angle = ${angle}")
     }
 }
 

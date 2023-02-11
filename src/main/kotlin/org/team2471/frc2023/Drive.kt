@@ -199,9 +199,6 @@ object Drive : Subsystem("Drive"), SwerveDrive {
                 xEntry.setDouble(x)
                 yEntry.setDouble(y)
                 headingEntry.setDouble(heading.asDegrees)
-                //val modX = y.feet.asMeters + fieldCenterOffset.y
-                //val modY = -x.feet.asMeters + fieldCenterOffset.x
-                //poseEntry.setDoubleArray(doubleArrayOf(modX,modY,-heading.asDegrees))
                 val poseWPI = FieldManager.convertTMMtoWPI(x.feet, y.feet, heading)
                 poseEntry.setDoubleArray(doubleArrayOf(poseWPI.x, poseWPI.y, poseWPI.rotation.degrees))
                 absoluteAngle0Entry.setDouble((modules[0] as Module).absoluteAngle.asDegrees)
@@ -213,22 +210,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
 //                motorAngle2Entry.setDouble((modules[2] as Module).angle.wrap().asDegrees)
 //                motorAngle3Entry.setDouble((modules[3] as Module).angle.wrap().asDegrees)
 
-                val lastRobotFieldXY = robotFieldEntry.getDoubleArray(defaultXYPos)
-                val lastX = lastRobotFieldXY[0]
-                val lastY = lastRobotFieldXY[1]
-//                if (lastX != 0.0 && lastY != 0.0 && robotHalfWidth < lastX && lastX < fieldDimensions.x - robotHalfWidth && robotHalfWidth < lastY && lastY < fieldDimensions.y - robotHalfWidth && (lastPosition.x != lastX || lastPosition.y != lastY)) {
-//                    position = Vector2((lastX - fieldCenterOffset.x).meters.asFeet, (lastY - fieldCenterOffset.y).meters.asFeet)
-//                    lastPosition = fieldObject.robotPose
-//                    println("from fieldobject")
-//                } else {
-//                    val robotPose = Pose2d(
-//                        position.x.feet.asMeters + fieldCenterOffset.x,
-//                        position.y.feet.asMeters + fieldCenterOffset.y,
-//                        -Rotation2d((heading - 90.0.degrees).asRadians)
-//                    )
-//                    fieldObject.robotPose = robotPose
-//                    lastPosition = robotPose
-//                }
+
             }
         }
     }
