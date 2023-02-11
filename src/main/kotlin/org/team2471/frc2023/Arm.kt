@@ -121,4 +121,10 @@ object Arm : Subsystem("Arm") {
             }
         }
     }
+    fun shoulderCoastMode() {
+        shoulderMotor.coastMode()
+    }
+    fun shoulderBrakeMode() {
+        shoulderMotor.brakeMode()
+    }
 }
