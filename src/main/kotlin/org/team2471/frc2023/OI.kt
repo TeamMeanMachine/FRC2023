@@ -52,7 +52,8 @@ object OI {
 
     init {
         driverController::y.whenTrue { Drive.dynamicGoToScore(Vector2(-4.0, -21.0)) }
-        driverController::back.whenTrue { Drive.zeroGyro(); Drive.initializeSteeringMotors() }
+        driverController::back.whenTrue { Drive.zeroGyro();
+            Drive.initializeSteeringMotors() }
         driverController::start.whenTrue {Drive.calibrateRobotPosition() }
         operatorController::x.whenTrue { scoreIfReady() }
         driverController::a.whenTrue { Drive.dynamicDriveThreeFeetY()}

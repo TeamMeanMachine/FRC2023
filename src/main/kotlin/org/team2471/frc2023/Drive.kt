@@ -3,6 +3,7 @@ package org.team2471.frc2023
 import com.ctre.phoenix.sensors.CANCoder
 import edu.wpi.first.math.geometry.Pose2d
 import edu.wpi.first.math.geometry.Rotation2d
+import edu.wpi.first.math.geometry.Translation2d
 import edu.wpi.first.networktables.NetworkTableEntry
 import edu.wpi.first.networktables.NetworkTableInstance
 import edu.wpi.first.wpilibj.*
@@ -181,7 +182,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
 
             val defaultXYPos = doubleArrayOf(0.0,0.0)
 
-            val robotHalfWidth = (35.0/12.0)/2.0
+            val robotHalfWidth = (32.0/12.0)/2.0
 
             val reducedField = Vector2(fieldCenterOffset.x.meters.asFeet - robotHalfWidth, fieldCenterOffset.y.meters.asFeet - robotHalfWidth)
             lastPosition = Pose2d(position.x.feet.asMeters+fieldCenterOffset.x, position.y.feet.asMeters+fieldCenterOffset.y, -Rotation2d((heading-90.0.degrees).asRadians))
@@ -193,14 +194,16 @@ object Drive : Subsystem("Drive"), SwerveDrive {
                     println("Coercing x inside field dimensions")
                     x = x.coerceIn(-reducedField.x, reducedField.x)
                     y = y.coerceIn(-reducedField.y, reducedField.y)
-                    position = Vector2(x, y)
+//                    position = Vector2(x, y)
                 }
                 xEntry.setDouble(x)
                 yEntry.setDouble(y)
                 headingEntry.setDouble(heading.asDegrees)
-                val modX = y.feet.asMeters + fieldCenterOffset.y
-                val modY = -x.feet.asMeters + fieldCenterOffset.x
-                poseEntry.setDoubleArray(doubleArrayOf(modX,modY,-heading.asDegrees))
+                //val modX = y.feet.asMeters + fieldCenterOffset.y
+                //val modY = -x.feet.asMeters + fieldCenterOffset.x
+                //poseEntry.setDoubleArray(doubleArrayOf(modX,modY,-heading.asDegrees))
+                val poseWPI = FieldManager.convertTMMtoWPI(x.feet, y.feet, heading)
+                poseEntry.setDoubleArray(doubleArrayOf(poseWPI.x, poseWPI.y, poseWPI.rotation.degrees))
                 absoluteAngle0Entry.setDouble((modules[0] as Module).absoluteAngle.asDegrees)
                 absoluteAngle1Entry.setDouble((modules[1] as Module).absoluteAngle.asDegrees)
                 absoluteAngle2Entry.setDouble((modules[2] as Module).absoluteAngle.asDegrees)
@@ -213,19 +216,19 @@ object Drive : Subsystem("Drive"), SwerveDrive {
                 val lastRobotFieldXY = robotFieldEntry.getDoubleArray(defaultXYPos)
                 val lastX = lastRobotFieldXY[0]
                 val lastY = lastRobotFieldXY[1]
-                if (lastX != 0.0 && lastY != 0.0 && robotHalfWidth < lastX && lastX < fieldDimensions.x - robotHalfWidth && robotHalfWidth < lastY && lastY < fieldDimensions.y - robotHalfWidth && (lastPosition.x != lastX || lastPosition.y != lastY)) {
-                    position = Vector2((lastX - fieldCenterOffset.x).meters.asFeet, (lastY - fieldCenterOffset.y).meters.asFeet)
-                    lastPosition = fieldObject.robotPose
-                    println("from fieldobject")
-                } else {
-                    val robotPose = Pose2d(
-                        position.x.feet.asMeters + fieldCenterOffset.x,
-                        position.y.feet.asMeters + fieldCenterOffset.y,
-                        -Rotation2d((heading - 90.0.degrees).asRadians)
-                    )
-                    fieldObject.robotPose = robotPose
-                    lastPosition = robotPose
-                }
+//                if (lastX != 0.0 && lastY != 0.0 && robotHalfWidth < lastX && lastX < fieldDimensions.x - robotHalfWidth && robotHalfWidth < lastY && lastY < fieldDimensions.y - robotHalfWidth && (lastPosition.x != lastX || lastPosition.y != lastY)) {
+//                    position = Vector2((lastX - fieldCenterOffset.x).meters.asFeet, (lastY - fieldCenterOffset.y).meters.asFeet)
+//                    lastPosition = fieldObject.robotPose
+//                    println("from fieldobject")
+//                } else {
+//                    val robotPose = Pose2d(
+//                        position.x.feet.asMeters + fieldCenterOffset.x,
+//                        position.y.feet.asMeters + fieldCenterOffset.y,
+//                        -Rotation2d((heading - 90.0.degrees).asRadians)
+//                    )
+//                    fieldObject.robotPose = robotPose
+//                    lastPosition = robotPose
+//                }
             }
         }
     }
@@ -572,7 +575,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
 }
 
 fun Drive.abortPath(): Boolean {
-    return OI.driverController.leftThumbstick.length > 0.01
+    return isHumanDriving
 }
 
 suspend fun Drive.currentTest() = use(this) {
