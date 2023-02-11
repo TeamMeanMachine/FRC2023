@@ -147,15 +147,15 @@ suspend fun Intake.pivotTest() = use(this) {
         if (OI.driverController.dPad != Controller.Direction.UP && upPressed) {
             upPressed = false
             angle += 10.degrees
-//            println("up = ${angle}")
+            println("up = ${angle}")
         }
         if (OI.driverController.dPad != Controller.Direction.DOWN && downPressed) {
             downPressed = false
             angle -= 10.degrees
-//            println("down = ${angle}")
+            println("down = ${angle}")
         }
         pivotSetpoint = angle
-//        println("angle = ${angle}")
+        println("angle = ${angle}")
     }
 }
 
