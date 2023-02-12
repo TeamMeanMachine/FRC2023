@@ -39,7 +39,7 @@ object FieldManager {
     fun convertTMMtoWPI(x:Length, y:Length, heading: Angle):Pose2d{
         val modX = -y.asMeters + fieldCenterOffset.y
         val modY = x.asMeters + fieldCenterOffset.x
-        return Pose2d(modX,modY, Rotation2d(-Drive.heading.asDegrees))
+        return Pose2d(modX,modY, Rotation2d((-Drive.heading+180.0.degrees).wrap().asRadians))
     }
 
     fun convertWPIToTMM(wpiDimens: Translation2d): Vector2{

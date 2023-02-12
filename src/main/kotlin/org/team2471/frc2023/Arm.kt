@@ -70,24 +70,25 @@ object Arm : Subsystem("Arm") {
                 p(0.0000017)
                 d(0.000001)
             }
-            currentLimit(50, 60, 1)
+            currentLimit(0, 60, 0)
+            burnSettings()
         }
         elbowMotor.config(20) {
             feedbackCoefficient = 242.0 / 2183.0
             brakeMode()
             pid{
-                p(0.00000000001)
+                p(0.0000055)
+                d(0.000004)
             }
-            currentLimit(30, 40, 1)
+            currentLimit(0, 60, 0)
+            burnSettings()
         }
         shoulderIsZeroed = false
         elbowIsZeroed = false
 
         GlobalScope.launch(MeanlibDispatcher) {
-
-            periodic {
-                shoulderEntry.setDouble(shoulderAngle.asDegrees)
-                elbowEntry.setDouble(elbowAngle.asDegrees)
+            shoulderSetpoint = -8.0.degrees
+            elbowSetpoint = -30.0.degrees
 
                 shoulderCurve.storeValue(-65.0, 0.13)
                 shoulderCurve.storeValue(-30.0, 0.09)
@@ -102,9 +103,12 @@ object Arm : Subsystem("Arm") {
                 elbowCurve.storeValue(40.0, 0.15)
                 elbowCurve.storeValue(90.0, 0.3)
 
-                shoulderMotor.setPositionSetpoint(shoulderSetpoint.asDegrees, sFeedForward)
+            periodic {
+                shoulderEntry.setDouble(shoulderAngle.asDegrees)
+                elbowEntry.setDouble(elbowAngle.asDegrees)
+
+//                shoulderMotor.setPositionSetpoint(shoulderSetpoint.asDegrees, sFeedForward)
 //                elbowMotor.setPositionSetpoint(elbowSetpoint.asDegrees, eFeedForward)
-//                println("elbow feed forward: $sFeedForward")
 
                 //zeroing
 //                if (!shoulderIsZeroed) println("Shoulder angle is not zeroed")
