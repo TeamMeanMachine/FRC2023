@@ -63,7 +63,7 @@ object Arm : Subsystem("Arm") {
         shoulderMotor.restoreFactoryDefaults()
         shoulderMotor.config(20) {
             feedbackCoefficient = 74.14 / 2116.0
-            coastMode()
+            brakeMode()
             inverted(true)    //a is inverted
             followersInverted(false) //--spark max WAS inverted in rev hardware client -> advanced, check if weird
             pid {
@@ -86,27 +86,22 @@ object Arm : Subsystem("Arm") {
         shoulderIsZeroed = false
         elbowIsZeroed = false
 
-        elbowMotor.setRawOffset(0.0)
-        shoulderMotor.setRawOffset(0.0)
-
         GlobalScope.launch(MeanlibDispatcher) {
             shoulderSetpoint = -8.0.degrees
             elbowSetpoint = -30.0.degrees
 
-            shoulderCurve.storeValue(-65.0, 0.13)
-            shoulderCurve.storeValue(-30.0, 0.09)
-            shoulderCurve.storeValue(-5.0, 0.05)
-            shoulderCurve.storeValue(5.0, -0.05)
-            shoulderCurve.storeValue(30.0, -0.09)
-            shoulderCurve.storeValue(65.0, -0.13)
+                shoulderCurve.storeValue(-65.0, 0.13)
+                shoulderCurve.storeValue(-30.0, 0.09)
+                shoulderCurve.storeValue(-5.0, 0.05)
+                shoulderCurve.storeValue(5.0, -0.05)
+                shoulderCurve.storeValue(30.0, -0.09)
+                shoulderCurve.storeValue(65.0, -0.13)
 
-            elbowCurve.storeValue(-90.0, -0.5)  //26
-            elbowCurve.storeValue(-70.0, -0.45)  //21
-            elbowCurve.storeValue(-40.0, -0.4)  //12
-            elbowCurve.storeValue(0.0, 0.0)
-            elbowCurve.storeValue(40.0, 0.4)
-            elbowCurve.storeValue(70.0, 0.45)
-            elbowCurve.storeValue(90.0, 0.5)
+                elbowCurve.storeValue(-90.0, -0.14)
+                elbowCurve.storeValue(-40.0, -0.09)
+                elbowCurve.storeValue(0.0, 0.0)
+                elbowCurve.storeValue(40.0, 0.15)
+                elbowCurve.storeValue(90.0, 0.3)
 
             periodic {
                 shoulderEntry.setDouble(shoulderAngle.asDegrees)
