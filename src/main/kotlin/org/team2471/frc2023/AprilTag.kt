@@ -2,17 +2,13 @@ package org.team2471.frc2023
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout
 import edu.wpi.first.apriltag.AprilTagFields
-import edu.wpi.first.math.Pair
 import edu.wpi.first.math.geometry.*
 import edu.wpi.first.networktables.NetworkTableInstance
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.photonvision.EstimatedRobotPose
 import org.photonvision.PhotonCamera
-import org.photonvision.PhotonPoseEstimator
-import org.photonvision.targeting.PhotonPipelineResult
 import org.team2471.frc.lib.coroutines.periodic
-import org.team2471.frc.lib.framework.use
 import org.team2471.frc.lib.units.asMeters
 import org.team2471.frc.lib.units.asRadians
 import org.team2471.frc.lib.units.degrees
@@ -23,21 +19,23 @@ import kotlin.math.abs
 object AprilTag {
     private val pvTable = NetworkTableInstance.getDefault().getTable("photonvision")
 
+    private val frontCamSelectedEntry = pvTable.getEntry("Front Camera Selected")
+
     private val tagPoseEntry = pvTable.getEntry("tagPose")
     private val pvXEntry = pvTable.getEntry("xpos")
     private val pvYEntry = pvTable.getEntry("ypos")
-    val aprilTagFieldLayout : AprilTagFieldLayout = AprilTagFieldLayout.loadFromResource(AprilTagFields.kDefaultField.m_resourceFile)
-    val camFront = PhotonCamera("camFront")
-    val camBack = PhotonCamera("camBack")
+    private val aprilTagFieldLayout : AprilTagFieldLayout = AprilTagFieldLayout.loadFromResource(AprilTagFields.kDefaultField.m_resourceFile)
+    private val camFront = PhotonCamera("camFront")
+    private val camBack = PhotonCamera("camBack")
 
-    const val maxAmbiguity = 0.1
+    private const val maxAmbiguity = 0.1
 
-    var robotToCamFront: Transform3d = Transform3d(
+    private var robotToCamFront: Transform3d = Transform3d(
         Translation3d(6.5.inches.asMeters, -16.0.inches.asMeters, 2.0.inches.asMeters),
         Rotation3d(0.0, 18.0.degrees.asRadians, 0.0)
     )
 
-    var robotToCamBack = Transform3d(
+    private var robotToCamBack = Transform3d(
         Translation3d(6.5.inches.asMeters, -16.0.inches.asMeters, 2.0.inches.asMeters),
         Rotation3d(0.0, 18.0.degrees.asRadians, 0.0)
     )
@@ -89,7 +87,9 @@ object AprilTag {
     init {
         GlobalScope.launch {
             periodic {
-                val maybePose = customEstimatedPose(useFrontCam())
+                val frontCamSelected = useFrontCam()
+                frontCamSelectedEntry.setBoolean(frontCamSelected)
+                val maybePose = customEstimatedPose(frontCamSelected)
                 if (maybePose != null) {
                     val currentPose = maybePose.estimatedPose  //maybePose.get().estimatedPose
                     val tagX = currentPose.x
