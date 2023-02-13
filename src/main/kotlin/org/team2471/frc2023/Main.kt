@@ -49,6 +49,7 @@ object Robot : MeanlibRobot() {
 
         AutoChooser
         NodeDeckHub
+        AprilTag
         Intake
         Arm
         PowerInfo

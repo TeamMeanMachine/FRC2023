@@ -9,10 +9,7 @@ import kotlinx.coroutines.launch
 import org.photonvision.EstimatedRobotPose
 import org.photonvision.PhotonCamera
 import org.team2471.frc.lib.coroutines.periodic
-import org.team2471.frc.lib.units.asMeters
-import org.team2471.frc.lib.units.asRadians
-import org.team2471.frc.lib.units.degrees
-import org.team2471.frc.lib.units.inches
+import org.team2471.frc.lib.units.*
 import java.util.*
 import kotlin.math.abs
 
@@ -20,6 +17,9 @@ object AprilTag {
     private val pvTable = NetworkTableInstance.getDefault().getTable("photonvision")
 
     private val frontCamSelectedEntry = pvTable.getEntry("Front Camera Selected")
+
+    private val frontAdvantagePoseEntry = pvTable.getEntry("Front Advantage Pose")
+    private val backAdvantagePoseEntry = pvTable.getEntry("Back Advantage Pose")
 
     private val tagPoseEntry = pvTable.getEntry("tagPose")
     private val pvXEntry = pvTable.getEntry("xpos")
@@ -42,10 +42,11 @@ object AprilTag {
 
     //true means front cam
     private fun useFrontCam(): Boolean {
+        println("Angle: ${Drive.heading.asDegrees}")
         return if (Drive.position.y > 0) {
-            Drive.position.angle < 90 || Drive.position.angle > 270
+            abs(Drive.heading.asDegrees) < 90
         } else{
-            90 < Drive.position.angle && Drive.position.angle < 270
+            abs(Drive.heading.asDegrees) > 90
         }
     }
 
@@ -89,9 +90,16 @@ object AprilTag {
             periodic {
                 val frontCamSelected = useFrontCam()
                 frontCamSelectedEntry.setBoolean(frontCamSelected)
-                val maybePose = customEstimatedPose(frontCamSelected)
-                if (maybePose != null) {
-                    val currentPose = maybePose.estimatedPose  //maybePose.get().estimatedPose
+                val maybePoseFront = customEstimatedPose(true)
+                val maybePoseBack = customEstimatedPose(false)
+                if (maybePoseFront != null) {
+                    frontAdvantagePoseEntry.setDoubleArray(doubleArrayOf(maybePoseFront.estimatedPose.x, maybePoseFront.estimatedPose.y, maybePoseFront.estimatedPose.rotation.angle))
+                }
+                if (maybePoseBack != null) {
+                    frontAdvantagePoseEntry.setDoubleArray(doubleArrayOf(maybePoseBack.estimatedPose.x, maybePoseBack.estimatedPose.y, maybePoseBack.estimatedPose.rotation.angle))
+                }
+                if (maybePoseFront != null) {
+                    val currentPose = maybePoseFront.estimatedPose  //maybePose.get().estimatedPose
                     val tagX = currentPose.x
                     val tagY = currentPose.y
                     val tagRot = currentPose.rotation
@@ -102,6 +110,7 @@ object AprilTag {
 //                    Drive.position = Vector2(curepos.get().estimatedPose.x.meters.asFeet - (13 + 3.5/12), curepos.get().estimatedPose.y.meters.asFeet - (26 + 0.5/12))
 //                    println(Vector2((26 + 0.5/12) - curepos.get().estimatedPose.x.meters.asFeet , curepos.get().estimatedPose.y.meters.asFeet - (13 + 3.5/12)))
                 }
+
             }
         }
     }
