@@ -1,6 +1,5 @@
 package org.team2471.frc2023.testing
 
-import org.team2471.frc.lib.coroutines.delay
 import org.team2471.frc.lib.coroutines.periodic
 import org.team2471.frc.lib.framework.use
 import org.team2471.frc.lib.units.degrees
@@ -23,9 +22,17 @@ suspend fun Arm.pidTest() = use(Arm) {
     }
 }
 
-suspend fun Intake.pidTest() = use(Arm) {
+suspend fun Intake.pidTestOne() = use(this) {
     periodic {
-        pivotSetpoint = (OI.operatorLeftY * 40).degrees
+        wristSetpoint = (OI.operatorLeftY * 30.0 - 80.0).degrees
+    }
+}
+
+suspend fun Intake.pidTestTwo() = use(Intake) {
+    var setpoint = pivotAngle.asDegrees
+    periodic {
+        if (setpoint < -90.0) setpoint += 0.2 else if (setpoint > -90.0) setpoint -= 0.2
+        pivotSetpoint = setpoint.degrees
     }
 }
 

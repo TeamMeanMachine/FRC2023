@@ -75,7 +75,7 @@ object Intake : Subsystem("Intake") {
     const val WRIST_TOP = 80.0
     const val INTAKE_POWER = 0.7
     const val INTAKE_HOLD = 0.05
-    const val INTAKE_DETECT_CONE = 70
+    const val INTAKE_DETECT_CONE = 55
 
     init {
         wristMotor.config(20) {
@@ -103,7 +103,6 @@ object Intake : Subsystem("Intake") {
 
         GlobalScope.launch(MeanlibDispatcher) {
             var tempPivot: Angle
-            wristSetpoint = -80.0.degrees
 
             pivotCurve.storeValue(-179.0, 0.0)
             pivotCurve.storeValue(-170.0, 0.09) //.05
@@ -114,6 +113,11 @@ object Intake : Subsystem("Intake") {
             pivotCurve.storeValue(90.0, -0.09)
             pivotCurve.storeValue(170.0, -0.09)
             pivotCurve.storeValue(179.0, 0.0)
+
+            wristSetpointEntry.setDouble(wristAngle.asDegrees)
+            pivotSetpointEntry.setDouble(pivotAngle.asDegrees)
+
+            pivotSetpoint = -90.0.degrees
 
             periodic {
                 wristEntry.setDouble(wristAngle.asDegrees)
@@ -132,7 +136,6 @@ object Intake : Subsystem("Intake") {
 
                 val power = pivotPDController.update(pivotIncrementSetpoint.asDegrees - pivotIncrementAngle.asDegrees) + pFeedForward
                 pivotMotor.setPercentOutput(power)
-//                println("power: ${round(power, 3)} feed: ${round(pFeedForward, 3)} curr: ${wristMotor.current}")
 
 
                 //zeroing wrist
@@ -156,31 +159,25 @@ object Intake : Subsystem("Intake") {
         periodic {
             if (OI.operatorController.a) {
                   //-1.0
-
                 if (!isTimerStarted) {
                     t.start()
                     isTimerStarted = true
                     intakeMotor.setPercentOutput(-INTAKE_POWER)
               //      println("timer is started")
-                }
-                else if(t.get() > 0.2) {
+                } else if(t.get() > 0.2) {
                     if (intakeMotor.current > INTAKE_DETECT_CONE) {
                         intakeMotor.setPercentOutput(-INTAKE_HOLD)  //1.0
                     }
                 } else {
                 //    println("Min Timer not Reached → ${t.get()}")
                 }
-            }
-            else if (OI.operatorController.b){
+            } else if (OI.operatorController.b){
                 intakeMotor.setPercentOutput(INTAKE_POWER)  //1.0
-            }
-            else{
+            } else {
                 intakeMotor.setPercentOutput(0.5 * OI.driverController.leftTrigger - 0.5 * OI.driverController.rightTrigger)
                 isTimerStarted = false
             }
-
         }
-
     }
 }
 

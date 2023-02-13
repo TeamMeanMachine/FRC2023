@@ -24,9 +24,8 @@ object Arm : Subsystem("Arm") {
     val elbowEntry = table.getEntry("Elbow Angle")
     val elbowSetpointEntry = table.getEntry("Elbow Setpoint")
 
-    var shoulderAngle: Angle
+    val shoulderAngle: Angle
         get() = shoulderMotor.position.degrees + shoulderOffset
-        set(value) { shoulderMotor.position = value.asDegrees }
     var shoulderOffset = 0.0.degrees
     var shoulderSetpoint: Angle = shoulderAngle
         get() = shoulderSetpointEntry.getDouble(0.0).degrees
@@ -37,9 +36,8 @@ object Arm : Subsystem("Arm") {
     val sFeedForward: Double
         get() = shoulderCurve.getValue(shoulderAngle.asDegrees)
     val shoulderCurve = MotionCurve()
-    var elbowAngle: Angle
+    val elbowAngle: Angle
         get() = elbowMotor.position.degrees + elbowOffset
-        set(value) { elbowMotor.position = value.asDegrees }
     var elbowOffset = 0.0.degrees
     var elbowSetpoint: Angle = elbowAngle
         get() = elbowSetpointEntry.getDouble(0.0).degrees
@@ -87,21 +85,22 @@ object Arm : Subsystem("Arm") {
         elbowIsZeroed = false
 
         GlobalScope.launch(MeanlibDispatcher) {
-            shoulderSetpoint = -8.0.degrees
-            elbowSetpoint = -30.0.degrees
 
-                shoulderCurve.storeValue(-65.0, 0.13)
-                shoulderCurve.storeValue(-30.0, 0.09)
-                shoulderCurve.storeValue(-5.0, 0.05)
-                shoulderCurve.storeValue(5.0, -0.05)
-                shoulderCurve.storeValue(30.0, -0.09)
-                shoulderCurve.storeValue(65.0, -0.13)
+            shoulderCurve.storeValue(-65.0, 0.13)
+            shoulderCurve.storeValue(-30.0, 0.09)
+            shoulderCurve.storeValue(-5.0, 0.05)
+            shoulderCurve.storeValue(5.0, -0.05)
+            shoulderCurve.storeValue(30.0, -0.09)
+            shoulderCurve.storeValue(65.0, -0.13)
 
-                elbowCurve.storeValue(-90.0, -0.14)
-                elbowCurve.storeValue(-40.0, -0.09)
-                elbowCurve.storeValue(0.0, 0.0)
-                elbowCurve.storeValue(40.0, 0.15)
-                elbowCurve.storeValue(90.0, 0.3)
+            elbowCurve.storeValue(-90.0, -0.14)
+            elbowCurve.storeValue(-40.0, -0.09)
+            elbowCurve.storeValue(0.0, 0.0)
+            elbowCurve.storeValue(40.0, 0.15)
+            elbowCurve.storeValue(90.0, 0.3)
+
+            shoulderSetpointEntry.setDouble(shoulderAngle.asDegrees)
+            elbowSetpointEntry.setDouble(elbowAngle.asDegrees)
 
             periodic {
                 shoulderEntry.setDouble(shoulderAngle.asDegrees)

@@ -7,7 +7,6 @@ import edu.wpi.first.wpilibj.DriverStation
 import edu.wpi.first.wpilibj.RobotBase
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard
 import kotlinx.coroutines.DelicateCoroutinesApi
-import org.team2471.frc.lib.coroutines.periodic
 import org.team2471.frc.lib.framework.MeanlibRobot
 import org.team2471.frc.lib.units.degrees
 import org.team2471.frc2023.testing.*
@@ -84,7 +83,7 @@ object Robot : MeanlibRobot() {
 
     override suspend fun test()  {
         println("test mode begin. Hi.")
-       Intake.pidTest()
+       Intake.pidTestOne()
        // Drive.setAngleOffsets()
 //        Drive.driveTests()
 //        Drive.steeringTests()
