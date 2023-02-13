@@ -189,12 +189,12 @@ object Drive : Subsystem("Drive"), SwerveDrive {
             println("in init just before periodic")
             periodic {
                 var (x, y) = position
-                if (x.absoluteValue > reducedField.x || y.absoluteValue > reducedField.y ){
-                    println("Coercing x inside field dimensions")
-                    x = x.coerceIn(-reducedField.x, reducedField.x)
-                    y = y.coerceIn(-reducedField.y, reducedField.y)
-//                    position = Vector2(x, y)
-                }
+//                if (x.absoluteValue > reducedField.x || y.absoluteValue > reducedField.y ){
+//                    println("Coercing x inside field dimensions")
+//                    x = x.coerceIn(-reducedField.x, reducedField.x)
+//                    y = y.coerceIn(-reducedField.y, reducedField.y)
+////                    position = Vector2(x, y)
+//                }
                 xEntry.setDouble(x)
                 yEntry.setDouble(y)
                 headingEntry.setDouble(heading.asDegrees)
@@ -208,8 +208,9 @@ object Drive : Subsystem("Drive"), SwerveDrive {
 //                motorAngle1Entry.setDouble((modules[1] as Module).angle.wrap().asDegrees)
 //                motorAngle2Entry.setDouble((modules[2] as Module).angle.wrap().asDegrees)
 //                motorAngle3Entry.setDouble((modules[3] as Module).angle.wrap().asDegrees)
-
-
+           //     for (moduleCount in 0..3) { //changed to modules.indices, untested
+             //       val module = (modules[moduleCount] as Module)
+            //    }
             }
         }
     }
@@ -276,6 +277,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
                 SmartDashboard.getBoolean("Use Gyro", true) && !DriverStation.isAutonomous(),
                 true
             )
+
 //            println("headingSetPoint = $headingSetpoint")
         }
     }
@@ -549,6 +551,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         newPath.addHeadingPoint(time, 0.0)
         Drive.driveAlongPath(newPath){ abortPath() }
     }
+
     suspend fun calibrateRobotPosition() = use(Drive) {
         position = Vector2(11.5, -24.75)
         heading= 0.0.degrees
