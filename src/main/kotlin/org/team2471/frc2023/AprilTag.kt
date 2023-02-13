@@ -96,7 +96,7 @@ object AprilTag {
                     frontAdvantagePoseEntry.setDoubleArray(doubleArrayOf(maybePoseFront.estimatedPose.x, maybePoseFront.estimatedPose.y, maybePoseFront.estimatedPose.rotation.angle))
                 }
                 if (maybePoseBack != null) {
-                    frontAdvantagePoseEntry.setDoubleArray(doubleArrayOf(maybePoseBack.estimatedPose.x, maybePoseBack.estimatedPose.y, maybePoseBack.estimatedPose.rotation.angle))
+                    backAdvantagePoseEntry.setDoubleArray(doubleArrayOf(maybePoseBack.estimatedPose.x, maybePoseBack.estimatedPose.y, maybePoseBack.estimatedPose.rotation.angle))
                 }
                 if (maybePoseFront != null) {
                     val currentPose = maybePoseFront.estimatedPose  //maybePose.get().estimatedPose
