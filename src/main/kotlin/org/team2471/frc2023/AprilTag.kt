@@ -25,8 +25,8 @@ object AprilTag {
     private val pvXEntry = pvTable.getEntry("xpos")
     private val pvYEntry = pvTable.getEntry("ypos")
     private val aprilTagFieldLayout : AprilTagFieldLayout = AprilTagFieldLayout.loadFromResource(AprilTagFields.kDefaultField.m_resourceFile)
-    private val camFront = PhotonCamera("pvFront")
-    private val camBack = PhotonCamera("pvBack")
+    private val camFront = PhotonCamera("PVFront")
+    private val camBack = PhotonCamera("PVBack")
 
     private const val maxAmbiguity = 0.1
 
