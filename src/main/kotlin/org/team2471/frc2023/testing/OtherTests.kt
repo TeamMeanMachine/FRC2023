@@ -24,7 +24,7 @@ suspend fun Arm.pidTest() = use(Arm) {
 
 suspend fun Intake.pidTestOne() = use(this) {
     periodic {
-        wristSetpoint = (OI.operatorLeftY * 30.0 - 80.0).degrees
+        pivotSetpoint = (OI.operatorLeftY * 60.0).degrees
     }
 }
 

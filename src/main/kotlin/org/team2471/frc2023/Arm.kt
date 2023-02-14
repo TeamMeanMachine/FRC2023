@@ -106,9 +106,11 @@ object Arm : Subsystem("Arm") {
                 shoulderEntry.setDouble(shoulderAngle.asDegrees)
                 elbowEntry.setDouble(elbowAngle.asDegrees)
 
-//                shoulderMotor.setPositionSetpoint(shoulderSetpoint.asDegrees, sFeedForward)
-//                elbowMotor.setPositionSetpoint(elbowSetpoint.asDegrees, eFeedForward)
-
+                if (Intake.pivotAngle > 93.0.degrees && Intake.pivotAngle < 83.0.degrees && (Intake.wristAngle < -80.0.degrees || Intake.wristAngle > 80.0.degrees)) { //pivotAngle will need to be negated when pivotCurve inverted properly
+                    elbowMotor.setPositionSetpoint(elbowSetpoint.asDegrees, eFeedForward)
+                    shoulderMotor.setPositionSetpoint(shoulderSetpoint.asDegrees, sFeedForward)
+                    println("Allowed to move shoulder and elbow")
+                }
                 //zeroing
 //                if (!shoulderIsZeroed) println("Shoulder angle is not zeroed")
 //                if (!elbowIsZeroed) println("Elbow angle is not zeroed")
