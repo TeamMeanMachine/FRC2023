@@ -8,9 +8,12 @@ import org.team2471.frc.lib.actuators.SparkMaxID
 import org.team2471.frc.lib.coroutines.MeanlibDispatcher
 import org.team2471.frc.lib.coroutines.periodic
 import org.team2471.frc.lib.framework.Subsystem
+import org.team2471.frc.lib.math.Vector2
 import org.team2471.frc.lib.motion_profiling.MotionCurve
 import org.team2471.frc.lib.units.Angle
 import org.team2471.frc.lib.units.degrees
+import org.team2471.frc.lib.units.radians
+import kotlin.math.pow
 
 object Arm : Subsystem("Arm") {
     val shoulderMotor = MotorController(SparkMaxID(Sparks.SHOULDER_A), SparkMaxID(Sparks.SHOULDER_B))
@@ -56,6 +59,62 @@ object Arm : Subsystem("Arm") {
     val SHOULDER_TOP = 30.0
     val ELBOW_BOTTOM = -120.0
     val ELBOW_TOP = 120.0
+
+    const val shoulderLength = 36.0
+    const val elbowLength = 34.0
+
+    /** Converts joint angles to the end effector position.  */
+    fun forwardKinematics(shoulder: Angle, elbow: Angle) : Vector2 {
+        return Vector2(
+            shoulderLength * shoulder.cos() + elbowLength * elbow.cos(),
+            shoulderLength * shoulder.sin() + elbowLength * elbow.sin())
+    }
+
+    /** Converts the end effector position to joint angles. */
+    fun inverseKinematics(endPosition: Vector2) : Pair<Angle, Angle>{
+        var relativePosition = endPosition
+        // Flip when X is negative
+        val isFlipped = relativePosition.x < 0.0
+        if (isFlipped) {
+            relativePosition.x = -relativePosition.x
+        }
+
+        // Calculate angles
+        var elbow = -Math.cos((relativePosition.x.pow(2.0) + relativePosition.y.pow(2.0)
+                - shoulderLength.pow(2.0) - elbowLength.pow(2.0)) / (2.0 * shoulderLength * elbowLength))
+
+        if (elbow.isNaN()) {
+            return Pair(0.radians, 0.radians)
+        }
+
+        var shoulder = Math.atan(relativePosition.y / relativePosition.x) -
+                Math.atan((elbowLength * elbowAngle.sin()) / (shoulderLength + elbowLength * elbowAngle.cos()))
+
+        // Invert shoulder angle if invalid
+        val testPosition = forwardKinematics(shoulder.radians, elbow.radians)
+        if ((testPosition-relativePosition).length > 1e-3) {
+            shoulder += Math.PI
+        }
+
+        // Flip angles
+        if (isFlipped) {
+            shoulder = Math.PI - shoulder
+            elbow = -elbow
+        }
+
+        // Wrap angles to correct ranges
+        return Pair(shoulder.radians.wrap(), elbow.radians.wrap())
+    }
+
+    var endEffectorPosition : Vector2
+    get() {
+        return forwardKinematics(shoulderAngle, elbowAngle)
+    }
+    set(position) {
+        val (shoulder, elbow) = inverseKinematics(position)
+        shoulderSetpoint = shoulder
+        elbowSetpoint = elbow
+    }
 
     init {
         shoulderMotor.restoreFactoryDefaults()
