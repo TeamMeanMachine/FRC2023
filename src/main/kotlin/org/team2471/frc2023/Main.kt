@@ -48,7 +48,7 @@ object Robot : MeanlibRobot() {
 
         AutoChooser
         NodeDeckHub
-        AprilTag
+//        AprilTag
         Intake
         Arm
         PowerInfo
@@ -60,7 +60,7 @@ object Robot : MeanlibRobot() {
         Arm.enable()
         Intake.enable()
         PowerInfo.enable()
-        SignalLights.enable()
+//        SignalLights.enable()
         println("field centric? ${SmartDashboard.getBoolean("Use Gyro", true) && !DriverStation.isAutonomous()}")
         println("ending enable")
     }
@@ -83,7 +83,8 @@ object Robot : MeanlibRobot() {
 
     override suspend fun test()  {
         println("test mode begin. Hi.")
-        Intake.pidTestOne()
+       // Intake.pidTestOne()
+        Arm.pidTest()
     // Drive.setAngleOffsets()
 //        Drive.driveTests()
 //        Drive.steeringTests()
@@ -95,7 +96,7 @@ object Robot : MeanlibRobot() {
         Arm.disable()
         Intake.disable()
         PowerInfo.disable()
-        SignalLights.disable()
+//        SignalLights.disable()
     }
 
     private fun initTimeMeasurement(){

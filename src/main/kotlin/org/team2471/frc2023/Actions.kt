@@ -2,6 +2,7 @@ package org.team2471.frc2023
 
 import org.team2471.frc.lib.coroutines.periodic
 import org.team2471.frc.lib.framework.use
+import org.team2471.frc.lib.units.degrees
 
 suspend fun scoreIfReady(){
     var startGoScore = false
@@ -28,4 +29,9 @@ suspend fun goScore() = use(Drive, Arm, Intake, name = "goScore") {
 //        val scoringPos = FieldConstants.Grids.high3dTranslations[NodeDeckHub.selectedNode.toInt()]
         println()
     }
+}
+
+suspend fun intakeCone() = use(Intake,Arm) {
+    Arm.shoulderSetpoint = -18.0.degrees
+    Arm.elbowSetpoint = -27.0.degrees
 }

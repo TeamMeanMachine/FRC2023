@@ -42,7 +42,7 @@ object AprilTag {
 
     //true means front cam
     private fun useFrontCam(): Boolean {
-        println("Angle: ${Drive.heading.asDegrees}")
+//        println("Angle: ${Drive.heading.asDegrees}")
         return if (Drive.position.y > 0) {
             abs(Drive.heading.asDegrees) < 90
         } else{
