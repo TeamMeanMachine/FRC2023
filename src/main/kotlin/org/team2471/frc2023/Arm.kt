@@ -13,9 +13,7 @@ import org.team2471.frc.lib.motion_profiling.MotionCurve
 import org.team2471.frc.lib.units.Angle
 import org.team2471.frc.lib.units.degrees
 import org.team2471.frc.lib.units.radians
-import kotlin.math.absoluteValue
-import kotlin.math.max
-import kotlin.math.pow
+import kotlin.math.*
 
 object Arm : Subsystem("Arm") {
     val shoulderMotor = MotorController(SparkMaxID(Sparks.SHOULDER_A), SparkMaxID(Sparks.SHOULDER_B))
@@ -69,13 +67,13 @@ object Arm : Subsystem("Arm") {
     const val shoulderLength = 37.0
     const val elbowLength = 28.0
 
-    const val shoulderBindAngle = 90.0.degrees
-    const val elbowBindAngle = -90.0.degrees
+    const val shoulderBindAngle = 90.0
+    const val elbowBindAngle = -90.0
 
     /** Converts joint angles to the end effector position.  */
     fun forwardKinematics(inShoulder: Angle, inElbow: Angle) : Vector2 {
-        val shoulder = inShoulder + shoulderBindAngle
-        val elbow = inElbow + shoulderBindAngle
+        val shoulder = inShoulder + shoulderBindAngle.degrees
+        val elbow = inElbow + shoulderBindAngle.degrees
         return Vector2(
             shoulderLength * shoulder.cos() + elbowLength * elbow.cos(),
             shoulderLength * shoulder.sin() + elbowLength * elbow.sin())
@@ -87,7 +85,7 @@ object Arm : Subsystem("Arm") {
 
         val length0 = shoulderLength
         val length1 = elbowLength
-        val length2 = relativePosition.length()
+        val length2 = relativePosition.length
 
         // Inner angle alpha
         val cosInnerAlpha = (length2 * length2 + length0 * length0 - length1 * length1) / (2 * length2 * length0)
@@ -110,7 +108,7 @@ object Arm : Subsystem("Arm") {
         }
 
         // Wrap angles to correct ranges
-        return Pair((jointAngleA1.radians - shoulderBindAngle).wrap(), (jointAngleA1.radians + jointAngleB.radians - elbowBindAngle).wrap())
+        return Pair((jointAngleA1.radians - shoulderBindAngle.degrees).wrap(), (jointAngleA1.radians + jointAngleB.radians - elbowBindAngle.degrees).wrap())
     }
 
     const val REACH_LIMIT = 30.0
@@ -222,22 +220,20 @@ object Arm : Subsystem("Arm") {
         var mismatches = 0
         var mirrors = 0
         for (shoulderDegrees in -80 .. 80 step(5)) {
-            val shoulderRadians = Math.toRadians(shoulderDegrees.toDouble())
+            val shoulderAngle = shoulderDegrees.toDouble().degrees
             for (elbowDegrees in -90..90 step(5)) {
                 if (elbowDegrees==-shoulderDegrees) {
                     continue
                 }
-                val elbowRadians = Math.toRadians(elbowDegrees.toDouble())
-                val position = forwardKinematics(shoulderRadians, elbowRadians)
-                val (shoulderIKRadians, elbowIKRadians) = inverseKinematics(position)
-                val shoulderIKDegrees = Math.toDegrees(shoulderIKRadians)
-                val elbowIKDegrees = Math.toDegrees(elbowIKRadians)
-                if ((shoulderDegrees.toDouble()-shoulderIKDegrees).absoluteValue > 0.5 ||
-                    (elbowDegrees.toDouble()-elbowIKDegrees).absoluteValue > 0.5) {
-                    val positionIK = forwardKinematics(shoulderIKRadians, elbowIKRadians)
-                    if ((positionIK.first - position.first).absoluteValue > 0.5 ||
-                        (positionIK.second - position.second).absoluteValue > 0.5) {
-                        println("sh:$shoulderDegrees=$shoulderIKDegrees  el:$elbowDegrees=$elbowIKDegrees")
+                val elbowAngle = elbowDegrees.toDouble().degrees
+                val position = forwardKinematics(shoulderAngle, elbowAngle)
+                val (shoulderIKAngle, elbowIKAngle) = inverseKinematics(position)
+                if ((shoulderDegrees.toDouble()-shoulderIKAngle.asDegrees).absoluteValue > 0.5 ||
+                    (elbowDegrees.toDouble()-elbowIKAngle.asDegrees).absoluteValue > 0.5) {
+                    val positionIK = forwardKinematics(shoulderIKAngle, elbowIKAngle)
+                    if ((positionIK.x - position.x).absoluteValue > 0.5 ||
+                        (positionIK.y - position.y).absoluteValue > 0.5) {
+                        println("sh:$shoulderDegrees=${shoulderIKAngle.asDegrees}  el:$elbowDegrees=${elbowIKAngle.asDegrees}")
                         mismatches++
                     }
                     else {
