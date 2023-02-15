@@ -69,49 +69,48 @@ object Arm : Subsystem("Arm") {
     const val shoulderLength = 37.0
     const val elbowLength = 28.0
 
+    const val shoulderBindAngle = 90.0.degrees
+    const val elbowBindAngle = -90.0.degrees
+
     /** Converts joint angles to the end effector position.  */
     fun forwardKinematics(inShoulder: Angle, inElbow: Angle) : Vector2 {
-        val shoulder = inShoulder + 90.degrees
-        val elbow = inElbow - 90.degrees
+        val shoulder = inShoulder + shoulderBindAngle
+        val elbow = inElbow + shoulderBindAngle
         return Vector2(
             shoulderLength * shoulder.cos() + elbowLength * elbow.cos(),
             shoulderLength * shoulder.sin() + elbowLength * elbow.sin())
     }
 
     /** Converts the end effector position to joint angles. */
-    fun inverseKinematics(endPosition: Vector2) : Pair<Angle, Angle>{
+    fun inverseKinematics(endPosition: Vector2): Pair<Angle, Angle> {
         var relativePosition = endPosition
-        // Flip when X is negative
-        val isFlipped = relativePosition.x < 0.0
-        if (isFlipped) {
-            relativePosition.x = -relativePosition.x
-        }
 
-        // Calculate angles
-        var elbow = -Math.acos((relativePosition.x.pow(2.0) + relativePosition.y.pow(2.0)
-                - shoulderLength.pow(2.0) - elbowLength.pow(2.0)) / (2.0 * shoulderLength * elbowLength))
+        val length0 = shoulderLength
+        val length1 = elbowLength
+        val length2 = relativePosition.length()
 
-        if (elbow.isNaN()) {
-            return Pair(0.radians, 0.radians)
-        }
+        // Inner angle alpha
+        val cosInnerAlpha = (length2 * length2 + length0 * length0 - length1 * length1) / (2 * length2 * length0)
+        val innerAlpha = acos(cosInnerAlpha)
 
-        var shoulder = Math.atan(relativePosition.y / relativePosition.x) -
-                Math.atan((elbowLength * elbowAngle.sin()) / (shoulderLength + elbowLength * elbowAngle.cos()))
+        // Inner angle beta
+        val cosInnerBeta = (length1 * length1 + length0 * length0 - length2 * length2) / (2 * length1 * length0)
+        val innerBeta = acos(cosInnerBeta)
 
-        // Invert shoulder angle if invalid
-        val testPosition = forwardKinematics(shoulder.radians, elbow.radians)
-        if ((testPosition-relativePosition).length > 1e-3) {
-            shoulder += Math.PI
-        }
+        // overall arm direction
+        val effectorAngle = atan2(relativePosition.y, relativePosition.x)
 
-        // Flip angles
-        if (isFlipped) {
-            shoulder = Math.PI - shoulder
-            elbow = -elbow
+        var jointAngleA1 = effectorAngle - innerAlpha
+        var jointAngleA2 = effectorAngle + innerAlpha
+        var jointAngleB = Math.PI - innerBeta
+
+        if (sin(jointAngleA2) > sin(jointAngleA1)) {  // prefer the higher elbow position
+            jointAngleA1 = jointAngleA2
+            jointAngleB = -jointAngleB
         }
 
         // Wrap angles to correct ranges
-        return Pair((shoulder.radians + 90.0.degrees).wrap(), (elbow.radians + shoulder.radians - 90.degrees).wrap())
+        return Pair((jointAngleA1.radians - shoulderBindAngle).wrap(), (jointAngleA1.radians + jointAngleB.radians - elbowBindAngle).wrap())
     }
 
     const val REACH_LIMIT = 30.0
@@ -216,5 +215,52 @@ object Arm : Subsystem("Arm") {
     }
     fun shoulderBrakeMode() {
         shoulderMotor.brakeMode()
+    }
+
+    fun testIK() {
+        var matches = 0
+        var mismatches = 0
+        var mirrors = 0
+        for (shoulderDegrees in -80 .. 80 step(5)) {
+            val shoulderRadians = Math.toRadians(shoulderDegrees.toDouble())
+            for (elbowDegrees in -90..90 step(5)) {
+                if (elbowDegrees==-shoulderDegrees) {
+                    continue
+                }
+                val elbowRadians = Math.toRadians(elbowDegrees.toDouble())
+                val position = forwardKinematics(shoulderRadians, elbowRadians)
+                val (shoulderIKRadians, elbowIKRadians) = inverseKinematics(position)
+                val shoulderIKDegrees = Math.toDegrees(shoulderIKRadians)
+                val elbowIKDegrees = Math.toDegrees(elbowIKRadians)
+                if ((shoulderDegrees.toDouble()-shoulderIKDegrees).absoluteValue > 0.5 ||
+                    (elbowDegrees.toDouble()-elbowIKDegrees).absoluteValue > 0.5) {
+                    val positionIK = forwardKinematics(shoulderIKRadians, elbowIKRadians)
+                    if ((positionIK.first - position.first).absoluteValue > 0.5 ||
+                        (positionIK.second - position.second).absoluteValue > 0.5) {
+                        println("sh:$shoulderDegrees=$shoulderIKDegrees  el:$elbowDegrees=$elbowIKDegrees")
+                        mismatches++
+                    }
+                    else {
+                        mirrors++
+                    }
+                }
+                else {
+                    matches++
+                }
+            }
+        }
+        assert(mismatches==0)
+        println("matches=$matches mismatches=$mismatches mirrors=$mirrors\n")
+
+//    val shoulderDegrees = 30.0
+//    val elbowDegrees = 40.0
+//    val shoulderRadians = Math.toRadians(shoulderDegrees)
+//    val elbowRadians = Math.toRadians(elbowDegrees)
+//    val position = forwardKinematics(shoulderRadians, elbowRadians)
+//    println("x=${position.first}  y=${position.second}")
+//    val (shoulderIKRadians, elbowIKRadians) = inverseKinematics(position)
+//    val shoulderIKDegrees = Math.toDegrees(shoulderIKRadians)
+//    val elbowIKDegrees = Math.toDegrees(elbowIKRadians)
+//    println("sh:$shoulderDegrees=$shoulderIKDegrees  el:$elbowDegrees=$elbowIKDegrees")
     }
 }
