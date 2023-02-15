@@ -1,5 +1,7 @@
 package org.team2471.frc2023
 
+import kotlinx.coroutines.Delay
+import org.team2471.frc.lib.coroutines.delay
 import org.team2471.frc.lib.coroutines.periodic
 import org.team2471.frc.lib.framework.use
 import org.team2471.frc.lib.units.degrees
@@ -32,6 +34,10 @@ suspend fun goScore() = use(Drive, Arm, Intake, name = "goScore") {
 }
 
 suspend fun intakeCone() = use(Intake,Arm) {
+    Intake.pivotSetpoint = 90.0.degrees
     Arm.shoulderSetpoint = -18.0.degrees
     Arm.elbowSetpoint = -27.0.degrees
+    delay(2.0)
+    Intake.pivotSetpoint = 179.0.degrees
+
 }

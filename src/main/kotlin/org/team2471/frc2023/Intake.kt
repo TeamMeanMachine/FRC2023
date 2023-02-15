@@ -71,9 +71,10 @@ object Intake : Subsystem("Intake") {
 
     var wristIsReset = false
 
-    const val WRIST_BOTTOM = -20.0 //Arm.elbowAngle.asDegrees - 40.0 to be based on elbow's angle
-    const val WRIST_TOP = 90.0  //Arm.elbowAngle.asDegrees + 40.0
-    const val INTAKE_POWER = 0.7
+    const val WRIST_BOTTOM = -90.0 //Arm.elbowAngle.asDegrees - 40.0 to be based on elbow's angle
+    const val WRIST_TOP = 20.0  //Arm.elbowAngle.asDegrees + 40.0
+    const val INTAKE_POWER = 1.0
+
     const val INTAKE_HOLD = 0.05
     const val INTAKE_DETECT_CONE = 55
 
@@ -99,7 +100,7 @@ object Intake : Subsystem("Intake") {
         }
 
         pivotMotor.position = pivotSensor.value.toDouble()
-        wristMotor.setRawOffset(90.0)
+        wristMotor.setRawOffset(-90.0)
 
         GlobalScope.launch(MeanlibDispatcher) {
             var tempPivot: Angle
@@ -117,7 +118,8 @@ object Intake : Subsystem("Intake") {
             wristSetpointEntry.setDouble(wristAngle.asDegrees)
             pivotSetpointEntry.setDouble(pivotAngle.asDegrees)
 
-            wristSetpoint = 90.0.degrees
+            wristSetpoint = -90.0.degrees
+            pivotSetpoint = -90.0.degrees
 
             periodic {
                 wristEntry.setDouble(wristAngle.asDegrees)

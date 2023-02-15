@@ -28,9 +28,13 @@ object Arm : Subsystem("Arm") {
     val shoulderSetpointEntry = table.getEntry("Shoulder Setpoint")
     val elbowEntry = table.getEntry("Elbow Angle")
     val elbowSetpointEntry = table.getEntry("Elbow Setpoint")
+    val endEffectorPositionXEntry = table.getEntry("endEffectorPosition X")
+    val endEffectorPositionYEntry = table.getEntry("endEffectorPosition Y")
+    val shoulderIKEntry = table.getEntry("Shoulder IK Angle")
+    val elbowIKEntry = table.getEntry("Elbow IK Angle")
 
     val shoulderAngle: Angle
-        get() = shoulderMotor.position.degrees + shoulderOffset
+        get() = -shoulderMotor.position.degrees + shoulderOffset
     var shoulderOffset = 0.0.degrees
     var shoulderSetpoint: Angle = shoulderAngle
         get() = shoulderSetpointEntry.getDouble(0.0).degrees
@@ -62,11 +66,13 @@ object Arm : Subsystem("Arm") {
     val ELBOW_BOTTOM = -120.0
     val ELBOW_TOP = 120.0
 
-    const val shoulderLength = 36.0
-    const val elbowLength = 34.0
+    const val shoulderLength = 37.0
+    const val elbowLength = 28.0
 
     /** Converts joint angles to the end effector position.  */
-    fun forwardKinematics(shoulder: Angle, elbow: Angle) : Vector2 {
+    fun forwardKinematics(inShoulder: Angle, inElbow: Angle) : Vector2 {
+        val shoulder = inShoulder + 90.degrees
+        val elbow = inElbow - 90.degrees
         return Vector2(
             shoulderLength * shoulder.cos() + elbowLength * elbow.cos(),
             shoulderLength * shoulder.sin() + elbowLength * elbow.sin())
@@ -82,7 +88,7 @@ object Arm : Subsystem("Arm") {
         }
 
         // Calculate angles
-        var elbow = -Math.cos((relativePosition.x.pow(2.0) + relativePosition.y.pow(2.0)
+        var elbow = -Math.acos((relativePosition.x.pow(2.0) + relativePosition.y.pow(2.0)
                 - shoulderLength.pow(2.0) - elbowLength.pow(2.0)) / (2.0 * shoulderLength * elbowLength))
 
         if (elbow.isNaN()) {
@@ -105,14 +111,14 @@ object Arm : Subsystem("Arm") {
         }
 
         // Wrap angles to correct ranges
-        return Pair(shoulder.radians.wrap(), elbow.radians.wrap())
+        return Pair((shoulder.radians + 90.0.degrees).wrap(), (elbow.radians + shoulder.radians - 90.degrees).wrap())
     }
 
-    const val REACH_LIMIT = 50.0
-    const val HEIGHT_LIMIT = 36.0
-    const val FLOOR_HEIGHT = -10.0
-    const val ROBOT_COVER_HEIGHT = -3.0
-    const val ROBOT_HALF_WIDTH = 28.5 / 2.0
+    const val REACH_LIMIT = 30.0
+    const val HEIGHT_LIMIT = 25.0
+    const val FLOOR_HEIGHT = -5.0
+    const val ROBOT_COVER_HEIGHT = 2.0
+    const val ROBOT_HALF_WIDTH = 36.0 / 2.0
 
     var endEffectorPosition : Vector2
     get() {
@@ -133,7 +139,7 @@ object Arm : Subsystem("Arm") {
     init {
         shoulderMotor.restoreFactoryDefaults()
         shoulderMotor.config(20) {
-            feedbackCoefficient = 74.14 / 2116.0
+            feedbackCoefficient = 360.0 / 42.0 / 184.0  // ticks / degrees / gear ratio
             brakeMode()
             inverted(true)    //a is inverted
             followersInverted(false) //--spark max WAS inverted in rev hardware client -> advanced, check if weird
@@ -145,7 +151,7 @@ object Arm : Subsystem("Arm") {
             burnSettings()
         }
         elbowMotor.config(20) {
-            feedbackCoefficient = 242.0 / 2183.0
+            feedbackCoefficient = 360.0 / 42.0 / 75.0
             brakeMode()
             pid{
                 p(0.0000055)
@@ -178,11 +184,18 @@ object Arm : Subsystem("Arm") {
             periodic {
                 shoulderEntry.setDouble(shoulderAngle.asDegrees)
                 elbowEntry.setDouble(elbowAngle.asDegrees)
+                endEffectorPositionXEntry.setDouble(endEffectorPosition.x)
+                endEffectorPositionYEntry.setDouble(endEffectorPosition.y)
+                val (ikShoulder, ikElbow) = inverseKinematics(endEffectorPosition)
+                shoulderIKEntry.setDouble(ikShoulder.asDegrees)
+                elbowIKEntry.setDouble(ikElbow.asDegrees)
 
-                if (Intake.pivotAngle > 93.0.degrees && Intake.pivotAngle < 83.0.degrees && (Intake.wristAngle < -80.0.degrees || Intake.wristAngle > 80.0.degrees)) { //pivotAngle will need to be negated when pivotCurve inverted properly
+                if (Intake.pivotAngle > 80.0.degrees && Intake.pivotAngle < 100.0.degrees) { // && (Intake.wristAngle < -80.0.degrees || Intake.wristAngle > 80.0.degrees)) { //pivotAngle will need to be negated when pivotCurve inverted properly
                     elbowMotor.setPositionSetpoint(elbowSetpoint.asDegrees, eFeedForward)
                     shoulderMotor.setPositionSetpoint(shoulderSetpoint.asDegrees, sFeedForward)
                     println("Allowed to move shoulder and elbow")
+                } else {
+                    println("Arm and elbow not moving")
                 }
                 //zeroing
 //                if (!shoulderIsZeroed) println("Shoulder angle is not zeroed")
