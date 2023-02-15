@@ -81,11 +81,9 @@ object Arm : Subsystem("Arm") {
 
     /** Converts the end effector position to joint angles. */
     fun inverseKinematics(endPosition: Vector2): Pair<Angle, Angle> {
-        var relativePosition = endPosition
-
         val length0 = shoulderLength
         val length1 = elbowLength
-        val length2 = relativePosition.length
+        val length2 = endPosition.length
 
         // Inner angle alpha
         val cosInnerAlpha = (length2 * length2 + length0 * length0 - length1 * length1) / (2 * length2 * length0)
@@ -96,10 +94,10 @@ object Arm : Subsystem("Arm") {
         val innerBeta = acos(cosInnerBeta)
 
         // overall arm direction
-        val effectorAngle = atan2(relativePosition.y, relativePosition.x)
+        val effectorAngle = atan2(endPosition.y, endPosition.x)
 
         var jointAngleA1 = effectorAngle - innerAlpha
-        var jointAngleA2 = effectorAngle + innerAlpha
+        val jointAngleA2 = effectorAngle + innerAlpha
         var jointAngleB = Math.PI - innerBeta
 
         if (sin(jointAngleA2) > sin(jointAngleA1)) {  // prefer the higher elbow position
@@ -107,7 +105,7 @@ object Arm : Subsystem("Arm") {
             jointAngleB = -jointAngleB
         }
 
-        // Wrap angles to correct ranges
+        // Adjust angles to starting pose, change elbow to absolute angle, and wrap angles to a tight range.
         return Pair((jointAngleA1.radians - shoulderBindAngle.degrees).wrap(), (jointAngleA1.radians + jointAngleB.radians - elbowBindAngle.degrees).wrap())
     }
 
