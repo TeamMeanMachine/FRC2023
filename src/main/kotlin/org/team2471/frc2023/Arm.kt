@@ -13,6 +13,8 @@ import org.team2471.frc.lib.motion_profiling.MotionCurve
 import org.team2471.frc.lib.units.Angle
 import org.team2471.frc.lib.units.degrees
 import org.team2471.frc.lib.units.radians
+import kotlin.math.absoluteValue
+import kotlin.math.max
 import kotlin.math.pow
 
 object Arm : Subsystem("Arm") {
@@ -106,12 +108,24 @@ object Arm : Subsystem("Arm") {
         return Pair(shoulder.radians.wrap(), elbow.radians.wrap())
     }
 
+    const val REACH_LIMIT = 50.0
+    const val HEIGHT_LIMIT = 36.0
+    const val FLOOR_HEIGHT = -10.0
+    const val ROBOT_COVER_HEIGHT = -3.0
+    const val ROBOT_HALF_WIDTH = 28.5 / 2.0
+
     var endEffectorPosition : Vector2
     get() {
         return forwardKinematics(shoulderAngle, elbowAngle)
     }
     set(position) {
-        val (shoulder, elbow) = inverseKinematics(position)
+        var clampedPosition = position
+        clampedPosition.x = clampedPosition.x.coerceIn(-REACH_LIMIT, REACH_LIMIT)
+        clampedPosition.y = clampedPosition.y.coerceIn(FLOOR_HEIGHT, HEIGHT_LIMIT)
+        if (clampedPosition.x.absoluteValue < ROBOT_HALF_WIDTH) {
+            clampedPosition.y = max(clampedPosition.y, ROBOT_COVER_HEIGHT)
+        }
+        val (shoulder, elbow) = inverseKinematics(clampedPosition)
         shoulderSetpoint = shoulder
         elbowSetpoint = elbow
     }
