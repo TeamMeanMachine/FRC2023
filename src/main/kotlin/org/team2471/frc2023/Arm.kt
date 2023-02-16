@@ -1,6 +1,7 @@
 package org.team2471.frc2023
 
 import edu.wpi.first.networktables.NetworkTableInstance
+import edu.wpi.first.wpilibj.DigitalInput
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.team2471.frc.lib.actuators.MotorController
@@ -18,8 +19,8 @@ import kotlin.math.*
 object Arm : Subsystem("Arm") {
     val shoulderMotor = MotorController(SparkMaxID(Sparks.SHOULDER_A), SparkMaxID(Sparks.SHOULDER_B))
     val elbowMotor = MotorController(SparkMaxID(Sparks.ELBOW))
-//    val shoulderSensor = hall effect
-//    val elbowSensor = hall effect
+    val shoulderSensor = DigitalInput(DigitalSensors.SHOULDER_SWTICH)
+    val elbowSensor = DigitalInput(DigitalSensors.ELBOW_SWITCH)
 
     private val table = NetworkTableInstance.getDefault().getTable(Arm.name)
     val shoulderEntry = table.getEntry("Shoulder Angle")
@@ -43,6 +44,8 @@ object Arm : Subsystem("Arm") {
     val sFeedForward: Double
         get() = shoulderCurve.getValue(shoulderAngle.asDegrees)
     val shoulderCurve = MotionCurve()
+    var tempShoulder = shoulderAngle
+    var prevShoulder = shoulderAngle
     val elbowAngle: Angle
         get() = elbowMotor.position.degrees + elbowOffset
     var elbowOffset = 0.0.degrees
@@ -55,14 +58,18 @@ object Arm : Subsystem("Arm") {
     val eFeedForward: Double
         get() = elbowCurve.getValue(elbowAngle.asDegrees)
     val elbowCurve = MotionCurve()
+    var tempElbow = elbowAngle
+    var prevElbow = elbowAngle
 
     var shoulderIsZeroed = false
     var elbowIsZeroed = false
 
     val SHOULDER_BOTTOM = -30.0
     val SHOULDER_TOP = 30.0
+    val SHOULDER_HALF_SLOP = 5.0.degrees
     val ELBOW_BOTTOM = -120.0
     val ELBOW_TOP = 120.0
+    val ELBOW_HALF_SLOP = 3.0.degrees
 
     const val shoulderLength = 37.0
     const val elbowLength = 28.0
@@ -192,17 +199,23 @@ object Arm : Subsystem("Arm") {
                 } else {
                     println("Arm and elbow not moving")
                 }
+
                 //zeroing
-//                if (!shoulderIsZeroed) println("Shoulder angle is not zeroed")
-//                if (!elbowIsZeroed) println("Elbow angle is not zeroed")
-//                if (hall effect sensor true) {
-//                    shoulderAngle = 0.0.degrees
-//                    shoulderIsReset = true
-//                }
-//                if (hall effect sensor true) {
-//                    elbowAngle = 0.0.degrees
-//                    elbowIsReset = true
-//                }
+                if (!shoulderIsZeroed) println("Shoulder angle is not zeroed")
+                if (!elbowIsZeroed) println("Elbow angle is not zeroed")
+                tempShoulder = shoulderAngle
+                if (!shoulderSensor.get()) {
+                    if (tempShoulder > prevShoulder) shoulderOffset = - shoulderAngle
+                    if (tempShoulder < prevShoulder)
+                    shoulderIsZeroed = true
+                }
+                tempElbow = elbowAngle
+                if (!elbowSensor.get()) {
+                    elbowOffset = -elbowAngle
+                    elbowIsZeroed = true
+                }
+                prevShoulder = tempShoulder
+                prevElbow = tempElbow
             }
         }
     }

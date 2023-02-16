@@ -2,6 +2,7 @@ package org.team2471.frc2023
 
 import edu.wpi.first.networktables.NetworkTableInstance
 import edu.wpi.first.wpilibj.AnalogInput
+import edu.wpi.first.wpilibj.DigitalInput
 
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -23,9 +24,8 @@ object Intake : Subsystem("Intake") {
     val wristMotor = MotorController(SparkMaxID(Sparks.WRIST))
     val pivotMotor = MotorController(TalonID(Talons.INTAKE_PIVOT))
     val intakeMotor = MotorController(SparkMaxID(Sparks.INTAKE))
-//    val wristSensor = hall effect
+    val wristSensor = DigitalInput(DigitalSensors.WRIST_SWITCH)
     val pivotSensor = AnalogInput(AnalogSensors.INTAKE_PIVOT)
-
 
     private val table = NetworkTableInstance.getDefault().getTable(Intake.name)
     val wristEntry = table.getEntry("Wrist Angle")
@@ -137,7 +137,7 @@ object Intake : Subsystem("Intake") {
                 wristMotor.setPositionSetpoint(wristSetpoint.asDegrees)
 
                 val power = pivotPDController.update(pivotIncrementSetpoint.asDegrees - pivotIncrementAngle.asDegrees) + pFeedForward
-                pivotMotor.setPercentOutput(power)
+             //   pivotMotor.setPercentOutput(power)
 
 
                 //zeroing wrist
