@@ -79,6 +79,8 @@ object Intake : Subsystem("Intake") {
     const val INTAKE_DETECT_CONE = 55
 
     init {
+        wristMotor.restoreFactoryDefaults()
+        intakeMotor.restoreFactoryDefaults()
         wristMotor.config(20) {
             feedbackCoefficient = 261.0 / 1273.0 * 208.1 / 359.0 //redo!
             coastMode()

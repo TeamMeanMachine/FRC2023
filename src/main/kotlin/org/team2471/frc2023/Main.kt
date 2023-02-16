@@ -22,11 +22,13 @@ object Robot : MeanlibRobot() {
     var isCompBot = true
     init {
         val networkInterfaces =  NetworkInterface.getNetworkInterfaces()
+        println("retrieving network interfaces")
         for (iFace in networkInterfaces) {
+            println("${iFace.name}")
             if (iFace.name == "eth0") {
-                   println("NETWORK NAME--->${iFace.name}<----")
-                   var macString = ""
-                   for (byteVal in iFace.hardwareAddress){
+                println("NETWORK NAME--->${iFace.name}<----")
+                var macString = ""
+                for (byteVal in iFace.hardwareAddress){
                     macString += String.format("%s", byteVal)
                 }
                 println("FORMATTED---->$macString<-----")

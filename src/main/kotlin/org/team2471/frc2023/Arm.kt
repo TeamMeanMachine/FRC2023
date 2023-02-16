@@ -123,9 +123,10 @@ object Arm : Subsystem("Arm") {
     const val ROBOT_HALF_WIDTH = 36.0 / 2.0
 
     var endEffectorPosition : Vector2
-    get() {
-        return forwardKinematics(shoulderAngle, elbowAngle)
-    }
+        get() {
+            return forwardKinematics(shoulderAngle, elbowAngle)
+        }
+
     set(position) {
         var clampedPosition = position
         clampedPosition.x = clampedPosition.x.coerceIn(-REACH_LIMIT, REACH_LIMIT)
@@ -139,7 +140,9 @@ object Arm : Subsystem("Arm") {
     }
 
     init {
+        println("Arm init")
         shoulderMotor.restoreFactoryDefaults()
+        elbowMotor.restoreFactoryDefaults()
         shoulderMotor.config(20) {
             feedbackCoefficient = 360.0 / 42.0 / 184.0  // ticks / degrees / gear ratio
             brakeMode()
@@ -195,9 +198,7 @@ object Arm : Subsystem("Arm") {
                 if (Intake.pivotAngle > 80.0.degrees && Intake.pivotAngle < 100.0.degrees) { // && (Intake.wristAngle < -80.0.degrees || Intake.wristAngle > 80.0.degrees)) { //pivotAngle will need to be negated when pivotCurve inverted properly
                     elbowMotor.setPositionSetpoint(elbowSetpoint.asDegrees, eFeedForward)
                     shoulderMotor.setPositionSetpoint(shoulderSetpoint.asDegrees, sFeedForward)
-                    println("Allowed to move shoulder and elbow")
-                } else {
-                    println("Arm and elbow not moving")
+//                } else {
                 }
 
                 //zeroing
