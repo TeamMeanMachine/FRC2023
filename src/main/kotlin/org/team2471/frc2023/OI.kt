@@ -51,15 +51,16 @@ object OI {
         get() = operatorController.rightThumbstickY.deadband(0.25)
 
     init {
-        driverController::y.whenTrue { Drive.dynamicGoToScore(Vector2(-4.0, -21.0)) }
+        //driverController::y.whenTrue { Drive.dynamicGoToScore(Vector2(-4.0, -21.0)) }
         driverController::back.whenTrue { Drive.zeroGyro();
             Drive.initializeSteeringMotors() }
         driverController::start.whenTrue {Drive.calibrateRobotPosition() }
         operatorController::x.whenTrue { scoreIfReady() }
-       // driverController::a.whenTrue { Drive.dynamicDriveThreeFeetY()}
-       // driverController::b.whenTrue { Drive.dynamicGoToFeeder()}
+        driverController::a.whenTrue { Drive.setAngleOffsets()}
+        driverController::b.whenTrue { Drive.dynamicGoToFeeder()}
+
         driverController::leftBumper.whenTrue {Arm.shoulderCoastMode()}
         driverController::rightBumper.whenTrue {Arm.shoulderBrakeMode()}
-        driverController::a.whileTrue { intakeCone() }
+        //driverController::a.whileTrue { intakeCone() }
     }
 }
