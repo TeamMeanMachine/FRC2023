@@ -2,6 +2,8 @@ package org.team2471.frc2023
 
 import edu.wpi.first.networktables.NetworkTableInstance
 import edu.wpi.first.wpilibj.DigitalInput
+import edu.wpi.first.wpilibj.DriverStation
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.team2471.frc.lib.actuators.MotorController
@@ -10,6 +12,7 @@ import org.team2471.frc.lib.coroutines.MeanlibDispatcher
 import org.team2471.frc.lib.coroutines.periodic
 import org.team2471.frc.lib.framework.Subsystem
 import org.team2471.frc.lib.math.Vector2
+import org.team2471.frc.lib.motion.following.drive
 import org.team2471.frc.lib.motion_profiling.MotionCurve
 import org.team2471.frc.lib.units.Angle
 import org.team2471.frc.lib.units.degrees
@@ -17,7 +20,8 @@ import org.team2471.frc.lib.units.radians
 import kotlin.math.*
 
 object Arm : Subsystem("Arm") {
-    val shoulderMotor = MotorController(SparkMaxID(Sparks.SHOULDER_A), SparkMaxID(Sparks.SHOULDER_B))
+    val shoulderMotor = MotorController(SparkMaxID(Sparks.SHOULDER_A))
+    val shoulderFollowerMotor = MotorController(SparkMaxID(Sparks.SHOULDER_B))
     val elbowMotor = MotorController(SparkMaxID(Sparks.ELBOW))
     val shoulderSensor = DigitalInput(DigitalSensors.SHOULDER_SWTICH)
     val elbowSensor = DigitalInput(DigitalSensors.ELBOW_SWITCH)
@@ -31,9 +35,10 @@ object Arm : Subsystem("Arm") {
     val endEffectorPositionYEntry = table.getEntry("endEffectorPosition Y")
     val shoulderIKEntry = table.getEntry("Shoulder IK Angle")
     val elbowIKEntry = table.getEntry("Elbow IK Angle")
+    val shoulderFollowerEntry = table.getEntry("Shoulder Follower Angle")
 
     val shoulderAngle: Angle
-        get() = -shoulderMotor.position.degrees + shoulderOffset
+        get() = shoulderMotor.position.degrees + shoulderOffset
     var shoulderOffset = 0.0.degrees
     var shoulderSetpoint: Angle = shoulderAngle
         get() = shoulderSetpointEntry.getDouble(0.0).degrees
@@ -46,6 +51,8 @@ object Arm : Subsystem("Arm") {
     val shoulderCurve = MotionCurve()
     var tempShoulder = shoulderAngle
     var prevShoulder = shoulderAngle
+    val shoulderFollowerAngle: Angle
+        get() = shoulderFollowerMotor.position.degrees + shoulderOffset
     val elbowAngle: Angle
         get() = elbowMotor.position.degrees + elbowOffset
     var elbowOffset = 0.0.degrees
@@ -64,8 +71,8 @@ object Arm : Subsystem("Arm") {
     var shoulderIsZeroed = false
     var elbowIsZeroed = false
 
-    val SHOULDER_BOTTOM = -30.0
-    val SHOULDER_TOP = 30.0
+    val SHOULDER_BOTTOM = -40.0
+    val SHOULDER_TOP = 40.0
     val SHOULDER_HALF_SLOP = 5.0.degrees
     val ELBOW_BOTTOM = -120.0
     val ELBOW_TOP = 120.0
@@ -145,9 +152,19 @@ object Arm : Subsystem("Arm") {
         elbowMotor.restoreFactoryDefaults()
         shoulderMotor.config(20) {
             feedbackCoefficient = 360.0 / 42.0 / 184.0  // ticks / degrees / gear ratio
-            brakeMode()
-            inverted(true)    //a is inverted
-            followersInverted(false) //--spark max WAS inverted in rev hardware client -> advanced, check if weird
+            coastMode()
+            inverted(false)
+            pid {
+                p(0.0000017)
+                d(0.000001)
+            }
+            currentLimit(0, 60, 0)
+            burnSettings()
+        }
+        shoulderFollowerMotor.config(20) {
+            feedbackCoefficient = 360.0 / 42.0 / 184.0  // ticks / degrees / gear ratio
+            coastMode()
+            inverted(false)
             pid {
                 p(0.0000017)
                 d(0.000001)
@@ -157,7 +174,7 @@ object Arm : Subsystem("Arm") {
         }
         elbowMotor.config(20) {
             feedbackCoefficient = 360.0 / 42.0 / 75.0
-            brakeMode()
+            coastMode()
             pid{
                 p(0.0000055)
                 d(0.000004)
@@ -186,6 +203,10 @@ object Arm : Subsystem("Arm") {
             shoulderSetpointEntry.setDouble(shoulderAngle.asDegrees)
             elbowSetpointEntry.setDouble(elbowAngle.asDegrees)
 
+//            shoulderSetpoint = -25.0.degrees
+//            elbowSetpoint = 35.0.degrees
+
+            println("shoulderFollower: ${shoulderFollowerEntry.getDouble(0.0)}")
             periodic {
                 shoulderEntry.setDouble(shoulderAngle.asDegrees)
                 elbowEntry.setDouble(elbowAngle.asDegrees)
@@ -194,16 +215,17 @@ object Arm : Subsystem("Arm") {
                 val (ikShoulder, ikElbow) = inverseKinematics(endEffectorPosition)
                 shoulderIKEntry.setDouble(ikShoulder.asDegrees)
                 elbowIKEntry.setDouble(ikElbow.asDegrees)
+                shoulderFollowerEntry.setDouble(shoulderFollowerAngle.asDegrees)
 
-                if (Intake.pivotAngle > 80.0.degrees && Intake.pivotAngle < 100.0.degrees) { // && (Intake.wristAngle < -80.0.degrees || Intake.wristAngle > 80.0.degrees)) { //pivotAngle will need to be negated when pivotCurve inverted properly
+//                if (Intake.pivotAngle > 80.0.degrees && Intake.pivotAngle < 100.0.degrees) { // && (Intake.wristAngle < -80.0.degrees || Intake.wristAngle > 80.0.degrees)) { //pivotAngle will need to be negated when pivotCurve inverted properly
                     elbowMotor.setPositionSetpoint(elbowSetpoint.asDegrees, eFeedForward)
                     shoulderMotor.setPositionSetpoint(shoulderSetpoint.asDegrees, sFeedForward)
 //                } else {
-                }
+//                }
 
                 //zeroing
-                if (!shoulderIsZeroed) println("Shoulder angle is not zeroed")
-                if (!elbowIsZeroed) println("Elbow angle is not zeroed")
+//                if (!shoulderIsZeroed) println("Shoulder angle is not zeroed")
+//                if (!elbowIsZeroed) println("Elbow angle is not zeroed")
                 tempShoulder = shoulderAngle
                 if (!shoulderSensor.get()) {
                     if (tempShoulder > prevShoulder) shoulderOffset = - shoulderAngle
@@ -220,6 +242,23 @@ object Arm : Subsystem("Arm") {
             }
         }
     }
+
+    override suspend fun default() {
+        periodic {
+            var move = OI.operatorController.leftThumbstick
+            var pivot = OI.operatorController.rightThumbstickX
+            var wrist = OI.operatorController.rightThumbstickY
+
+            move *= 12.0 * 0.02   // d = r * t  where rate is inches per second and time is 1/50 second
+            pivot *= 45.0 * 0.02  // degrees per second, time 1/50 second
+            wrist *= 45.0 * 0.02
+
+            endEffectorPosition += move
+//            Intake.pivotSetpoint += pivot.degrees
+//            Intake.wristSetpoint += wrist.degrees
+        }
+    }
+
     fun shoulderCoastMode() {
         shoulderMotor.coastMode()
     }

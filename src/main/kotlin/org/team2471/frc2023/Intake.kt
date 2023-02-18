@@ -1,5 +1,6 @@
 package org.team2471.frc2023
 
+import edu.wpi.first.math.filter.LinearFilter
 import edu.wpi.first.networktables.NetworkTableInstance
 import edu.wpi.first.wpilibj.AnalogInput
 import edu.wpi.first.wpilibj.DigitalInput
@@ -77,6 +78,7 @@ object Intake : Subsystem("Intake") {
 
     const val INTAKE_HOLD = 0.05
     const val INTAKE_DETECT_CONE = 55
+    const val INTAKE_CURR = 55.0
 
     init {
         wristMotor.restoreFactoryDefaults()
@@ -103,7 +105,6 @@ object Intake : Subsystem("Intake") {
 
         pivotMotor.position = pivotSensor.value.toDouble()
         wristMotor.setRawOffset(-90.0)
-
         GlobalScope.launch(MeanlibDispatcher) {
             var tempPivot: Angle
 
@@ -120,8 +121,8 @@ object Intake : Subsystem("Intake") {
             wristSetpointEntry.setDouble(wristAngle.asDegrees)
             pivotSetpointEntry.setDouble(pivotAngle.asDegrees)
 
-            wristSetpoint = -90.0.degrees
-            pivotSetpoint = -90.0.degrees
+//            wristSetpoint = -90.0.degrees
+//            pivotSetpoint = -180.0.degrees
 
             periodic {
                 wristEntry.setDouble(wristAngle.asDegrees)
@@ -139,7 +140,7 @@ object Intake : Subsystem("Intake") {
                 wristMotor.setPositionSetpoint(wristSetpoint.asDegrees)
 
                 val power = pivotPDController.update(pivotIncrementSetpoint.asDegrees - pivotIncrementAngle.asDegrees) + pFeedForward
-             //   pivotMotor.setPercentOutput(power)
+//                pivotMotor.setPercentOutput(power)
 
 
                 //zeroing wrist
@@ -159,18 +160,26 @@ object Intake : Subsystem("Intake") {
     override suspend fun default() {
         val t = Timer()
         var isTimerStarted = false
-
+        var intakeDetected = 0.0
+        var linearFilter = LinearFilter.movingAverage(5)
         periodic {
             if (OI.operatorController.a) {
                   //-1.0
+                linearFilter.calculate(intakeMotor.current)
                 if (!isTimerStarted) {
                     t.start()
                     isTimerStarted = true
+                    intakeDetected = 10000.0
                     intakeMotor.setPercentOutput(-INTAKE_POWER)
-              //      println("timer is started")
-                } else if(t.get() > 0.2) {
-                    if (intakeMotor.current > INTAKE_DETECT_CONE) {
+                    println("timer is started")
+                } else if (t.get() > 2.0) {
+                    if ( linearFilter.calculate(intakeMotor.current) > INTAKE_DETECT_CONE && intakeDetected ==  10000.0) {
+                        intakeDetected = t.get() + 0.5
+                        println("detected = ${intakeDetected}")
+                    }
+                    if (t.get() > intakeDetected) {
                         intakeMotor.setPercentOutput(-INTAKE_HOLD)  //1.0
+                        println("t_get = ${t.get()}")
                     }
                 } else {
                 //    println("Min Timer not Reached → ${t.get()}")

@@ -60,6 +60,7 @@ object OI {
        // driverController::b.whenTrue { Drive.dynamicGoToFeeder()}
         driverController::leftBumper.whenTrue {Arm.shoulderCoastMode()}
         driverController::rightBumper.whenTrue {Arm.shoulderBrakeMode()}
-        driverController::a.whenTrue { intakeCone() }
+//        driverController::b.whenTrue{Drive.setAngleOffsets()}
+//        driverController::a.whenTrue { intakeCone() }
     }
 }
