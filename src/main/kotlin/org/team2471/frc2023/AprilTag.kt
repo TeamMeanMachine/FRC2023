@@ -85,6 +85,11 @@ object AprilTag {
         )
         //val filterResults = cameraResult.getTargets().filter { it -> it.poseAmbiguity < maxAmbiguity }
     }
+
+    private fun EstimatedRobotPose(transformBy: Pose3d?, timestampSeconds: Double): EstimatedRobotPose {
+
+    }
+
     init {
         GlobalScope.launch {
             periodic {
