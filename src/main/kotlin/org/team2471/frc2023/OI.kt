@@ -55,10 +55,10 @@ object OI {
         driverController::back.whenTrue { Drive.zeroGyro();
             Drive.initializeSteeringMotors() }
         driverController::start.whenTrue {Drive.calibrateRobotPosition() }
-        operatorController::x.whenTrue { scoreIfReady() }
-        driverController::a.whenTrue { Drive.setAngleOffsets()}
-        driverController::b.whenTrue { Drive.dynamicGoToFeeder()}
-
+       // operatorController::x.whenTrue { scoreIfReady() }
+        //driverController::a.whenTrue { Drive.setAngleOffsets()}
+       // driverController::b.whenTrue { Drive.dynamicGoToFeeder()}
+        driverController::y.whenTrue { Drive.gotoScoringPosition()}
         driverController::leftBumper.whenTrue {Arm.shoulderCoastMode()}
         driverController::rightBumper.whenTrue {Arm.shoulderBrakeMode()}
         //driverController::a.whileTrue { intakeCone() }

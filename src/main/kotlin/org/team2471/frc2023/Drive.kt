@@ -34,7 +34,7 @@ import kotlin.math.sin
 
 @OptIn(DelicateCoroutinesApi::class)
 object Drive : Subsystem("Drive"), SwerveDrive {
-
+    val robotHalfWidth = (32.0/2.0).inches
     val table = NetworkTableInstance.getDefault().getTable(name)
     val navXGyroEntry = table.getEntry("NavX Gyro")
     val limitingFactor : Double
@@ -61,6 +61,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
 
     val advantageSwerveStates = table.getEntry("SwerveStates")
     val advantageSwerveTargets = table.getEntry("SwerveTargets")
+    val rateCurve = MotionCurve()
 
     val fieldObject = Field2d()
     val fieldDimensions = Vector2(26.9375.feet.asMeters,54.0.feet.asMeters)
@@ -200,7 +201,6 @@ object Drive : Subsystem("Drive"), SwerveDrive {
             val yEntry = table.getEntry("Y")
             val poseEntry = table.getEntry("advantageScopePose")
 
-
             val aimErrorEntry = table.getEntry("Aim Error")
             val useGyroEntry = table.getEntry("Use Gyro")
 
@@ -210,12 +210,15 @@ object Drive : Subsystem("Drive"), SwerveDrive {
             SmartDashboard.setPersistent("Field")
 
             navXGyroEntry.setBoolean(true)
+            rateCurve.setMarkBeginOrEndKeysToZeroSlope(false)
+            rateCurve.storeValue(1.0, 2.0)  // distance, rate
+            rateCurve.storeValue(8.0, 6.0)  // distance, rate
 
             val defaultXYPos = doubleArrayOf(0.0,0.0)
 
-            val robotHalfWidth = (32.0/12.0)/2.0
+            val robotHalfWidthFeet = robotHalfWidth.asFeet
 
-            val reducedField = Vector2(fieldCenterOffset.x.meters.asFeet - robotHalfWidth, fieldCenterOffset.y.meters.asFeet - robotHalfWidth)
+            val reducedField = Vector2(fieldCenterOffset.x.meters.asFeet - robotHalfWidthFeet, fieldCenterOffset.y.meters.asFeet - robotHalfWidthFeet)
             lastPosition = Pose2d(position.x.feet.asMeters+fieldCenterOffset.x, position.y.feet.asMeters+fieldCenterOffset.y, -Rotation2d((heading-90.0.degrees).asRadians))
 
             println("in init just before periodic")
@@ -594,9 +597,29 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         newPath.addHeadingPoint(time, 0.0)
         Drive.driveAlongPath(newPath){ abortPath() }
     }
+    suspend fun gotoScoringPosition() = use(Drive) {
+        val scoreNode = FieldManager.getSelectedNode()
+        if (scoreNode == null) {
+            println("Invalid node selected")
+        }
+        else {
+            val newPath = Path2D("newPath")
+            newPath.addEasePoint(0.0,0.0)
+            newPath.addEasePoint(3.5, 1.0)
+            newPath.addVector2(position)
+            newPath.addVector2(scoreNode.alignPosition)
+            val distance = newPath.length
+            val rate = rateCurve.getValue(distance) // ft per sec
+            val time = distance / rate
+            newPath.addEasePoint(time, 1.0)
+            newPath.addHeadingPoint(0.0, heading.asDegrees)
+            println("${scoreNode.alignPosition}")
+            Drive.driveAlongPath(newPath){ abortPath() }
+        }
+    }
 
     suspend fun calibrateRobotPosition() = use(Drive) {
-        position = Vector2(11.5, -24.75)
+        position = Vector2(-11.5, -21.25)
         heading= 0.0.degrees
     }
 }
