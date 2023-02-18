@@ -8,10 +8,12 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.photonvision.EstimatedRobotPose
 import org.photonvision.PhotonCamera
+import org.photonvision.PhotonPoseEstimator
 import org.team2471.frc.lib.coroutines.periodic
 import org.team2471.frc.lib.units.*
 import java.util.*
 import kotlin.math.abs
+
 
 object AprilTag {
     private val pvTable = NetworkTableInstance.getDefault().getTable("photonvision")
@@ -27,17 +29,17 @@ object AprilTag {
     private val aprilTagFieldLayout : AprilTagFieldLayout = AprilTagFieldLayout.loadFromResource(AprilTagFields.kDefaultField.m_resourceFile)
     private val camFront = PhotonCamera("PVFront")
     private val camBack = PhotonCamera("PVBack")
-
+    private val frontPoseEstimator : PhotonPoseEstimator
     private const val maxAmbiguity = 0.1
 
     private var robotToCamFront: Transform3d = Transform3d(
-        Translation3d(6.5.inches.asMeters, -16.0.inches.asMeters, 2.0.inches.asMeters),
-        Rotation3d(0.0, 18.0.degrees.asRadians, 0.0)
+        Translation3d(11.5.inches.asMeters, 5.0.inches.asMeters, 7.0.inches.asMeters),
+        Rotation3d(0.0, 11.0.degrees.asRadians, 0.0)
     )
 
     private var robotToCamBack = Transform3d(
-        Translation3d(6.5.inches.asMeters, -16.0.inches.asMeters, 2.0.inches.asMeters),
-        Rotation3d(0.0, 18.0.degrees.asRadians, 0.0)
+        Translation3d(11.5.inches.asMeters, -5.0.inches.asMeters, 7.0.inches.asMeters),
+        Rotation3d(0.0, 11.0.degrees.asRadians, 0.0)
     )
 
     //true means front cam
@@ -48,6 +50,10 @@ object AprilTag {
         } else{
             abs(Drive.heading.asDegrees) > 90
         }
+    }
+
+    fun getFrontEstimatedGlobalPose(): Optional<EstimatedRobotPose>? {
+        return frontPoseEstimator.update()
     }
 
     private fun customEstimatedPose(useFrontCam: Boolean): EstimatedRobotPose?{
@@ -81,20 +87,30 @@ object AprilTag {
                 .get()
                 .transformBy(bestResult.bestCameraToTarget.inverse())
                 .transformBy(robotToCam),
-            cameraResult.timestampSeconds
+            cameraResult.timestampSeconds,
+            cameraResult.targets
         )
         //val filterResults = cameraResult.getTargets().filter { it -> it.poseAmbiguity < maxAmbiguity }
     }
+
     init {
+        frontPoseEstimator = PhotonPoseEstimator(aprilTagFieldLayout, PhotonPoseEstimator.PoseStrategy.MULTI_TAG_PNP, camFront, robotToCamFront)
         GlobalScope.launch {
             periodic {
                 val frontCamSelected = useFrontCam()
                 frontCamSelectedEntry.setBoolean(frontCamSelected)
                 val maybePoseFront = customEstimatedPose(true)
                 val maybePoseBack = customEstimatedPose(false)
-                if (maybePoseFront != null) {
-                    frontAdvantagePoseEntry.setDoubleArray(doubleArrayOf(maybePoseFront.estimatedPose.x, maybePoseFront.estimatedPose.y, maybePoseFront.estimatedPose.rotation.angle))
+                val newPose = getFrontEstimatedGlobalPose()
+//                println("newPose: $newPose")
+                if (newPose?.isPresent == true) {
+                    val multiPose = newPose.get().estimatedPose
+//                    println("setting advantage pose")
+                    frontAdvantagePoseEntry.setDoubleArray(doubleArrayOf(multiPose.x,multiPose.y,multiPose.rotation.angle))
                 }
+//                if (maybePoseFront != null) {
+//                    frontAdvantagePoseEntry.setDoubleArray(doubleArrayOf(maybePoseFront.estimatedPose.x, maybePoseFront.estimatedPose.y, maybePoseFront.estimatedPose.rotation.angle))
+//                }
                 if (maybePoseBack != null) {
                     backAdvantagePoseEntry.setDoubleArray(doubleArrayOf(maybePoseBack.estimatedPose.x, maybePoseBack.estimatedPose.y, maybePoseBack.estimatedPose.rotation.angle))
                 }

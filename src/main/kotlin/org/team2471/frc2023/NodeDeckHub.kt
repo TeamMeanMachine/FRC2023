@@ -1,6 +1,8 @@
 package org.team2471.frc2023
 
 import edu.wpi.first.networktables.NetworkTableInstance
+import edu.wpi.first.wpilibj.DriverStation
+import edu.wpi.first.wpilibj.DriverStation.Alliance
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.team2471.frc.lib.coroutines.periodic
@@ -41,19 +43,4 @@ object NodeDeckHub {
             }
         }
     }
-}
-class ScoringNode (
-    var coneOrCube: GamePiece,
-    var level: Level,
-    var pos: Vector2
-)
-enum class GamePiece {
-    CUBE,
-    CONE,
-    BOTH
-}
-enum class Level {
-    HIGH,
-    MID,
-    LOW
 }

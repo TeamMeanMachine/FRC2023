@@ -34,7 +34,7 @@ import kotlin.math.sin
 
 @OptIn(DelicateCoroutinesApi::class)
 object Drive : Subsystem("Drive"), SwerveDrive {
-
+    val robotHalfWidth = (32.0/2.0).inches
     val table = NetworkTableInstance.getDefault().getTable(name)
     val navXGyroEntry = table.getEntry("NavX Gyro")
     val limitingFactor : Double
@@ -53,9 +53,43 @@ object Drive : Subsystem("Drive"), SwerveDrive {
     val motorAngle2Entry = table.getEntry("Motor Angle 2")
     val motorAngle3Entry = table.getEntry("Motor Angle 3")
 
+    val motorPower0Entry = table.getEntry("Motor Power 0")
+    val motorPower1Entry = table.getEntry("Motor Power 1")
+    val motorPower2Entry = table.getEntry("Motor Power 2")
+    val motorPower3Entry = table.getEntry("Motor Power 3")
+    val useGyroEntry = table.getEntry("Use Gyro")
+
+    val advantageSwerveStates = table.getEntry("SwerveStates")
+    val advantageSwerveTargets = table.getEntry("SwerveTargets")
+    val rateCurve = MotionCurve()
+
     val fieldObject = Field2d()
     val fieldDimensions = Vector2(26.9375.feet.asMeters,54.0.feet.asMeters)
     val fieldCenterOffset = fieldDimensions/2.0
+    val stateArray : DoubleArray
+        get() {
+            val dblArray = DoubleArray(8)
+            var i = 0
+            for (mod in modules) {
+                dblArray[i] = mod.speed
+                i++
+                dblArray[i] = mod.angle.asDegrees
+                i++
+            }
+            return dblArray
+        }
+    val targetArray : DoubleArray
+        get() {
+            val dblArray = DoubleArray(8)
+            var i = 0
+            for (mod in modules) {
+                dblArray[i] = (mod as Module).power
+                i++
+                dblArray[i] = mod.angleSetpoint.asDegrees
+                i++
+            }
+            return dblArray
+        }
 
     /**
      * Coordinates of modules
@@ -65,7 +99,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
             MotorController(FalconID(Falcons.LEFT_FRONT_DRIVE)),
             MotorController(FalconID(Falcons.LEFT_FRONT_STEER)),
             Vector2(-11.5, 14.0),
-            Preferences.getDouble("Angle Offset 0",-5.625).degrees,
+            Preferences.getDouble("Angle Offset 0",-6.94).degrees,
             CANCoders.CANCODER_FRONTLEFT,
             odometer0Entry,
             0
@@ -74,7 +108,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
             MotorController(FalconID(Falcons.RIGHT_FRONT_DRIVE)),
             MotorController(FalconID(Falcons.RIGHT_FRONT_STEER)),
             Vector2(11.5, 14.0),
-            Preferences.getDouble("Angle Offset 1",-292.23).degrees,
+            Preferences.getDouble("Angle Offset 1",-252.59).degrees,
             CANCoders.CANCODER_FRONTRIGHT,
             odometer1Entry,
             1
@@ -83,7 +117,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
             MotorController(FalconID(Falcons.RIGHT_REAR_DRIVE)),
             MotorController(FalconID(Falcons.RIGHT_REAR_STEER)),
             Vector2(11.5, -14.0),
-            Preferences.getDouble("Angle Offset 2",-194.94).degrees,
+            Preferences.getDouble("Angle Offset 2",-345.23).degrees,
             CANCoders.CANCODER_REARRIGHT,
             odometer2Entry,
             2
@@ -92,7 +126,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
             MotorController(FalconID(Falcons.LEFT_REAR_DRIVE)),
             MotorController(FalconID(Falcons.LEFT_REAR_STEER)),
             Vector2(-11.5, -14.0),
-            Preferences.getDouble("Angle Offset 3",-204.17).degrees,
+            Preferences.getDouble("Angle Offset 3",-335.48).degrees,
             CANCoders.CANCODER_REARLEFT,
             odometer3Entry,
             3
@@ -167,7 +201,6 @@ object Drive : Subsystem("Drive"), SwerveDrive {
             val yEntry = table.getEntry("Y")
             val poseEntry = table.getEntry("advantageScopePose")
 
-
             val aimErrorEntry = table.getEntry("Aim Error")
             val useGyroEntry = table.getEntry("Use Gyro")
 
@@ -176,14 +209,16 @@ object Drive : Subsystem("Drive"), SwerveDrive {
             SmartDashboard.putData("Field", fieldObject)
             SmartDashboard.setPersistent("Field")
 
-            useGyroEntry.setBoolean(true)
-            navXGyroEntry.setBoolean(false)
+            navXGyroEntry.setBoolean(true)
+            rateCurve.setMarkBeginOrEndKeysToZeroSlope(false)
+            rateCurve.storeValue(1.0, 2.0)  // distance, rate
+            rateCurve.storeValue(8.0, 6.0)  // distance, rate
 
             val defaultXYPos = doubleArrayOf(0.0,0.0)
 
-            val robotHalfWidth = (32.0/12.0)/2.0
+            val robotHalfWidthFeet = robotHalfWidth.asFeet
 
-            val reducedField = Vector2(fieldCenterOffset.x.meters.asFeet - robotHalfWidth, fieldCenterOffset.y.meters.asFeet - robotHalfWidth)
+            val reducedField = Vector2(fieldCenterOffset.x.meters.asFeet - robotHalfWidthFeet, fieldCenterOffset.y.meters.asFeet - robotHalfWidthFeet)
             lastPosition = Pose2d(position.x.feet.asMeters+fieldCenterOffset.x, position.y.feet.asMeters+fieldCenterOffset.y, -Rotation2d((heading-90.0.degrees).asRadians))
 
             println("in init just before periodic")
@@ -204,6 +239,14 @@ object Drive : Subsystem("Drive"), SwerveDrive {
                 absoluteAngle1Entry.setDouble((modules[1] as Module).absoluteAngle.asDegrees)
                 absoluteAngle2Entry.setDouble((modules[2] as Module).absoluteAngle.asDegrees)
                 absoluteAngle3Entry.setDouble((modules[3] as Module).absoluteAngle.asDegrees)
+
+                motorPower0Entry.setDouble((modules[0] as Module).driveCurrent)
+                motorPower1Entry.setDouble((modules[1] as Module).driveCurrent)
+                motorPower2Entry.setDouble((modules[2] as Module).driveCurrent)
+                motorPower3Entry.setDouble((modules[3] as Module).driveCurrent)
+
+                advantageSwerveStates.setDoubleArray(stateArray)
+                advantageSwerveTargets.setDoubleArray(stateArray)
 //                motorAngle0Entry.setDouble((modules[0] as Module).angle.wrap().asDegrees)
 //                motorAngle1Entry.setDouble((modules[1] as Module).angle.wrap().asDegrees)
 //                motorAngle2Entry.setDouble((modules[2] as Module).angle.wrap().asDegrees)
@@ -270,15 +313,18 @@ object Drive : Subsystem("Drive"), SwerveDrive {
             if (OI.driveRotation.absoluteValue > 0.001) {
                 turn = OI.driveRotation
             }
+            if (!useGyroEntry.exists()) {
+                useGyroEntry.setBoolean(true)
+            }
+            val useGyro2 = useGyroEntry.getBoolean(true) && !DriverStation.isAutonomous()
 
             drive(
                 OI.driveTranslation * 1.0,
                 turn * 1.0,
-                SmartDashboard.getBoolean("Use Gyro", true) && !DriverStation.isAutonomous(),
-                true
+                useGyro2,
+                useGyro2
             )
-
-//            println("headingSetPoint = $headingSetpoint")
+            //println("heading=$heading useGyro=$useGyro2")
         }
     }
     fun initializeSteeringMotors() {
@@ -551,9 +597,29 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         newPath.addHeadingPoint(time, 0.0)
         Drive.driveAlongPath(newPath){ abortPath() }
     }
+    suspend fun gotoScoringPosition() = use(Drive) {
+        val scoreNode = FieldManager.getSelectedNode()
+        if (scoreNode == null) {
+            println("Invalid node selected")
+        }
+        else {
+            val newPath = Path2D("newPath")
+            newPath.addEasePoint(0.0,0.0)
+            newPath.addEasePoint(3.5, 1.0)
+            newPath.addVector2(position)
+            newPath.addVector2(scoreNode.alignPosition)
+            val distance = newPath.length
+            val rate = rateCurve.getValue(distance) // ft per sec
+            val time = distance / rate
+            newPath.addEasePoint(time, 1.0)
+            newPath.addHeadingPoint(0.0, heading.asDegrees)
+            println("${scoreNode.alignPosition}")
+            Drive.driveAlongPath(newPath){ abortPath() }
+        }
+    }
 
     suspend fun calibrateRobotPosition() = use(Drive) {
-        position = Vector2(11.5, -24.75)
+        position = Vector2(-11.5, -21.25)
         heading= 0.0.degrees
     }
 }
