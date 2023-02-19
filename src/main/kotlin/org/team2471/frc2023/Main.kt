@@ -51,17 +51,17 @@ object Robot : MeanlibRobot() {
 
         AutoChooser
         NodeDeckHub
-        AprilTag
-//        Intake
-//        Arm
+//        AprilTag
+        Intake
+        Arm
         PowerInfo
     }
 
     override suspend fun enable() {
         println("starting enable")
         Drive.enable()
-//        Arm.enable()
-//        Intake.enable()
+        Arm.enable()
+        Intake.enable()
         PowerInfo.enable()
 //        SignalLights.enable()
         println("field centric? ${SmartDashboard.getBoolean("Use Gyro", true) && !DriverStation.isAutonomous()}")
@@ -96,8 +96,8 @@ object Robot : MeanlibRobot() {
 
     override suspend fun disable() {
         Drive.disable()
-//        Arm.disable()
-//        Intake.disable()
+        Arm.disable()
+        Intake.disable()
         PowerInfo.disable()
 //        SignalLights.disable()
     }

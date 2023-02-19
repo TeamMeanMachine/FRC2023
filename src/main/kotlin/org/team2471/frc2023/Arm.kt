@@ -1,5 +1,6 @@
 package org.team2471.frc2023
 
+import edu.wpi.first.math.filter.LinearFilter
 import edu.wpi.first.networktables.NetworkTableInstance
 import edu.wpi.first.wpilibj.DigitalInput
 import edu.wpi.first.wpilibj.DriverStation
@@ -36,6 +37,14 @@ object Arm : Subsystem("Arm") {
     val shoulderIKEntry = table.getEntry("Shoulder IK Angle")
     val elbowIKEntry = table.getEntry("Elbow IK Angle")
     val shoulderFollowerEntry = table.getEntry("Shoulder Follower Angle")
+    val shoulderZeroedForwardEntry = table.getEntry("Shoulder Zero Forward")
+    val shoulderZeroedBackwardEntry = table.getEntry("Shoulder Zero Backward")
+    val shoulderIsZeroedEntry = table.getEntry("Shoulder Is Zeroed")
+    var shoulderGetZeroCount = 0
+    var shoulderZeroForward = false
+    var shoulderZeroBackward = false
+//    val shoulderPose = table.getEntry("Shoulder Pose")
+//    val elbowPose = table.getEntry("Elbow Pose")
 
     val shoulderAngle: Angle
         get() = shoulderMotor.position.degrees + shoulderOffset
@@ -62,13 +71,15 @@ object Arm : Subsystem("Arm") {
             field = value.asDegrees.coerceIn(ELBOW_BOTTOM, ELBOW_TOP).degrees
             elbowSetpointEntry.setDouble(field.asDegrees)
         }
+    val shoulderIsZeroed
+        get() = shoulderZeroForward && shoulderZeroBackward
+
     val eFeedForward: Double
         get() = elbowCurve.getValue(elbowAngle.asDegrees)
     val elbowCurve = MotionCurve()
     var tempElbow = elbowAngle
     var prevElbow = elbowAngle
 
-    var shoulderIsZeroed = false
     var elbowIsZeroed = false
 
     val SHOULDER_BOTTOM = -40.0
@@ -87,7 +98,7 @@ object Arm : Subsystem("Arm") {
     /** Converts joint angles to the end effector position.  */
     fun forwardKinematics(inShoulder: Angle, inElbow: Angle) : Vector2 {
         val shoulder = inShoulder + shoulderBindAngle.degrees
-        val elbow = inElbow + shoulderBindAngle.degrees
+        val elbow = inElbow + elbowBindAngle.degrees
         return Vector2(
             shoulderLength * shoulder.cos() + elbowLength * elbow.cos(),
             shoulderLength * shoulder.sin() + elbowLength * elbow.sin())
@@ -129,22 +140,24 @@ object Arm : Subsystem("Arm") {
     const val ROBOT_COVER_HEIGHT = 2.0
     const val ROBOT_HALF_WIDTH = 36.0 / 2.0
 
-    var endEffectorPosition : Vector2
-        get() {
-            return forwardKinematics(shoulderAngle, elbowAngle)
+    var endEffectorPosition = forwardKinematics(shoulderAngle, elbowAngle)
+        set(position) {
+            var clampedPosition = position
+            clampedPosition.x = clampedPosition.x.coerceIn(-REACH_LIMIT, REACH_LIMIT)
+            clampedPosition.y = clampedPosition.y.coerceIn(FLOOR_HEIGHT, HEIGHT_LIMIT)
+            if (clampedPosition.x.absoluteValue < ROBOT_HALF_WIDTH) {
+                clampedPosition.y = max(clampedPosition.y, ROBOT_COVER_HEIGHT)
+            }
+            field = clampedPosition
+            val (shoulder, elbow) = inverseKinematics(clampedPosition)
+            println("clampPosition=${clampedPosition} shoulder=${shoulder}  elbow=${elbow}")
+            if (!shoulder.asDegrees.isNaN()) {
+                shoulderSetpoint = shoulder
+            }
+            if (!elbow.asDegrees.isNaN()) {
+                elbowSetpoint = elbow
+            }
         }
-
-    set(position) {
-        var clampedPosition = position
-        clampedPosition.x = clampedPosition.x.coerceIn(-REACH_LIMIT, REACH_LIMIT)
-        clampedPosition.y = clampedPosition.y.coerceIn(FLOOR_HEIGHT, HEIGHT_LIMIT)
-        if (clampedPosition.x.absoluteValue < ROBOT_HALF_WIDTH) {
-            clampedPosition.y = max(clampedPosition.y, ROBOT_COVER_HEIGHT)
-        }
-        val (shoulder, elbow) = inverseKinematics(clampedPosition)
-        shoulderSetpoint = shoulder
-        elbowSetpoint = elbow
-    }
 
     init {
         println("Arm init")
@@ -182,7 +195,6 @@ object Arm : Subsystem("Arm") {
             currentLimit(0, 60, 0)
             burnSettings()
         }
-        shoulderIsZeroed = false
         elbowIsZeroed = false
 
         GlobalScope.launch(MeanlibDispatcher) {
@@ -200,6 +212,12 @@ object Arm : Subsystem("Arm") {
             elbowCurve.storeValue(40.0, 0.15)
             elbowCurve.storeValue(90.0, 0.3)
 
+            var shoulderDirection = LinearFilter.movingAverage(3)
+            var previousShoulderSensor = false
+
+
+
+
             shoulderSetpointEntry.setDouble(shoulderAngle.asDegrees)
             elbowSetpointEntry.setDouble(elbowAngle.asDegrees)
 
@@ -210,12 +228,22 @@ object Arm : Subsystem("Arm") {
             periodic {
                 shoulderEntry.setDouble(shoulderAngle.asDegrees)
                 elbowEntry.setDouble(elbowAngle.asDegrees)
+                Intake.pivotEntry.setDouble(Intake.pivotAngle.asDegrees)
+                Intake.wristEntry.setValue(Intake.wristAngle.asDegrees)
+
+//                var pose3d = Pose3d(0.0,0.0,0.0, Rotation3d(0.0, 0.0, shoulderAngle.asDegrees))
+//                shoulderPose.setValue(pose3d)
+//
+//                pose3d = Pose3d(0.0,0.0,0.0, Rotation3d(0.0, 0.0, elbowAngle.asDegrees))
+//                elbowPose.setValue(pose3d)
+
                 endEffectorPositionXEntry.setDouble(endEffectorPosition.x)
                 endEffectorPositionYEntry.setDouble(endEffectorPosition.y)
                 val (ikShoulder, ikElbow) = inverseKinematics(endEffectorPosition)
                 shoulderIKEntry.setDouble(ikShoulder.asDegrees)
                 elbowIKEntry.setDouble(ikElbow.asDegrees)
                 shoulderFollowerEntry.setDouble(shoulderFollowerAngle.asDegrees)
+                shoulderIsZeroedEntry.setBoolean(shoulderIsZeroed)
 
 //                if (Intake.pivotAngle > 80.0.degrees && Intake.pivotAngle < 100.0.degrees) { // && (Intake.wristAngle < -80.0.degrees || Intake.wristAngle > 80.0.degrees)) { //pivotAngle will need to be negated when pivotCurve inverted properly
                     elbowMotor.setPositionSetpoint(elbowSetpoint.asDegrees, eFeedForward)
@@ -224,13 +252,30 @@ object Arm : Subsystem("Arm") {
 //                }
 
                 //zeroing
-//                if (!shoulderIsZeroed) println("Shoulder angle is not zeroed")
-//                if (!elbowIsZeroed) println("Elbow angle is not zeroed")
-                tempShoulder = shoulderAngle
-                if (!shoulderSensor.get()) {
-                    if (tempShoulder > prevShoulder) shoulderOffset = - shoulderAngle
-                    if (tempShoulder < prevShoulder)
-                    shoulderIsZeroed = true
+                if (!shoulderIsZeroed) {
+                    tempShoulder = shoulderAngle
+                    val shoulderForward = shoulderDirection.calculate(tempShoulder.asDegrees) > 0.0
+                    if (!shoulderSensor.get()) {
+                        if (!previousShoulderSensor) {
+                            previousShoulderSensor = true
+                            shoulderGetZeroCount++
+//                        println("new sensor detected")
+                            if (shoulderGetZeroCount > 1) {
+                                if (shoulderForward) {
+                                    shoulderZeroedForwardEntry.setDouble(tempShoulder.asDegrees)
+                                    println("Zeroed forward shoulder: ${tempShoulder.asDegrees}")
+                                    shoulderZeroForward = true
+                                } else {
+                                    shoulderZeroedBackwardEntry.setDouble(tempShoulder.asDegrees)
+                                    println("Zeroed backward shoulder: ${tempShoulder.asDegrees}")
+                                    shoulderZeroBackward = true
+                                }
+                            }
+                            if (tempShoulder > prevShoulder) shoulderOffset = -shoulderAngle
+                        }
+                    } else {
+                        previousShoulderSensor = false
+                    }
                 }
                 tempElbow = elbowAngle
                 if (!elbowSensor.get()) {
@@ -243,6 +288,15 @@ object Arm : Subsystem("Arm") {
         }
     }
 
+    fun resetShoulderZero() {
+        shoulderZeroForward = false
+        shoulderZeroBackward = false
+        shoulderGetZeroCount = 0
+    }
+    override fun preEnable() {
+        endEffectorPosition = forwardKinematics(shoulderAngle, elbowAngle)
+    }
+
     override suspend fun default() {
         periodic {
             var move = OI.operatorController.leftThumbstick
@@ -253,9 +307,11 @@ object Arm : Subsystem("Arm") {
             pivot *= 45.0 * 0.02  // degrees per second, time 1/50 second
             wrist *= 45.0 * 0.02
 
+            move.y = -move.y
+
             endEffectorPosition += move
-//            Intake.pivotSetpoint += pivot.degrees
-//            Intake.wristSetpoint += wrist.degrees
+            Intake.pivotSetpoint += pivot.degrees
+            Intake.wristSetpoint += wrist.degrees
         }
     }
 

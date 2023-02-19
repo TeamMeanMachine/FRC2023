@@ -36,6 +36,8 @@ object Intake : Subsystem("Intake") {
     val pivotSetpointEntry = table.getEntry("Pivot Setpoint")
     val intakeCurrentEntry = table.getEntry("Intake Currrent")
     val intakePowerEntry = table.getEntry("Intake Power")
+    val wristPose = table.getEntry("Wrist Pose")
+    val pivotPose = table.getEntry("Pivot Pose")
 
     val wristAngle: Angle
         get() = wristMotor.position.degrees + wristOffset
@@ -127,6 +129,13 @@ object Intake : Subsystem("Intake") {
             periodic {
                 wristEntry.setDouble(wristAngle.asDegrees)
                 pivotEntry.setDouble(pivotAngle.asDegrees)
+//
+//                var pose3d = Pose3d(0.0,0.0,0.0, Rotation3d(0.0, 0.0, pivotAngle.asDegrees))
+//                pivotPose.setValue(pose3d)
+//
+//                pose3d = Pose3d(0.0,0.0,0.0, Rotation3d(0.0, 0.0, wristAngle.asDegrees))
+//                wristPose.setValue(pose3d)
+
                 pivotAnalogEntry.setDouble(pivotAnalogAngle.asDegrees)
                 intakeCurrentEntry.setDouble(intakeMotor.current)
 
