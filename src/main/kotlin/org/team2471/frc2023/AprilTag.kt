@@ -4,11 +4,13 @@ import edu.wpi.first.apriltag.AprilTagFieldLayout
 import edu.wpi.first.apriltag.AprilTagFields
 import edu.wpi.first.math.geometry.*
 import edu.wpi.first.networktables.NetworkTableInstance
+import edu.wpi.first.wpilibj.DriverStation
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.photonvision.EstimatedRobotPose
 import org.photonvision.PhotonCamera
 import org.photonvision.PhotonPoseEstimator
+import org.photonvision.targeting.PhotonPipelineResult
 import org.team2471.frc.lib.coroutines.periodic
 import org.team2471.frc.lib.units.*
 import java.util.*
@@ -30,16 +32,17 @@ object AprilTag {
     private val camFront = PhotonCamera("PVFront")
     private val camBack = PhotonCamera("PVBack")
     private val frontPoseEstimator : PhotonPoseEstimator
+    private val backPoseEstimator : PhotonPoseEstimator
     private const val maxAmbiguity = 0.1
 
     private var robotToCamFront: Transform3d = Transform3d(
-        Translation3d(11.5.inches.asMeters, 5.0.inches.asMeters, 7.0.inches.asMeters),
-        Rotation3d(0.0, 11.0.degrees.asRadians, 0.0)
+        Translation3d(5.25.inches.asMeters, -11.5.inches.asMeters, 7.0.inches.asMeters),
+        Rotation3d(0.0, -11.0.degrees.asRadians, 0.0)
     )
 
     private var robotToCamBack = Transform3d(
-        Translation3d(11.5.inches.asMeters, -5.0.inches.asMeters, 7.0.inches.asMeters),
-        Rotation3d(0.0, 11.0.degrees.asRadians, 0.0)
+        Translation3d(-5.25.inches.asMeters, -11.25.inches.asMeters, 7.0.inches.asMeters),
+        Rotation3d(0.0.degrees.asRadians, 11.0.degrees.asRadians, 180.0.degrees.asRadians)
     )
 
     //true means front cam
@@ -52,8 +55,20 @@ object AprilTag {
         }
     }
 
-    fun getFrontEstimatedGlobalPose(): Optional<EstimatedRobotPose>? {
-        return frontPoseEstimator.update()
+    fun getEstimatedGlobalPose(camera: PhotonCamera, estimator: PhotonPoseEstimator): Pose2d? {
+
+        val cameraResult: PhotonPipelineResult = camera.getLatestResult()
+
+        if (cameraResult.targets.count() < 2) {
+            return null
+        }
+        val newPose = estimator.update(cameraResult)
+//                println("newPose: $newPose")
+        return if (newPose?.isPresent == true) {
+            newPose.get().estimatedPose.toPose2d()
+        } else {
+            null
+        }
     }
 
     private fun customEstimatedPose(useFrontCam: Boolean): EstimatedRobotPose?{
@@ -95,38 +110,19 @@ object AprilTag {
 
     init {
         frontPoseEstimator = PhotonPoseEstimator(aprilTagFieldLayout, PhotonPoseEstimator.PoseStrategy.MULTI_TAG_PNP, camFront, robotToCamFront)
+        backPoseEstimator = PhotonPoseEstimator(aprilTagFieldLayout, PhotonPoseEstimator.PoseStrategy.MULTI_TAG_PNP, camBack, robotToCamBack)
         GlobalScope.launch {
             periodic {
                 val frontCamSelected = useFrontCam()
                 frontCamSelectedEntry.setBoolean(frontCamSelected)
-                val maybePoseFront = customEstimatedPose(true)
-                val maybePoseBack = customEstimatedPose(false)
-                val newPose = getFrontEstimatedGlobalPose()
-//                println("newPose: $newPose")
-                if (newPose?.isPresent == true) {
-                    val multiPose = newPose.get().estimatedPose
-//                    println("setting advantage pose")
-                    frontAdvantagePoseEntry.setDoubleArray(doubleArrayOf(multiPose.x,multiPose.y,multiPose.rotation.angle))
-                }
-//                if (maybePoseFront != null) {
-//                    frontAdvantagePoseEntry.setDoubleArray(doubleArrayOf(maybePoseFront.estimatedPose.x, maybePoseFront.estimatedPose.y, maybePoseFront.estimatedPose.rotation.angle))
-//                }
-                if (maybePoseBack != null) {
-                    backAdvantagePoseEntry.setDoubleArray(doubleArrayOf(maybePoseBack.estimatedPose.x, maybePoseBack.estimatedPose.y, maybePoseBack.estimatedPose.rotation.angle))
-                }
+                val maybePoseFront = getEstimatedGlobalPose(camFront, frontPoseEstimator)
+                val maybePoseBack = getEstimatedGlobalPose(camBack, backPoseEstimator)
                 if (maybePoseFront != null) {
-                    val currentPose = maybePoseFront.estimatedPose  //maybePose.get().estimatedPose
-                    val tagX = currentPose.x
-                    val tagY = currentPose.y
-                    val tagRot = currentPose.rotation
-                    // println("X: $tagX Y: $tagY")
-                    pvXEntry.setDouble(tagX)
-                    pvYEntry.setDouble(tagY)
-                    tagPoseEntry.setDoubleArray(doubleArrayOf(tagX, tagY, tagRot.angle))
-//                    Drive.position = Vector2(curepos.get().estimatedPose.x.meters.asFeet - (13 + 3.5/12), curepos.get().estimatedPose.y.meters.asFeet - (26 + 0.5/12))
-//                    println(Vector2((26 + 0.5/12) - curepos.get().estimatedPose.x.meters.asFeet , curepos.get().estimatedPose.y.meters.asFeet - (13 + 3.5/12)))
+                    frontAdvantagePoseEntry.setDoubleArray(doubleArrayOf(maybePoseFront.x,maybePoseFront.y,maybePoseFront.rotation.degrees))
                 }
-
+                if (maybePoseBack != null) {
+                    backAdvantagePoseEntry.setDoubleArray(doubleArrayOf(maybePoseBack.x,maybePoseBack.y,maybePoseBack.rotation.degrees))
+                }
             }
         }
     }
