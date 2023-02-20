@@ -98,7 +98,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         Module(
             MotorController(FalconID(Falcons.LEFT_FRONT_DRIVE)),
             MotorController(FalconID(Falcons.LEFT_FRONT_STEER)),
-            Vector2(-11.5, 14.0),
+            Vector2(-9.75, 9.75),
             Preferences.getDouble("Angle Offset 0",-6.94).degrees,
             CANCoders.CANCODER_FRONTLEFT,
             odometer0Entry,
@@ -107,7 +107,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         Module(
             MotorController(FalconID(Falcons.RIGHT_FRONT_DRIVE)),
             MotorController(FalconID(Falcons.RIGHT_FRONT_STEER)),
-            Vector2(11.5, 14.0),
+            Vector2(9.75, 9.75),
             Preferences.getDouble("Angle Offset 1",-252.59).degrees,
             CANCoders.CANCODER_FRONTRIGHT,
             odometer1Entry,
@@ -116,7 +116,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         Module(
             MotorController(FalconID(Falcons.RIGHT_REAR_DRIVE)),
             MotorController(FalconID(Falcons.RIGHT_REAR_STEER)),
-            Vector2(11.5, -14.0),
+            Vector2(9.75, -9.75),
             Preferences.getDouble("Angle Offset 2",-345.23).degrees,
             CANCoders.CANCODER_REARRIGHT,
             odometer2Entry,
@@ -125,7 +125,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         Module(
             MotorController(FalconID(Falcons.LEFT_REAR_DRIVE)),
             MotorController(FalconID(Falcons.LEFT_REAR_STEER)),
-            Vector2(-11.5, -14.0),
+            Vector2(-9.75, -9.75),
             Preferences.getDouble("Angle Offset 3",-335.48).degrees,
             CANCoders.CANCODER_REARLEFT,
             odometer3Entry,
@@ -581,18 +581,14 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         val p2 = Vector2(2.0,-10.0)
         val p3 = Vector2(2.0,-19.0)
         val p4 = Vector2(goalPosition.x,-21.0)
-        val distance = (p2 - p1).length + (p4 - p3).length + (p3 - p2).length
-        val rateCurve = MotionCurve()
-        rateCurve.setMarkBeginOrEndKeysToZeroSlope(false)
-        rateCurve.storeValue(1.0, 2.0)  // distance, rate
-        rateCurve.storeValue(8.0, 6.0)  // distance, rate
-        val rate = rateCurve.getValue(distance) // ft per sec
-        val time = distance / rate
-        newPath.addEasePoint(time, 1.0)
         newPath.addVector2(p1)
         newPath.addVector2(p2)
         newPath.addVector2(p3)
         newPath.addVector2(p4)
+        val distance = newPath.length
+        val rate = rateCurve.getValue(distance) // ft per sec
+        val time = distance / rate
+        newPath.addEasePoint(time, 1.0)
         newPath.addHeadingPoint(0.0, heading.asDegrees)
         newPath.addHeadingPoint(time, 0.0)
         Drive.driveAlongPath(newPath){ abortPath() }
@@ -604,13 +600,12 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         }
         else {
             val newPath = Path2D("newPath")
-            newPath.addEasePoint(0.0,0.0)
-            newPath.addEasePoint(3.5, 1.0)
             newPath.addVector2(position)
             newPath.addVector2(scoreNode.alignPosition)
             val distance = newPath.length
             val rate = rateCurve.getValue(distance) // ft per sec
             val time = distance / rate
+            newPath.addEasePoint(0.0,0.0)
             newPath.addEasePoint(time, 1.0)
             newPath.addHeadingPoint(0.0, heading.asDegrees)
             println("${scoreNode.alignPosition}")
