@@ -5,6 +5,7 @@ import edu.wpi.first.apriltag.AprilTagFields
 import edu.wpi.first.math.geometry.*
 import edu.wpi.first.networktables.NetworkTableInstance
 import edu.wpi.first.wpilibj.DriverStation
+import edu.wpi.first.wpilibj.Timer
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.photonvision.EstimatedRobotPose
@@ -12,6 +13,8 @@ import org.photonvision.PhotonCamera
 import org.photonvision.PhotonPoseEstimator
 import org.photonvision.targeting.PhotonPipelineResult
 import org.team2471.frc.lib.coroutines.periodic
+import org.team2471.frc.lib.motion.following.lookupPose
+import org.team2471.frc.lib.motion.following.poseDiff
 import org.team2471.frc.lib.units.*
 import java.util.*
 import kotlin.math.abs
@@ -21,7 +24,11 @@ object AprilTag {
     private val pvTable = NetworkTableInstance.getDefault().getTable("photonvision")
 
     private val frontCamSelectedEntry = pvTable.getEntry("Front Camera Selected")
-
+    private val backcamErrorEntryY = pvTable.getEntry("backcam error entry y")
+    private val backcamErrorEntryX = pvTable.getEntry("backcam error entry x")
+    private val latencyOffsetEntry = pvTable.getEntry("Latency Offset")
+    private val backcamlatencyadjustedErrorX = pvTable.getEntry("backcam error latency")
+    private val backcamlatencyadjustedErrorX1 = pvTable.getEntry("backcam error latency 1")
     private val frontAdvantagePoseEntry = pvTable.getEntry("Front Advantage Pose")
     private val backAdvantagePoseEntry = pvTable.getEntry("Back Advantage Pose")
 
@@ -34,6 +41,8 @@ object AprilTag {
     private val frontPoseEstimator : PhotonPoseEstimator
     private val backPoseEstimator : PhotonPoseEstimator
     private const val maxAmbiguity = 0.1
+    var lastPose = Pose2d(0.0,0.0, Rotation2d(0.0))
+    var lastbackdetection = 0.0
 
     private var robotToCamFront: Transform3d = Transform3d(
         Translation3d(5.25.inches.asMeters, -11.5.inches.asMeters, 7.0.inches.asMeters),
@@ -65,7 +74,11 @@ object AprilTag {
         val newPose = estimator.update(cameraResult)
 //                println("newPose: $newPose")
         return if (newPose?.isPresent == true) {
-            newPose.get().estimatedPose.toPose2d()
+            val result = newPose.get()
+            if (camera.name == "PVBack"){
+                lastbackdetection = result.timestampSeconds
+            }
+            result.estimatedPose.toPose2d()
         } else {
             null
         }
@@ -109,6 +122,7 @@ object AprilTag {
     }
 
     init {
+        latencyOffsetEntry.setDouble(0.0)
         frontPoseEstimator = PhotonPoseEstimator(aprilTagFieldLayout, PhotonPoseEstimator.PoseStrategy.MULTI_TAG_PNP, camFront, robotToCamFront)
         backPoseEstimator = PhotonPoseEstimator(aprilTagFieldLayout, PhotonPoseEstimator.PoseStrategy.MULTI_TAG_PNP, camBack, robotToCamBack)
         GlobalScope.launch {
@@ -122,6 +136,34 @@ object AprilTag {
                 }
                 if (maybePoseBack != null) {
                     backAdvantagePoseEntry.setDoubleArray(doubleArrayOf(maybePoseBack.x,maybePoseBack.y,maybePoseBack.rotation.degrees))
+                    lastPose = maybePoseBack
+                    var poseError = lastPose.toTMMField()
+                    val yError = Drive.position.y - poseError.y
+                    backcamErrorEntryY.setDouble(yError)
+                    val xError = Drive.position.x - poseError.x
+                    backcamErrorEntryX.setDouble(xError)
+                    val latency = Timer.getFPGATimestamp() -lastbackdetection
+//                    println("latency is $latency")
+                    try {
+                        val latencyPose = Drive.lookupPose(lastbackdetection)
+                        val latencyPose1 = Drive.lookupPose(lastbackdetection + latencyOffsetEntry.getDouble(0.0))
+                        if (latencyPose != null) {
+                            val posehistoryError = latencyPose.position.x - poseError.x
+                            backcamlatencyadjustedErrorX.setDouble(posehistoryError)
+//                            println("pose history error: $posehistoryError")
+                        } else {
+                            println("pose history is null")
+                        }
+                        if (latencyPose1 != null) {
+                            val posehistoryError1 = latencyPose1.position.x - poseError.x
+                            backcamlatencyadjustedErrorX1.setDouble(posehistoryError1)
+//                            println("pose history error: $posehistoryError1")
+                        }
+                    } catch (ex:Error) {
+                        println("error caught")
+                    }
+
+
                 }
             }
         }
