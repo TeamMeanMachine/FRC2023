@@ -1,6 +1,7 @@
 package org.team2471.frc2023
 
 import com.ctre.phoenix.sensors.CANCoder
+import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator
 import edu.wpi.first.math.geometry.Pose2d
 import edu.wpi.first.math.geometry.Rotation2d
 import edu.wpi.first.networktables.NetworkTableEntry
@@ -581,14 +582,18 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         val p2 = Vector2(2.0,-10.0)
         val p3 = Vector2(2.0,-19.0)
         val p4 = Vector2(goalPosition.x,-21.0)
+        val distance = (p2 - p1).length + (p4 - p3).length + (p3 - p2).length
+        val rateCurve = MotionCurve()
+        rateCurve.setMarkBeginOrEndKeysToZeroSlope(false)
+        rateCurve.storeValue(1.0, 2.0)  // distance, rate
+        rateCurve.storeValue(8.0, 6.0)  // distance, rate
+        val rate = rateCurve.getValue(distance) // ft per sec
+        val time = distance / rate
+        newPath.addEasePoint(time, 1.0)
         newPath.addVector2(p1)
         newPath.addVector2(p2)
         newPath.addVector2(p3)
         newPath.addVector2(p4)
-        val distance = newPath.length
-        val rate = rateCurve.getValue(distance) // ft per sec
-        val time = distance / rate
-        newPath.addEasePoint(time, 1.0)
         newPath.addHeadingPoint(0.0, heading.asDegrees)
         newPath.addHeadingPoint(time, 0.0)
         Drive.driveAlongPath(newPath){ abortPath() }
@@ -600,12 +605,13 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         }
         else {
             val newPath = Path2D("newPath")
+            newPath.addEasePoint(0.0,0.0)
+            newPath.addEasePoint(3.5, 1.0)
             newPath.addVector2(position)
             newPath.addVector2(scoreNode.alignPosition)
             val distance = newPath.length
             val rate = rateCurve.getValue(distance) // ft per sec
             val time = distance / rate
-            newPath.addEasePoint(0.0,0.0)
             newPath.addEasePoint(time, 1.0)
             newPath.addHeadingPoint(0.0, heading.asDegrees)
             println("${scoreNode.alignPosition}")

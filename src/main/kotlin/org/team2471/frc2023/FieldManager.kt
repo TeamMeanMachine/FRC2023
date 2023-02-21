@@ -39,12 +39,12 @@ object FieldManager {
     fun convertTMMtoWPI(x:Length, y:Length, heading: Angle):Pose2d{
         val modX = -y.asMeters + fieldCenterOffset.y
         val modY = x.asMeters + fieldCenterOffset.x
-        return Pose2d(modX,modY, Rotation2d((-Drive.heading+180.0.degrees).wrap().asRadians))
+        return Pose2d(modX,modY, Rotation2d((-heading+180.0.degrees).wrap().asRadians))
     }
 
     fun convertWPIToTMM(wpiDimens: Translation2d): Vector2{
-        val modX = wpiDimens.y + fieldCenterOffset.y
-        val modY = -wpiDimens.x + fieldCenterOffset.x
+        val modX = wpiDimens.y - fieldCenterOffset.x
+        val modY = -(wpiDimens.x - fieldCenterOffset.y)
         return Vector2(modX.meters.asFeet, modY.meters.asFeet)
     }
 
@@ -56,6 +56,11 @@ object FieldManager {
 
 fun Translation2d.toTMMField():Vector2 {
     return FieldManager.convertWPIToTMM(this)
+}
+fun Pose2d.toTMMField():Pose2d {
+    val TMMVector = this.translation.toTMMField()
+    val TMMHeading = (-this.rotation.degrees-180.0).degrees.wrap()
+    return Pose2d(TMMVector.x,TMMVector.y,Rotation2d(TMMHeading.asRadians))
 }
 
 data class ScoringNode (
