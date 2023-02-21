@@ -71,7 +71,7 @@ object Intake : Subsystem("Intake") {
             pivotSetpointEntry.setDouble(value.asDegrees)
             field = pivotIncrementAngle + (value - pivotIncrementAngle).wrap()
         }
-    val pivotPDController = PDController(0.017, 0.001) //0.03, 0.04)   //0.35, 0.03
+    val pivotPDController = PDController(0.100, 0.001) //0.03, 0.04)   //0.35, 0.03
     val pFeedForward: Double
         get() = pivotCurve.getValue((pivotAngle + if (wristAngle < 0.0.degrees) 180.0.degrees else 0.0.degrees).wrap().asDegrees) * sin(wristAngle.asRadians.absoluteValue)
     val pivotCurve = MotionCurve()
@@ -80,6 +80,8 @@ object Intake : Subsystem("Intake") {
 
     var wristMin = -90.0.degrees + Arm.elbowAngle
     var wristMax = 90.0.degrees + Arm.elbowAngle
+
+    var holdingObject: Boolean = false
 
     const val INTAKE_POWER = 1.0
     const val INTAKE_HOLD = 0.05
@@ -172,44 +174,24 @@ object Intake : Subsystem("Intake") {
 //                if ((pivotAnalogAngle.asDegrees > 80.0 && prevPivotAnalog.asDegrees < -80.0) ||) inOtherZone = !inOtherZone
                 prevPivotAnalog = pivotAnalogAngle
                 prevPivotAngle = tempPivot
+
+                if (OI.operatorController.b){
+                    holdingObject = false
+                    intakeMotor.setPercentOutput(INTAKE_POWER)  //1.0
+                } else {
+                    intakeMotor.setPercentOutput(0.5 * OI.driverController.leftTrigger -
+                            0.5 * OI.driverController.rightTrigger +
+                            if (holdingObject) INTAKE_HOLD else 0.0
+                    )
+                    if (OI.driverController.rightTrigger > 0.1) {
+                        holdingObject = false
+                    }
+                }
             }
         }
     }
 
     override suspend fun default() {
-        val t = Timer()
-        var isTimerStarted = false
-        var intakeDetected = 0.0
-        var linearFilter = LinearFilter.movingAverage(5)
-        periodic {
-            if (OI.operatorController.a) {
-                  //-1.0
-                linearFilter.calculate(intakeMotor.current)
-                if (!isTimerStarted) {
-                    t.start()
-                    isTimerStarted = true
-                    intakeDetected = 10000.0
-                    intakeMotor.setPercentOutput(-INTAKE_POWER)
-                    println("timer is started")
-                } else if (t.get() > 2.0) {
-                    if ( linearFilter.calculate(intakeMotor.current) > INTAKE_DETECT_CONE && intakeDetected ==  10000.0) {
-                        intakeDetected = t.get() + 0.5
-                        println("detected = ${intakeDetected}")
-                    }
-                    if (t.get() > intakeDetected) {
-                        intakeMotor.setPercentOutput(-INTAKE_HOLD)  //1.0
-                        println("t_get = ${t.get()}")
-                    }
-                } else {
-                //    println("Min Timer not Reached → ${t.get()}")
-                }
-            } else if (OI.operatorController.b){
-                intakeMotor.setPercentOutput(INTAKE_POWER)  //1.0
-            } else {
-                intakeMotor.setPercentOutput(0.5 * OI.driverController.leftTrigger - 0.5 * OI.driverController.rightTrigger)
-                isTimerStarted = false
-            }
-        }
     }
     override fun preEnable() {
         pivotSetpoint = pivotAngle

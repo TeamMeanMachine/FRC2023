@@ -54,12 +54,12 @@ object Arm : Subsystem("Arm") {
         get() = shoulderSetpointEntry.getDouble(0.0).degrees
         set(value) {
             var temp = value
-//            if (value > 0.0.degrees) {
-//               temp -= shoulderZeroedForwardEntry.getDouble(0.0).degrees
-//            }
-//            else {
-//                temp -= shoulderZeroedBackwardEntry.getDouble(0.0).degrees
-//            }
+            if (value > 0.0.degrees) {
+               temp -= shoulderZeroedForwardEntry.getDouble(0.0).degrees
+            }
+            else {
+                temp -= shoulderZeroedBackwardEntry.getDouble(0.0).degrees
+            }
 
             field = temp.asDegrees.coerceIn(SHOULDER_BOTTOM, SHOULDER_TOP).degrees
             shoulderSetpointEntry.setDouble(field.asDegrees)
