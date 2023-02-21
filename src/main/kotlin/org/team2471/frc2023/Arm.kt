@@ -13,6 +13,7 @@ import org.team2471.frc.lib.coroutines.MeanlibDispatcher
 import org.team2471.frc.lib.coroutines.periodic
 import org.team2471.frc.lib.framework.Subsystem
 import org.team2471.frc.lib.math.Vector2
+import org.team2471.frc.lib.math.deadband
 import org.team2471.frc.lib.motion.following.drive
 import org.team2471.frc.lib.motion_profiling.MotionCurve
 import org.team2471.frc.lib.units.Angle
@@ -52,7 +53,15 @@ object Arm : Subsystem("Arm") {
     var shoulderSetpoint: Angle = shoulderAngle
         get() = shoulderSetpointEntry.getDouble(0.0).degrees
         set(value) {
-            field = value.asDegrees.coerceIn(SHOULDER_BOTTOM, SHOULDER_TOP).degrees
+            var temp = value
+//            if (value > 0.0.degrees) {
+//               temp -= shoulderZeroedForwardEntry.getDouble(0.0).degrees
+//            }
+//            else {
+//                temp -= shoulderZeroedBackwardEntry.getDouble(0.0).degrees
+//            }
+
+            field = temp.asDegrees.coerceIn(SHOULDER_BOTTOM, SHOULDER_TOP).degrees
             shoulderSetpointEntry.setDouble(field.asDegrees)
         }
     val sFeedForward: Double
@@ -134,10 +143,10 @@ object Arm : Subsystem("Arm") {
         return Pair((jointAngleA1.radians - shoulderBindAngle.degrees).wrap(), (jointAngleA1.radians + jointAngleB.radians - elbowBindAngle.degrees).wrap())
     }
 
-    const val REACH_LIMIT = 30.0
-    const val HEIGHT_LIMIT = 25.0
+    const val REACH_LIMIT = 40.0
+    const val HEIGHT_LIMIT = 50.0
     const val FLOOR_HEIGHT = -5.0
-    const val ROBOT_COVER_HEIGHT = 2.0
+    const val ROBOT_COVER_HEIGHT = 9.0
     const val ROBOT_HALF_WIDTH = 36.0 / 2.0
 
     var endEffectorPosition = forwardKinematics(shoulderAngle, elbowAngle)
@@ -145,12 +154,13 @@ object Arm : Subsystem("Arm") {
             var clampedPosition = position
             clampedPosition.x = clampedPosition.x.coerceIn(-REACH_LIMIT, REACH_LIMIT)
             clampedPosition.y = clampedPosition.y.coerceIn(FLOOR_HEIGHT, HEIGHT_LIMIT)
-            if (clampedPosition.x.absoluteValue < ROBOT_HALF_WIDTH) {
+            if (clampedPosition.x.absoluteValue < ROBOT_HALF_WIDTH) {  // over top of robot
                 clampedPosition.y = max(clampedPosition.y, ROBOT_COVER_HEIGHT)
+                clampedPosition.y = min(clampedPosition.y, (HEIGHT_LIMIT / ROBOT_HALF_WIDTH) * clampedPosition.x.absoluteValue + ROBOT_COVER_HEIGHT)
             }
             field = clampedPosition
             val (shoulder, elbow) = inverseKinematics(clampedPosition)
-            println("clampPosition=${clampedPosition} shoulder=${shoulder}  elbow=${elbow}")
+//            println("clampPosition=${clampedPosition} shoulder=${shoulder}  elbow=${elbow}")
             if (!shoulder.asDegrees.isNaN()) {
                 shoulderSetpoint = shoulder
             }
@@ -262,12 +272,12 @@ object Arm : Subsystem("Arm") {
 //                        println("new sensor detected")
                             if (shoulderGetZeroCount > 1) {
                                 if (shoulderForward) {
-                                    shoulderZeroedForwardEntry.setDouble(tempShoulder.asDegrees)
-                                    println("Zeroed forward shoulder: ${tempShoulder.asDegrees}")
+                                    shoulderZeroedForwardEntry.setDouble(tempShoulder.asDegrees - 1.0)
+                                    println("Zeroed forward shoulder: ${tempShoulder.asDegrees - 1.0}")
                                     shoulderZeroForward = true
                                 } else {
-                                    shoulderZeroedBackwardEntry.setDouble(tempShoulder.asDegrees)
-                                    println("Zeroed backward shoulder: ${tempShoulder.asDegrees}")
+                                    shoulderZeroedBackwardEntry.setDouble(tempShoulder.asDegrees + 15.0)
+                                    println("Zeroed backward shoulder: ${tempShoulder.asDegrees + 15.0}")
                                     shoulderZeroBackward = true
                                 }
                             }
@@ -299,15 +309,14 @@ object Arm : Subsystem("Arm") {
 
     override suspend fun default() {
         periodic {
-            var move = OI.operatorController.leftThumbstick
-            var pivot = OI.operatorController.rightThumbstickX
-            var wrist = OI.operatorController.rightThumbstickY
+            var move = Vector2(OI.operatorController.leftThumbstickX.deadband(0.1),
+                -OI.operatorController.leftThumbstickY.deadband(0.1))
+            var pivot = OI.operatorController.rightThumbstickX.deadband(0.1)
+            var wrist = OI.operatorController.rightThumbstickY.deadband(0.1)
 
             move *= 12.0 * 0.02   // d = r * t  where rate is inches per second and time is 1/50 second
             pivot *= 45.0 * 0.02  // degrees per second, time 1/50 second
             wrist *= 45.0 * 0.02
-
-            move.y = -move.y
 
             endEffectorPosition += move
             Intake.pivotSetpoint += pivot.degrees

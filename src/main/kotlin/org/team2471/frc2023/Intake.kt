@@ -17,8 +17,11 @@ import org.team2471.frc.lib.input.Controller
 import org.team2471.frc.lib.math.round
 import org.team2471.frc.lib.motion_profiling.MotionCurve
 import org.team2471.frc.lib.units.Angle
+import org.team2471.frc.lib.units.asRadians
 import org.team2471.frc.lib.units.degrees
 import org.team2471.frc.lib.util.Timer
+import kotlin.math.absoluteValue
+import kotlin.math.sin
 
 
 object Intake : Subsystem("Intake") {
@@ -35,6 +38,7 @@ object Intake : Subsystem("Intake") {
     val pivotAnalogEntry = table.getEntry("Pivot Analog Angle")
     val pivotSetpointEntry = table.getEntry("Pivot Setpoint")
     val intakeCurrentEntry = table.getEntry("Intake Currrent")
+    val pFeedEntry = table.getEntry("P Feed Forward")
     val intakePowerEntry = table.getEntry("Intake Power")
     val wristPose = table.getEntry("Wrist Pose")
     val pivotPose = table.getEntry("Pivot Pose")
@@ -45,7 +49,9 @@ object Intake : Subsystem("Intake") {
     var wristSetpoint: Angle = wristAngle
         get() = wristSetpointEntry.getDouble(0.0).degrees
         set(value) {
-            field = value.asDegrees.coerceIn(WRIST_BOTTOM, WRIST_TOP).degrees
+            wristMin = -90.0.degrees + Arm.elbowAngle
+            wristMax = 90.0.degrees + Arm.elbowAngle
+            field = value.asDegrees.coerceIn(wristMin.asDegrees, wristMax.asDegrees).degrees
             wristSetpointEntry.setDouble(field.asDegrees)
         }
     val pivotAngle: Angle
@@ -57,27 +63,25 @@ object Intake : Subsystem("Intake") {
     var prevPivotAngle: Angle = pivotAngle
     var prevPivotAnalog = pivotAnalogAngle
     var pivotOffset: Angle = -68.2.degrees
-    var pivotConversionOffset: Angle = 0.0.degrees
+    var pivotConversionOffset: Angle = 180.0.degrees
     var rotations: Double = 0.0
     var pivotSetpoint: Angle = pivotAngle
         get() = pivotSetpointEntry.getDouble(0.0).degrees
         set(value) {
-            field = value
             pivotSetpointEntry.setDouble(value.asDegrees)
+            field = pivotIncrementAngle + (value - pivotIncrementAngle).wrap()
         }
-    var pivotIncrementSetpoint: Angle = pivotAngle
-        get() = pivotSetpoint + (rotations * 360.0).degrees
     val pivotPDController = PDController(0.017, 0.001) //0.03, 0.04)   //0.35, 0.03
-    val pFeedForward: Double  //later: include wristAngle to include facing backwards
-        get() = pivotCurve.getValue(pivotAngle.asDegrees /*    + 180.0.degrees * sin(wristAngle)    then wrap whole thing   */)
+    val pFeedForward: Double
+        get() = pivotCurve.getValue((pivotAngle + if (wristAngle < 0.0.degrees) 180.0.degrees else 0.0.degrees).wrap().asDegrees) * sin(wristAngle.asRadians.absoluteValue)
     val pivotCurve = MotionCurve()
 
     var wristIsReset = false
 
-    const val WRIST_BOTTOM = -90.0 //Arm.elbowAngle.asDegrees - 40.0 to be based on elbow's angle
-    const val WRIST_TOP = 20.0  //Arm.elbowAngle.asDegrees + 40.0
-    const val INTAKE_POWER = 1.0
+    var wristMin = -90.0.degrees + Arm.elbowAngle
+    var wristMax = 90.0.degrees + Arm.elbowAngle
 
+    const val INTAKE_POWER = 1.0
     const val INTAKE_HOLD = 0.05
     const val INTAKE_DETECT_CONE = 55
     const val INTAKE_CURR = 55.0
@@ -126,9 +130,15 @@ object Intake : Subsystem("Intake") {
 //            wristSetpoint = -90.0.degrees
 //            pivotSetpoint = -180.0.degrees
 
+            println("pFeed: ${pFeedEntry.getDouble(0.0)}")
+
             periodic {
                 wristEntry.setDouble(wristAngle.asDegrees)
                 pivotEntry.setDouble(pivotAngle.asDegrees)
+                pFeedEntry.setDouble(pFeedForward)
+
+//                println("rot: $rotations    pInc:  ${round(pivotIncrementAngle.asDegrees, 2)}  pivotSet: ${pivotSetpoint.asDegrees}")
+
 //
 //                var pose3d = Pose3d(0.0,0.0,0.0, Rotation3d(0.0, 0.0, pivotAngle.asDegrees))
 //                pivotPose.setValue(pose3d)
@@ -148,8 +158,8 @@ object Intake : Subsystem("Intake") {
 
                 wristMotor.setPositionSetpoint(wristSetpoint.asDegrees)
 
-                val power = pivotPDController.update(pivotIncrementSetpoint.asDegrees - pivotIncrementAngle.asDegrees) + pFeedForward
-//                pivotMotor.setPercentOutput(power)
+                val power = pivotPDController.update((pivotSetpoint - pivotIncrementAngle).wrap().asDegrees) + pFeedForward
+                pivotMotor.setPercentOutput(power)
 
 
                 //zeroing wrist
@@ -201,9 +211,11 @@ object Intake : Subsystem("Intake") {
             }
         }
     }
+    override fun preEnable() {
+        pivotSetpoint = pivotAngle
+        wristSetpoint = wristAngle
+    }
 }
-
-
 
 suspend fun Intake.pivotTest() = use(this) {
     var angle = pivotAngle

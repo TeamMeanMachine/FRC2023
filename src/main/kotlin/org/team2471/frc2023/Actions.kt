@@ -1,6 +1,5 @@
 package org.team2471.frc2023
 
-import kotlinx.coroutines.Delay
 import org.team2471.frc.lib.coroutines.delay
 import org.team2471.frc.lib.coroutines.periodic
 import org.team2471.frc.lib.framework.use
@@ -39,5 +38,11 @@ suspend fun intakeCone() = use(Intake,Arm) {
     Arm.elbowSetpoint = -27.0.degrees
     delay(2.0)
     Intake.pivotSetpoint = 179.0.degrees
+}
+suspend fun tippedConeIntake() = use(Intake, Arm) {
+    println("Starting Action")
+    animateToPose(Pose.GROUND_INTAKE_POSE)
+    Intake.intakeMotor.setPercentOutput(Intake.INTAKE_POWER)
+    println("Finished Action")
 
 }
