@@ -72,6 +72,10 @@ object Arm : Subsystem("Arm") {
     var prevShoulder = shoulderAngle
     val shoulderFollowerAngle: Angle
         get() = shoulderFollowerMotor.position.degrees + shoulderOffset
+    var shoulderNegSlop = 0.0.degrees
+    var shoulderPosSlop = 0.0.degrees
+    var waitForNegative = false
+    var waitForPositive = false
     val elbowAngle: Angle
         get() = elbowMotor.position.degrees + elbowOffset
     var elbowOffset = 0.0.degrees
@@ -83,7 +87,6 @@ object Arm : Subsystem("Arm") {
         }
     val shoulderIsZeroed
         get() = shoulderZeroForward && shoulderZeroBackward
-
     val eFeedForward: Double
         get() = elbowCurve.getValue(elbowAngle.asDegrees)
     val elbowCurve = MotionCurve()
@@ -94,10 +97,9 @@ object Arm : Subsystem("Arm") {
 
     val SHOULDER_BOTTOM = -40.0
     val SHOULDER_TOP = 40.0
-    val SHOULDER_HALF_SLOP = 5.0.degrees
+    val SHOULDER_MAGNET = 1.0
     val ELBOW_BOTTOM = -120.0
     val ELBOW_TOP = 120.0
-    val ELBOW_HALF_SLOP = 3.0.degrees
 
     const val shoulderLength = 37.0
     const val elbowLength = 28.0
@@ -263,31 +265,41 @@ object Arm : Subsystem("Arm") {
 //                }
 
                 //zeroing
-                if (!shoulderIsZeroed) {
+
+//                if (!shoulderIsZeroed) {
                     tempShoulder = shoulderAngle
                     val shoulderForward = shoulderDirection.calculate(tempShoulder.asDegrees) > 0.0
                     if (!shoulderSensor.get()) {
-                        if (!previousShoulderSensor) {
-                            previousShoulderSensor = true
-                            shoulderGetZeroCount++
-//                        println("new sensor detected")
-                            if (shoulderGetZeroCount > 1) {
-                                if (shoulderForward) {
-                                    shoulderZeroedForwardEntry.setDouble(tempShoulder.asDegrees - 1.0)
-                                    println("Zeroed forward shoulder: ${tempShoulder.asDegrees - 1.0}")
-                                    shoulderZeroForward = true
-                                } else {
-                                    shoulderZeroedBackwardEntry.setDouble(tempShoulder.asDegrees + 15.0)
-                                    println("Zeroed backward shoulder: ${tempShoulder.asDegrees + 15.0}")
-                                    shoulderZeroBackward = true
-                                }
+                        if (shoulderForward && !previousShoulderSensor) {
+                            shoulderMotor.setRawOffset(SHOULDER_MAGNET)
+                            if (waitForPositive) {
+                                shoulderNegSlop = (shoulderAngle.asDegrees - SHOULDER_MAGNET).absoluteValue.degrees
+//                                shoulderPosIsZeroed = true
+                            } else {
+                                waitForPositive = true
                             }
-                            if (tempShoulder > prevShoulder) shoulderOffset = -shoulderAngle
                         }
+                        previousShoulderSensor = true
                     } else {
+                        if (!shoulderForward && previousShoulderSensor) {
+                            shoulderMotor.setRawOffset(SHOULDER_MAGNET)
+                            if (waitForNegative) {
+                                shoulderPosSlop = (shoulderAngle.asDegrees - SHOULDER_MAGNET).absoluteValue.degrees
+//                                shoulderNegIsZeroed = true
+                            } else {
+                                waitForNegative = true
+                            }
+                        }
                         previousShoulderSensor = false
                     }
-                }
+                    if (waitForPositive && shoulderAngle > 20.0.degrees) waitForPositive = false
+                    if (waitForNegative && shoulderAngle < -20.0.degrees) waitForNegative = false
+//                }
+
+
+
+
+
                 tempElbow = elbowAngle
                 if (!elbowSensor.get()) {
                     elbowOffset = -elbowAngle
