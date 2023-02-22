@@ -10,17 +10,18 @@ import org.team2471.frc.lib.units.Angle
 import org.team2471.frc.lib.units.degrees
 
 data class Pose(val wristPosition: Vector2, val wristAngle: Angle, val pivotAngle: Angle) {
-
     companion object {
         val current: Pose
             get() = Pose(Arm.endEffectorPosition, Intake.wristAngle, Intake.pivotAngle)
         val START_POSE = Pose(Vector2(0.0, 9.0), -90.0.degrees, 0.0.degrees)
-        val GROUND_INTAKE_POSE = Pose(Vector2(-40.0, 11.0), -90.0.degrees, 0.0.degrees)
+        val GROUND_INTAKE_FRONT = Pose(Vector2(18.0, 9.0), 90.0.degrees, 90.0.degrees)
+        val GROUND_INTAKE_POSE_NEAR = Pose(Vector2(18.0, 11.0), 90.0.degrees, 180.0.degrees)
+        val GROUND_INTAKE_POSE_FAR = Pose(Vector2(40.0, 11.0), 90.0.degrees, 180.0.degrees)
         val SHELF_INTAKE_POSE = Pose(Vector2(0.0, 9.0), -90.0.degrees, 180.0.degrees)
         val LOW_SCORE = Pose(Vector2(0.0, 9.0), -90.0.degrees, 180.0.degrees)
         val MIDDLE_SCORE = Pose(Vector2(0.0, 9.0), -90.0.degrees, 180.0.degrees)
         val HIGH_SCORE = Pose(Vector2(0.0, 9.0), -90.0.degrees, 180.0.degrees)
-        val DRIVE_POSE = Pose(Vector2(0.0, 9.0), -90.0.degrees, 90.0.degrees)
+        val DRIVE_POSE = Pose(Vector2(0.0, 9.0), 90.0.degrees, 90.0.degrees)
     }
 }
 

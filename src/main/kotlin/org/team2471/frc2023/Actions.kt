@@ -5,6 +5,9 @@ import org.team2471.frc.lib.coroutines.delay
 import org.team2471.frc.lib.coroutines.parallel
 import org.team2471.frc.lib.coroutines.periodic
 import org.team2471.frc.lib.framework.use
+import org.team2471.frc.lib.math.linearMap
+import org.team2471.frc.lib.motion_profiling.MotionCurve
+import org.team2471.frc.lib.motion_profiling.Path2D
 import org.team2471.frc.lib.units.degrees
 import org.team2471.frc.lib.util.Timer
 
@@ -45,13 +48,12 @@ suspend fun intakeCone() = use(Intake, Arm) {
 var isIntaking: Boolean = false
 suspend fun tippedConeIntake() = use(Intake, Arm) {
 
-
     if (isIntaking == false) {
         println("Tip Cone Intake: ON")
         isIntaking = true
         parallel(
             { intakeCurrentLogic() },
-            { animateToPose(Pose.GROUND_INTAKE_POSE) }
+            { animateToPose(Pose.GROUND_INTAKE_POSE_FAR) }
         )
     } else {
         println("Tip Cone Intake: OFF")
@@ -89,6 +91,65 @@ suspend fun intakeCurrentLogic() {
         } else {
             //    println("Min Timer not Reached → ${t.get()}")
         }
-        isTimerStarted = false
     }
 }
+suspend fun intakeFromGround() = use(Arm, Intake) {
+    val path = Path2D("newPath")
+    path.addVector2(Pose.current.wristPosition)
+    path.addVector2(Pose.GROUND_INTAKE_FRONT.wristPosition)
+    path.addVector2(Pose.GROUND_INTAKE_POSE_NEAR.wristPosition)
+    path.addVector2(Pose.GROUND_INTAKE_POSE_FAR.wristPosition)
+    val distance = path.length
+    val rate = 40.0  //  inches per second
+    val time = distance / rate
+    path.addEasePoint(0.0,0.0)
+    path.addEasePoint(time, 1.0)
+
+    val startOfExtend = time * 2.0/3.0
+
+    val wristCurve = MotionCurve()
+    wristCurve.storeValue(0.0, Pose.current.wristAngle.asDegrees)
+    wristCurve.storeValue(time * 1.0/3.0, Pose.GROUND_INTAKE_FRONT.wristAngle.asDegrees)
+    wristCurve.storeValue(startOfExtend, Pose.GROUND_INTAKE_POSE_NEAR.wristAngle.asDegrees)
+    wristCurve.storeValue(time, Pose.GROUND_INTAKE_POSE_FAR.wristAngle.asDegrees)
+
+    val pivotCurve = MotionCurve()
+    pivotCurve.storeValue(0.0, Pose.current.pivotAngle.asDegrees)
+    pivotCurve.storeValue(time * 1.0/3.0, Pose.GROUND_INTAKE_FRONT.pivotAngle.asDegrees)
+    pivotCurve.storeValue(startOfExtend, Pose.GROUND_INTAKE_POSE_NEAR.pivotAngle.asDegrees)
+    pivotCurve.storeValue(time, Pose.GROUND_INTAKE_POSE_FAR.pivotAngle.asDegrees)
+
+    val timer = Timer()
+    timer.start()
+    periodic {
+        val t = timer.get()
+        Arm.endEffectorPosition = path.getPosition(t)
+        Intake.wristSetpoint = wristCurve.getValue(t).degrees
+        Intake.pivotSetpoint = pivotCurve.getValue(t).degrees
+        if (t>startOfExtend || OI.operatorController.rightTrigger < 0.05) {
+            this.stop()
+        }
+    }
+    if (OI.operatorController.rightTrigger > 0.05) {
+        periodic {
+            val t = linearMap(0.0, 1.0, startOfExtend, time, OI.operatorController.rightTrigger)
+            Arm.endEffectorPosition = path.getPosition(t)
+            Intake.wristSetpoint = wristCurve.getValue(t).degrees
+            Intake.pivotSetpoint = pivotCurve.getValue(t).degrees
+            if (OI.operatorController.rightTrigger < 0.1) {
+                this.stop()
+            }
+        }
+    }
+// play animation backwards
+//    periodic {
+//        val t = timer.get()
+//        Arm.endEffectorPosition = path.getPosition(t)
+//        Intake.wristSetpoint = wristCurve.getValue(t).degrees
+//        Intake.pivotSetpoint = pivotCurve.getValue(t).degrees
+//        if (t>startOfExtend || OI.operatorController.rightTrigger < 0.05) {
+//            this.stop()
+//        }
+//    }
+}
+

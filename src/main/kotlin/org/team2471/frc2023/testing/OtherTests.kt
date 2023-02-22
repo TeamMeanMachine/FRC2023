@@ -29,10 +29,8 @@ suspend fun Intake.pidTestOne() = use(this) {
 }
 
 suspend fun Intake.pidTestTwo() = use(Intake) {
-    var setpoint = pivotAngle.asDegrees
     periodic {
-        if (setpoint < -90.0) setpoint += 0.2 else if (setpoint > -90.0) setpoint -= 0.2
-        pivotSetpoint = setpoint.degrees
+        pivotSetpoint = OI.operatorLeftX.degrees * 0.05
     }
 }
 
