@@ -61,7 +61,9 @@ object OI {
         driverController::y.whenTrue { Drive.gotoScoringPosition()}
         driverController::leftBumper.whenTrue {Arm.shoulderCoastMode()}
         driverController::rightBumper.whenTrue {Arm.shoulderBrakeMode()}
+
         operatorController::back.whenTrue { Arm.resetShoulderZero()}
+        operatorController::rightBumper.whenTrue { tippedConeIntake() }
 //        driverController::b.whenTrue{Drive.setAngleOffsets()}
 //        driverController::a.whenTrue { intakeCone() }
     }
