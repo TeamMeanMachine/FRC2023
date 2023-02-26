@@ -12,7 +12,7 @@ import org.team2471.frc.lib.units.degrees
 data class Pose(val wristPosition: Vector2, val wristAngle: Angle, val pivotAngle: Angle) {
     companion object {
         val current: Pose
-            get() = Pose(Arm.endEffectorPosition, Intake.wristAngle, Intake.pivotAngle)
+            get() = Pose(Arm.wristPosition, Intake.wristAngle, Intake.pivotAngle)
         val START_POSE = Pose(Vector2(0.0, 9.0), -90.0.degrees, 0.0.degrees)
         val GROUND_INTAKE_FRONT = Pose(Vector2(18.0, 9.0), 90.0.degrees, 90.0.degrees)
         val GROUND_INTAKE_POSE_NEAR = Pose(Vector2(18.0, 11.0), 90.0.degrees, 180.0.degrees)
@@ -48,7 +48,7 @@ suspend fun animateToPose(pose: Pose) = use(Arm, Intake) {
     timer.start()
     periodic {
         val t = timer.get()
-        Arm.endEffectorPosition = path.getPosition(t)
+        Arm.wristPosition = path.getPosition(t)
         Intake.wristSetpoint = wristCurve.getValue(t).degrees
         Intake.pivotSetpoint = pivotCurve.getValue(t).degrees
         if (t>time) {

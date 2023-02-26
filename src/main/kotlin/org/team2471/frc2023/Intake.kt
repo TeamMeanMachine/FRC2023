@@ -2,6 +2,7 @@ package org.team2471.frc2023
 
 import edu.wpi.first.math.filter.LinearFilter
 import edu.wpi.first.networktables.NetworkTableInstance
+import edu.wpi.first.wpilibj.AnalogEncoder
 import edu.wpi.first.wpilibj.AnalogInput
 import edu.wpi.first.wpilibj.DigitalInput
 
@@ -14,6 +15,8 @@ import org.team2471.frc.lib.coroutines.periodic
 import org.team2471.frc.lib.framework.Subsystem
 import org.team2471.frc.lib.framework.use
 import org.team2471.frc.lib.input.Controller
+import org.team2471.frc.lib.math.Vector2
+import org.team2471.frc.lib.math.deadband
 import org.team2471.frc.lib.math.round
 import org.team2471.frc.lib.motion_profiling.MotionCurve
 import org.team2471.frc.lib.units.Angle
@@ -29,7 +32,7 @@ object Intake : Subsystem("Intake") {
     val pivotMotor = MotorController(TalonID(Talons.INTAKE_PIVOT))
     val intakeMotor = MotorController(SparkMaxID(Sparks.INTAKE))
     val wristSensor = DigitalInput(DigitalSensors.WRIST_SWITCH)
-    val pivotSensor = AnalogInput(AnalogSensors.INTAKE_PIVOT)
+    val pivotSensor = AnalogEncoder(AnalogSensors.INTAKE_PIVOT)
 
     private val table = NetworkTableInstance.getDefault().getTable(Intake.name)
     val wristEntry = table.getEntry("Wrist Angle")
@@ -54,22 +57,16 @@ object Intake : Subsystem("Intake") {
             field = value.asDegrees.coerceIn(wristMin.asDegrees, wristMax.asDegrees).degrees
             wristSetpointEntry.setDouble(field.asDegrees)
         }
-    val pivotAngle: Angle
-        get() = (pivotAnalogAngle + pivotOffset + pivotConversionOffset).wrap()
-    val pivotIncrementAngle: Angle
-        get() = pivotAngle + (rotations * 360.0).degrees
     val pivotAnalogAngle: Angle
-        get() = ((pivotSensor.value - 15) / 4080.0 * 180.0).degrees  //(((pivotSensor.value - 1665.0) / 4095.0 * 180.0)).degrees.wrap() // -72.65.degrees
-    var prevPivotAngle: Angle = pivotAngle
-    var prevPivotAnalog = pivotAnalogAngle
-    var pivotOffset: Angle = -68.2.degrees
-    var pivotConversionOffset: Angle = 180.0.degrees
-    var rotations: Double = 0.0
+        get() = pivotSensor.distance.degrees
+    var pivotOffset: Angle = -311.0.degrees
+    val pivotAngle: Angle
+        get() = pivotAnalogAngle + pivotOffset
     var pivotSetpoint: Angle = pivotAngle
         get() = pivotSetpointEntry.getDouble(0.0).degrees
         set(value) {
             pivotSetpointEntry.setDouble(value.asDegrees)
-            field = pivotIncrementAngle + (value - pivotIncrementAngle).wrap()
+            field = value.asDegrees.coerceIn(-270.0, 270.0).degrees
         }
     val pivotPDController = PDController(0.100, 0.001) //0.03, 0.04)   //0.35, 0.03
     val pFeedForward: Double
@@ -89,6 +86,7 @@ object Intake : Subsystem("Intake") {
     const val INTAKE_CURR = 55.0
 
     init {
+        pivotSensor.distancePerRotation = 360.0
         wristMotor.restoreFactoryDefaults()
         intakeMotor.restoreFactoryDefaults()
         wristMotor.config(20) {
@@ -111,7 +109,6 @@ object Intake : Subsystem("Intake") {
             burnSettings()
         }
 
-        pivotMotor.position = pivotSensor.value.toDouble()
         wristMotor.setRawOffset(-90.0)
         GlobalScope.launch(MeanlibDispatcher) {
             var tempPivot: Angle
@@ -148,32 +145,9 @@ object Intake : Subsystem("Intake") {
 //                pose3d = Pose3d(0.0,0.0,0.0, Rotation3d(0.0, 0.0, wristAngle.asDegrees))
 //                wristPose.setValue(pose3d)
 
-                pivotAnalogEntry.setDouble(pivotAnalogAngle.asDegrees)
                 intakeCurrentEntry.setDouble(intakeMotor.current)
-
-                if (pivotAnalogAngle >= 120.0.degrees && prevPivotAnalog < 20.0.degrees) pivotConversionOffset += 180.0.degrees
-                if (pivotAnalogAngle < 20.0.degrees && prevPivotAnalog >= 120.0.degrees) pivotConversionOffset -= 180.0.degrees
-
-                tempPivot = pivotAngle
-                if (tempPivot < -100.0.degrees && prevPivotAngle >= -0.1.degrees) rotations += 1
-                else if (tempPivot >= 100.0.degrees && prevPivotAngle < 0.1.degrees) rotations -= 1
-
                 wristMotor.setPositionSetpoint(wristSetpoint.asDegrees)
-
-                val power = pivotPDController.update((pivotSetpoint - pivotIncrementAngle).wrap().asDegrees) + pFeedForward
-                pivotMotor.setPercentOutput(power)
-
-
-                //zeroing wrist
-//                if (!wristIsReset) println("Wrist angle is not zeroed")
-//                if (hall effect
-            //                true) {
-//                    wristAngle = 0.0.degrees
-//                    wristIsReset = true
-//                }
-//                if ((pivotAnalogAngle.asDegrees > 80.0 && prevPivotAnalog.asDegrees < -80.0) ||) inOtherZone = !inOtherZone
-                prevPivotAnalog = pivotAnalogAngle
-                prevPivotAngle = tempPivot
+                val power = pivotPDController.update((pivotSetpoint - pivotAngle).asDegrees) + pFeedForward
 
                 if (OI.operatorController.b){
                     holdingObject = false
@@ -192,7 +166,16 @@ object Intake : Subsystem("Intake") {
     }
 
     override suspend fun default() {
+        periodic {
+            var pivot = OI.operatorController.rightThumbstickX.deadband(0.1)
+            var wrist = OI.operatorController.rightThumbstickY.deadband(0.1)
+            pivot *= 45.0 * 0.02  // degrees per second, time 1/50 second
+            wrist *= 45.0 * 0.02
+            pivotSetpoint += pivot.degrees
+            wristSetpoint += wrist.degrees
+        }
     }
+
     override fun preEnable() {
         pivotSetpoint = pivotAngle
         wristSetpoint = wristAngle

@@ -7,11 +7,11 @@ import org.team2471.frc2023.Arm
 import org.team2471.frc2023.Intake
 import org.team2471.frc2023.OI
 
-suspend fun Intake.feedForwardTest() = use(Intake) {
+suspend fun Arm.feedForwardTest() = use(Arm) {
     var power = 0.0
     periodic {
-        pivotMotor.setPercentOutput(power)
-        println("power: $power")
+        elbowMotor.setPercentOutput(power)
+        println("power: $power elbow: $elbowAngle")
         power += 0.003
     }
 }

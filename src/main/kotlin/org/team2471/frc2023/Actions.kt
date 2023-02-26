@@ -123,7 +123,7 @@ suspend fun intakeFromGround() = use(Arm, Intake) {
     timer.start()
     periodic {
         val t = timer.get()
-        Arm.endEffectorPosition = path.getPosition(t)
+        Arm.wristPosition = path.getPosition(t)
         Intake.wristSetpoint = wristCurve.getValue(t).degrees
         Intake.pivotSetpoint = pivotCurve.getValue(t).degrees
         if (t>startOfExtend || OI.operatorController.rightTrigger < 0.05) {
@@ -133,7 +133,7 @@ suspend fun intakeFromGround() = use(Arm, Intake) {
     if (OI.operatorController.rightTrigger > 0.05) {
         periodic {
             val t = linearMap(0.0, 1.0, startOfExtend, time, OI.operatorController.rightTrigger)
-            Arm.endEffectorPosition = path.getPosition(t)
+            Arm.wristPosition = path.getPosition(t)
             Intake.wristSetpoint = wristCurve.getValue(t).degrees
             Intake.pivotSetpoint = pivotCurve.getValue(t).degrees
             if (OI.operatorController.rightTrigger < 0.1) {
