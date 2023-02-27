@@ -2,6 +2,7 @@ package org.team2471.frc2023
 
 import edu.wpi.first.math.filter.LinearFilter
 import edu.wpi.first.networktables.NetworkTableInstance
+import edu.wpi.first.wpilibj.AnalogInput
 import edu.wpi.first.wpilibj.DigitalInput
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -22,6 +23,8 @@ object Arm : Subsystem("Arm") {
     val shoulderMotor = MotorController(SparkMaxID(Sparks.SHOULDER_A))
     val shoulderFollowerMotor = MotorController(SparkMaxID(Sparks.SHOULDER_B))
     val elbowMotor = MotorController(SparkMaxID(Sparks.ELBOW))
+    val shoulderEncoder = AnalogInput(AnalogSensors.SHOULDER)
+    val elbowEncoder = AnalogInput(AnalogSensors.ELBOW)
     val shoulderSensor = DigitalInput(DigitalSensors.SHOULDER_SWTICH)
     val elbowSensor = DigitalInput(DigitalSensors.ELBOW_SWITCH)
 
@@ -45,7 +48,7 @@ object Arm : Subsystem("Arm") {
 //    val elbowPose = table.getEntry("Elbow Pose")
 
     val shoulderAngle: Angle
-        get() = shoulderMotor.position.degrees + shoulderOffset
+        get() = -(shoulderEncoder.value - 3020.0).degrees / (if (shoulderEncoder.value - 3020.0 < 0.0) 12.4 else 10.5)
     var shoulderOffset = 0.0.degrees
     var shoulderSetpoint: Angle = shoulderAngle
         get() = shoulderSetpointEntry.getDouble(0.0).degrees
@@ -59,6 +62,8 @@ object Arm : Subsystem("Arm") {
 
             field = temp.asDegrees.coerceIn(SHOULDER_BOTTOM, SHOULDER_TOP).degrees
             shoulderSetpointEntry.setDouble(field.asDegrees)
+            shoulderMotor.setPositionSetpoint(field.asDegrees, sFeedForward)
+            shoulderFollowerMotor.setPositionSetpoint(field.asDegrees, sFeedForward)
         }
     val sFeedForward: Double
         get() = shoulderCurve.getValue(shoulderAngle.asDegrees)
@@ -79,6 +84,7 @@ object Arm : Subsystem("Arm") {
         set(value) {
             field = value.asDegrees.coerceIn(ELBOW_BOTTOM, ELBOW_TOP).degrees
             elbowSetpointEntry.setDouble(field.asDegrees)
+            elbowMotor.setPositionSetpoint(field.asDegrees, eFeedForward)
         }
     val shoulderIsZeroed
         get() = shoulderZeroForward && shoulderZeroBackward
@@ -177,6 +183,7 @@ object Arm : Subsystem("Arm") {
     init {
         println("Arm init")
         shoulderMotor.restoreFactoryDefaults()
+        shoulderFollowerMotor.restoreFactoryDefaults()
         elbowMotor.restoreFactoryDefaults()
         shoulderMotor.config(20) {
             feedbackCoefficient = 360.0 / 42.0 / 184.0  // ticks / degrees / gear ratio
@@ -236,15 +243,10 @@ object Arm : Subsystem("Arm") {
             shoulderSetpointEntry.setDouble(shoulderAngle.asDegrees)
             elbowSetpointEntry.setDouble(elbowAngle.asDegrees)
 
-//            shoulderSetpoint = -25.0.degrees
-//            elbowSetpoint = 35.0.degrees
-
             println("shoulderFollower: ${shoulderFollowerEntry.getDouble(0.0)}")
             periodic {
                 shoulderEntry.setDouble(shoulderAngle.asDegrees)
                 elbowEntry.setDouble(elbowAngle.asDegrees)
-                Intake.pivotEntry.setDouble(Intake.pivotAngle.asDegrees)
-                Intake.wristEntry.setValue(Intake.wristAngle.asDegrees)
 
 //                var pose3d = Pose3d(0.0,0.0,0.0, Rotation3d(0.0, 0.0, shoulderAngle.asDegrees))
 //                shoulderPose.setValue(pose3d)
@@ -260,12 +262,9 @@ object Arm : Subsystem("Arm") {
                 shoulderFollowerEntry.setDouble(shoulderFollowerAngle.asDegrees)
                 shoulderIsZeroedEntry.setBoolean(shoulderIsZeroed)
 
-              //  if (Intake.pivotAngle > 80.0.degrees && Intake.pivotAngle < 100.0.degrees) { // && (Intake.wristAngle < -80.0.degrees || Intake.wristAngle > 80.0.degrees)) { //pivotAngle will need to be negated when pivotCurve inverted properly
-                    elbowMotor.setPositionSetpoint(elbowSetpoint.asDegrees, eFeedForward)
-                    shoulderMotor.setPositionSetpoint(shoulderSetpoint.asDegrees, sFeedForward)
-                    shoulderFollowerMotor.setPositionSetpoint(shoulderSetpoint.asDegrees, sFeedForward) // untested 2/25 -- have we been running on one motor the whole time?
-             //   } else {
-             //   }
+                elbowMotor.setPositionSetpoint(elbowSetpoint.asDegrees, eFeedForward)
+                shoulderMotor.setPositionSetpoint(shoulderSetpoint.asDegrees, sFeedForward)
+                shoulderFollowerMotor.setPositionSetpoint(shoulderSetpoint.asDegrees, sFeedForward) // untested 2/25 -- have we been running on one motor the whole time?
 
                 //zeroing
 
@@ -324,8 +323,8 @@ object Arm : Subsystem("Arm") {
     override suspend fun default() {
         periodic {
             var move = Vector2(
-                OI.operatorController.leftThumbstickX.deadband(0.1),
-                -OI.operatorController.leftThumbstickY.deadband(0.1)
+                OI.operatorController.leftThumbstickX.deadband(0.2),
+                -OI.operatorController.leftThumbstickY.deadband(0.2)
             )
             move *= 12.0 * 0.02   // d = r * t  where rate is inches per second and time is 1/50 second
             wristPosition += move

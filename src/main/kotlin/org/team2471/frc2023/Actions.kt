@@ -94,13 +94,14 @@ suspend fun intakeCurrentLogic() {
     }
 }
 suspend fun intakeFromGround() = use(Arm, Intake) {
+    println("in intakeFromGround")
     val path = Path2D("newPath")
     path.addVector2(Pose.current.wristPosition)
     path.addVector2(Pose.GROUND_INTAKE_FRONT.wristPosition)
     path.addVector2(Pose.GROUND_INTAKE_POSE_NEAR.wristPosition)
     path.addVector2(Pose.GROUND_INTAKE_POSE_FAR.wristPosition)
     val distance = path.length
-    val rate = 40.0  //  inches per second
+    val rate = 10.0  //  inches per second
     val time = distance / rate
     path.addEasePoint(0.0,0.0)
     path.addEasePoint(time, 1.0)
@@ -122,20 +123,22 @@ suspend fun intakeFromGround() = use(Arm, Intake) {
     val timer = Timer()
     timer.start()
     periodic {
+        println("first periodic")
         val t = timer.get()
         Arm.wristPosition = path.getPosition(t)
-        Intake.wristSetpoint = wristCurve.getValue(t).degrees
-        Intake.pivotSetpoint = pivotCurve.getValue(t).degrees
+//        Intake.wristSetpoint = wristCurve.getValue(t).degrees
+//        Intake.pivotSetpoint = pivotCurve.getValue(t).degrees
         if (t>startOfExtend || OI.operatorController.rightTrigger < 0.05) {
             this.stop()
         }
     }
     if (OI.operatorController.rightTrigger > 0.05) {
         periodic {
+            println("second periodic")
             val t = linearMap(0.0, 1.0, startOfExtend, time, OI.operatorController.rightTrigger)
             Arm.wristPosition = path.getPosition(t)
-            Intake.wristSetpoint = wristCurve.getValue(t).degrees
-            Intake.pivotSetpoint = pivotCurve.getValue(t).degrees
+//            Intake.wristSetpoint = wristCurve.getValue(t).degrees
+//            Intake.pivotSetpoint = pivotCurve.getValue(t).degrees
             if (OI.operatorController.rightTrigger < 0.1) {
                 this.stop()
             }

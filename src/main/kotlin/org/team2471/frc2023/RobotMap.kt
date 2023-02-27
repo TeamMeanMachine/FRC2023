@@ -18,6 +18,8 @@ object Sparks {
 
 object AnalogSensors {
     const val INTAKE_PIVOT = 3
+    const val SHOULDER = 1
+    const val ELBOW = 2
 }
 
 object DigitalSensors {

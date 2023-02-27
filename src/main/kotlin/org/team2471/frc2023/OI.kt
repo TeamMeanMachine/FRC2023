@@ -66,5 +66,6 @@ object OI {
         operatorController::rightBumper.whenTrue { tippedConeIntake() }
 //        driverController::b.whenTrue{Drive.setAngleOffsets()}
 //        driverController::a.whenTrue { intakeCone() }
+        ({operatorController.rightTrigger > 0.1}).whenTrue { intakeFromGround() }
     }
 }
