@@ -5,6 +5,7 @@ import org.team2471.frc.lib.math.Vector2
 import org.team2471.frc.lib.math.cube
 import org.team2471.frc.lib.math.deadband
 import org.team2471.frc.lib.math.squareWithSign
+import org.team2471.frc.lib.units.degrees
 
 object OI {
     val driverController = XboxController(0)
@@ -63,9 +64,24 @@ object OI {
         driverController::rightBumper.whenTrue {Arm.shoulderBrakeMode()}
 
         operatorController::back.whenTrue { Arm.resetShoulderZero()}
-        operatorController::rightBumper.whenTrue { tippedConeIntake() }
+        operatorController::start.whenTrue { if (Intake.wristAngle < -75.0.degrees) animateToPose(Pose.BACK_DRIVE_POSE) else if (Intake.wristAngle > 75.0.degrees) animateToPose(Pose.FRONT_DRIVE_POSE) }
+//        operatorController::rightBumper.whenTrue { tippedConeIntake() }
+        operatorController::rightBumper.whenTrue { backScoreCone() }
 //        driverController::b.whenTrue{Drive.setAngleOffsets()}
-//        driverController::a.whenTrue { intakeCone() }
+        operatorController::a.whenTrue {
+            if (Intake.wristAngle < -75.degrees) {
+                animateToPose(Pose.FLIP_INTAKE_TO_FRONT_POSE)
+                animateToPose(Pose.FLIP_INTAKE_TO_FRONT_WRIST)
+                animateToPose(Pose.FRONT_DRIVE_POSE)
+            } else if (Intake.wristAngle > 75.0.degrees) {
+                animateToPose(Pose.FLIP_INTAKE_TO_BACK_POSE)
+                animateToPose(Pose.FLIP_INTAKE_TO_BACK_WRIST)
+                animateToPose(Pose.BACK_DRIVE_POSE)
+            }
+        }
+        operatorController::b.whenTrue {
+            animateToPose(Pose.BACK_MIDDLE_SCORE_DOWN)
+        }
         ({operatorController.rightTrigger > 0.1}).whenTrue { intakeFromGround() }
     }
 }

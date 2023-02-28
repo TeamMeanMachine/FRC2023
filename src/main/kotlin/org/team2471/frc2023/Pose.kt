@@ -8,20 +8,27 @@ import org.team2471.frc.lib.motion_profiling.MotionCurve
 import org.team2471.frc.lib.motion_profiling.Path2D
 import org.team2471.frc.lib.units.Angle
 import org.team2471.frc.lib.units.degrees
+import kotlin.math.absoluteValue
 
 data class Pose(val wristPosition: Vector2, val wristAngle: Angle, val pivotAngle: Angle) {
     companion object {
         val current: Pose
             get() = Pose(Arm.wristPosition, Intake.wristAngle, Intake.pivotAngle)
-        val START_POSE = Pose(Vector2(0.0, 9.0), -90.0.degrees, 0.0.degrees)
-        val GROUND_INTAKE_FRONT = Pose(Vector2(18.0, 9.0), 90.0.degrees, 90.0.degrees)
-        val GROUND_INTAKE_POSE_NEAR = Pose(Vector2(18.0, 11.0), 90.0.degrees, 180.0.degrees)
-        val GROUND_INTAKE_POSE_FAR = Pose(Vector2(40.0, 11.0), 90.0.degrees, 180.0.degrees)
+        val START_POSE = Pose(Vector2(0.0, 9.0), -90.0.degrees, -90.0.degrees)
+        val GROUND_INTAKE_FRONT = Pose(Vector2(18.0, 10.0), 90.0.degrees, -90.0.degrees)
+        val GROUND_INTAKE_POSE_NEAR = Pose(Vector2(18.0, 11.0), 90.0.degrees, 0.0.degrees)
+        val GROUND_INTAKE_POSE_FAR = Pose(Vector2(40.0, 11.0), 90.0.degrees, 0.0.degrees)
         val SHELF_INTAKE_POSE = Pose(Vector2(0.0, 9.0), -90.0.degrees, 180.0.degrees)
         val LOW_SCORE = Pose(Vector2(0.0, 9.0), -90.0.degrees, 180.0.degrees)
-        val MIDDLE_SCORE = Pose(Vector2(0.0, 9.0), -90.0.degrees, 180.0.degrees)
+        val BACK_MIDDLE_SCORE = Pose(Vector2(-36.0, 36.0), -90.0.degrees, 0.0.degrees)
+        val BACK_MIDDLE_SCORE_DOWN = Pose(Vector2(-36.0, 28.0), -90.0.degrees, 0.0.degrees)
         val HIGH_SCORE = Pose(Vector2(0.0, 9.0), -90.0.degrees, 180.0.degrees)
-        val DRIVE_POSE = Pose(Vector2(0.0, 9.0), 90.0.degrees, 90.0.degrees)
+        val FRONT_DRIVE_POSE = Pose(Vector2(0.0, 9.0), 92.0.degrees, -90.0.degrees)
+        val BACK_DRIVE_POSE = Pose(Vector2(0.0, 9.0), -92.0.degrees, -90.0.degrees)
+        val FLIP_INTAKE_TO_BACK_POSE = Pose(Vector2(-28.0, 26.0), 90.0.degrees, -90.0.degrees)
+        val FLIP_INTAKE_TO_BACK_WRIST = Pose(Vector2(-28.0, 26.0), -90.0.degrees, -90.0.degrees)
+        val FLIP_INTAKE_TO_FRONT_POSE = Pose(Vector2(28.0, 20.0), -90.0.degrees, -90.0.degrees)
+        val FLIP_INTAKE_TO_FRONT_WRIST = Pose(Vector2(28.0, 20.0), 90.0.degrees, -90.0.degrees)
     }
 }
 
@@ -30,9 +37,20 @@ suspend fun animateToPose(pose: Pose) = use(Arm, Intake) {
     val path = Path2D("newPath")
     path.addVector2(Pose.current.wristPosition)
     path.addVector2(pose.wristPosition)
-    val distance = path.length
-    val rate = 40.0  //  inches per second
-    val time = distance / rate
+    var distance = path.length
+    var rate = 10.0  //  inches per second
+    var wristPosTime = distance / rate
+
+    distance = (Intake.wristSetpoint.asDegrees - Intake.wristAngle.asDegrees).absoluteValue
+    rate = 20.0 // deg per second
+    var wristTime = distance / rate
+
+    distance = (Intake.pivotSetpoint.asDegrees - Intake.pivotAngle.asDegrees).absoluteValue
+    rate = 10.0 // deg per second
+    var pivotTime = distance / rate
+
+    val time = maxOf(wristPosTime, wristTime, pivotTime)
+
     path.addEasePoint(0.0,0.0)
     path.addEasePoint(time, 1.0)
 
@@ -51,7 +69,8 @@ suspend fun animateToPose(pose: Pose) = use(Arm, Intake) {
         Arm.wristPosition = path.getPosition(t)
         Intake.wristSetpoint = wristCurve.getValue(t).degrees
         Intake.pivotSetpoint = pivotCurve.getValue(t).degrees
-        if (t>time) {
+//        if (pose == Pose.FLIP_INTAKE_TO_BACK || pose == Pose.FLIP_INTAKE_TO_FRONT) println("t: ${round(t, 1)}  actualWrist: ${round(Intake.wristAngle.asDegrees, 1)} wristSetpoint: ${round(Intake.wristSetpoint.asDegrees, 1)}    actualWristPos: ${Arm.forwardKinematics(Arm.shoulderMotor.position.degrees, Arm.elbowAngle)}   wristPos: ${Arm.wristPosition}")
+        if (t > time) {
             this.stop()
         }
     }

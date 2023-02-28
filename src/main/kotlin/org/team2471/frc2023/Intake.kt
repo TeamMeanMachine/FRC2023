@@ -1,5 +1,6 @@
 package org.team2471.frc2023
 
+import edu.wpi.first.math.filter.LinearFilter
 import edu.wpi.first.networktables.NetworkTableInstance
 import edu.wpi.first.wpilibj.AnalogInput
 import edu.wpi.first.wpilibj.DigitalInput
@@ -79,11 +80,12 @@ object Intake : Subsystem("Intake") {
 
     var wristMin = -90.0.degrees + Arm.elbowAngle
     var wristMax = 90.0.degrees + Arm.elbowAngle
-
+    var linearFilter = LinearFilter.movingAverage(5)
     var holdingObject: Boolean = false
+        get() = linearFilter.calculate(intakeMotor.current) > INTAKE_DETECT_CONE
 
     const val INTAKE_POWER = 1.0
-    const val INTAKE_HOLD = 0.05
+    const val INTAKE_HOLD = 0.1
     const val INTAKE_DETECT_CONE = 55
     const val INTAKE_CURR = 55.0
 
@@ -110,7 +112,7 @@ object Intake : Subsystem("Intake") {
             burnSettings()
         }
 
-        wristMotor.setRawOffset(-90.0)
+        wristMotor.setRawOffset(90.0)
         GlobalScope.launch(MeanlibDispatcher) {
             var tempPivot: Angle
 
@@ -152,30 +154,32 @@ object Intake : Subsystem("Intake") {
                 pivotMotor.setPercentOutput(power)
 //                println("power: ${round(power, 1)}      openLoop: ${round(openLoopPower, 1)}    error: ${round(pError, 1)}   setpoint: ${round(pivotSetpoint.asDegrees, 1)}    angle: ${round(pivotAngle.asDegrees, 1)}")
 
-                if (OI.operatorController.b) {
-                    holdingObject = false
-                    intakeMotor.setPercentOutput(INTAKE_POWER)
-                } else {
-                    intakeMotor.setPercentOutput(0.5 * OI.driverController.leftTrigger -
-                            0.5 * OI.driverController.rightTrigger +
-                            if (holdingObject) INTAKE_HOLD else 0.0
-                    )
-                    if (OI.driverController.rightTrigger > 0.1) {
-                        holdingObject = false
-                    }
-                }
+//                if (OI.operatorController.b) {
+//                    holdingObject = false
+//                    intakeMotor.setPercentOutput(INTAKE_POWER)
+//                } else {
+//                    intakeMotor.setPercentOutput(0.5 * OI.driverController.leftTrigger -
+//                            0.5 * OI.driverController.rightTrigger +
+//                            if (holdingObject) INTAKE_HOLD else 0.0
+//                    )
+//                    if (OI.driverController.rightTrigger > 0.1) {
+//                        holdingObject = false
+//                    }
+//                }
             }
         }
     }
 
     override suspend fun default() {
         periodic {
-            var pivot = OI.operatorController.rightThumbstickX.deadband(0.2)
-            var wrist = OI.operatorController.rightThumbstickY.deadband(0.2)
-            pivot *= 45.0 * 0.02  // degrees per second, time 1/50 second
-            wrist *= 45.0 * 0.02
-            pivotSetpoint += pivot.degrees
-            wristSetpoint += wrist.degrees
+            if (wristAngle < -70.0.degrees) wristSetpoint = -90.0.degrees
+            if (wristAngle > 70.0.degrees) wristSetpoint = 90.0.degrees
+//            var pivot = OI.operatorController.rightThumbstickX.deadband(0.2)
+//            var wrist = OI.operatorController.rightThumbstickY.deadband(0.2)
+//            pivot *= 45.0 * 0.02  // degrees per second, time 1/50 second
+//            wrist *= 45.0 * 0.02
+//            pivotSetpoint += pivot.degrees
+//            wristSetpoint += wrist.degrees
         }
     }
 

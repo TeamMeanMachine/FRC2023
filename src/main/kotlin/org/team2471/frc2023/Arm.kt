@@ -51,7 +51,6 @@ object Arm : Subsystem("Arm") {
         get() = -(shoulderEncoder.value - 3020.0).degrees / (if (shoulderEncoder.value - 3020.0 < 0.0) 12.4 else 10.5)
     var shoulderOffset = 0.0.degrees
     var shoulderSetpoint: Angle = shoulderAngle
-        get() = shoulderSetpointEntry.getDouble(0.0).degrees
         set(value) {
             var temp = value
 //            if (value > 0.0.degrees) {
@@ -80,7 +79,6 @@ object Arm : Subsystem("Arm") {
         get() = elbowMotor.position.degrees + elbowOffset
     var elbowOffset = 0.0.degrees
     var elbowSetpoint: Angle = elbowAngle
-        get() = elbowSetpointEntry.getDouble(0.0).degrees
         set(value) {
             field = value.asDegrees.coerceIn(ELBOW_BOTTOM, ELBOW_TOP).degrees
             elbowSetpointEntry.setDouble(field.asDegrees)
@@ -218,6 +216,8 @@ object Arm : Subsystem("Arm") {
             burnSettings()
         }
         elbowIsZeroed = false
+        shoulderSetpoint = shoulderMotor.position.degrees
+        elbowSetpoint = elbowMotor.position.degrees
 
         GlobalScope.launch(MeanlibDispatcher) {
 
@@ -236,9 +236,6 @@ object Arm : Subsystem("Arm") {
 
             var shoulderDirection = LinearFilter.movingAverage(3)
             var previousShoulderSensor = false
-
-
-
 
             shoulderSetpointEntry.setDouble(shoulderAngle.asDegrees)
             elbowSetpointEntry.setDouble(elbowAngle.asDegrees)
@@ -262,12 +259,12 @@ object Arm : Subsystem("Arm") {
                 shoulderFollowerEntry.setDouble(shoulderFollowerAngle.asDegrees)
                 shoulderIsZeroedEntry.setBoolean(shoulderIsZeroed)
 
-                elbowMotor.setPositionSetpoint(elbowSetpoint.asDegrees, eFeedForward)
-                shoulderMotor.setPositionSetpoint(shoulderSetpoint.asDegrees, sFeedForward)
-                shoulderFollowerMotor.setPositionSetpoint(shoulderSetpoint.asDegrees, sFeedForward) // untested 2/25 -- have we been running on one motor the whole time?
-
                 //zeroing
-
+                if ((shoulderMotor.position - shoulderAngle.asDegrees).absoluteValue > 2.0) {
+                    println("Resetting shoulder to $shoulderAngle")
+                    shoulderMotor.setRawOffset(shoulderAngle.asDegrees)
+                    shoulderFollowerMotor.setRawOffset(shoulderAngle.asDegrees)
+                }
 //                if (!shoulderIsZeroed) {
 //                    tempShoulder = shoulderAngle
 //                    val shoulderForward = shoulderDirection.calculate(tempShoulder.asDegrees) > 0.0
@@ -298,12 +295,7 @@ object Arm : Subsystem("Arm") {
 //                    if (waitForNegative && shoulderAngle < -20.0.degrees) waitForNegative = false
 //                }
 
-
                 tempElbow = elbowAngle
-                if (!elbowSensor.get()) {
-                    elbowOffset = -elbowAngle
-                    elbowIsZeroed = true
-                }
                 prevShoulder = tempShoulder
                 prevElbow = tempElbow
             }
@@ -317,7 +309,12 @@ object Arm : Subsystem("Arm") {
     }
 
     override fun preEnable() {
-        wristPosition = forwardKinematics(shoulderAngle, elbowAngle)
+        shoulderMotor.setPercentOutput(0.0)
+        shoulderFollowerMotor.setPercentOutput(0.0)
+        elbowMotor.setPercentOutput(0.0)
+        Intake.wristMotor.setPercentOutput(0.0)
+        wristPosition = forwardKinematics(shoulderMotor.position.degrees, elbowAngle)
+        println("wristPos: $wristPosition")
     }
 
     override suspend fun default() {
