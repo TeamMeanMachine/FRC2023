@@ -59,14 +59,28 @@ object Intake : Subsystem("Intake") {
         }
 
     val pivotAnalogAngle: Angle
-        get() = ((pivotSensor.value - 3595.0).degrees / 4100.0 * 360.0).wrap()
+        get() = ((pivotSensor.value - 3595.0).degrees / 4096.0 * 360.0).wrap()
     var pivotOffset: Angle = 0.0.degrees
 
     val pivotAngle: Angle
-        get() = pivotAnalogAngle
+        get() {
+            val returnValue = pivotAnalogAngle.unWrap(prevPivotAngle)
+            prevPivotAngle = returnValue
+            return returnValue
+        }
+
+    var prevPivotAngle = pivotAngle
     var pivotSetpoint: Angle = pivotAngle
         set(value) {
-            field = value.asDegrees.coerceIn(-180.0, 180.0).degrees
+            if (value > 270.0.degrees) {  // too far, have to twist back to equivalent angle to protect wires
+                field = value - 360.0f.degrees;
+            }
+            else if (value < -270.0.degrees) {  // too far, have to twist ahead to equivalent angle to protect wires
+                field = value + 360.0f.degrees;
+            }
+            else {
+                field = value
+            }
             setPivotPower()
             pivotSetpointEntry.setDouble(field.asDegrees)
         }
