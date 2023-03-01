@@ -6,14 +6,12 @@ import FRC____.BuildConfig
 import edu.wpi.first.wpilibj.DriverStation
 import edu.wpi.first.wpilibj.RobotBase
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard
+import frc.robot.ArmSim
 import kotlinx.coroutines.DelicateCoroutinesApi
 import org.team2471.frc.lib.framework.MeanlibRobot
 import org.team2471.frc.lib.units.degrees
 import org.team2471.frc2023.testing.*
 import java.net.NetworkInterface
-
-
-
 
 @DelicateCoroutinesApi
 object Robot : MeanlibRobot() {
@@ -21,22 +19,22 @@ object Robot : MeanlibRobot() {
     var lastMeasureTime = startMeasureTime
     var isCompBot = true
     init {
-        val networkInterfaces =  NetworkInterface.getNetworkInterfaces()
-        println("retrieving network interfaces")
-        for (iFace in networkInterfaces) {
-            println("${iFace.name}")
-            if (iFace.name == "eth0") {
-                println("NETWORK NAME--->${iFace.name}<----")
-                var macString = ""
-                for (byteVal in iFace.hardwareAddress){
-                    macString += String.format("%s", byteVal)
-                }
-                println("FORMATTED---->$macString<-----")
-
-                isCompBot = (macString != "0-12847512372")
-                println("I am compbot = $isCompBot")
-            }
-        }
+//        val networkInterfaces =  NetworkInterface.getNetworkInterfaces()
+//        println("retrieving network interfaces")
+//        for (iFace in networkInterfaces) {
+//            println("${iFace.name}")
+//            if (iFace.name == "eth0") {
+//                println("NETWORK NAME--->${iFace.name}<----")
+//                var macString = ""
+//                for (byteVal in iFace.hardwareAddress) {  // this line needs a null check: .Robot java.lang.NullPointerException: iFace.hardwareAddress must not be null
+//                    macString += String.format("%s", byteVal)
+//                }
+//                println("FORMATTED---->$macString<-----")
+//
+//                isCompBot = (macString != "0-12847512372")
+//                println("I am compbot = $isCompBot")
+//            }
+//        }
 
         // i heard the first string + double concatenations were expensive...
         repeat(25) {
@@ -54,6 +52,7 @@ object Robot : MeanlibRobot() {
 //        AprilTag
         Intake
         Arm
+        ArmSim
         PowerInfo
     }
 
@@ -61,6 +60,7 @@ object Robot : MeanlibRobot() {
         println("starting enable")
         Drive.enable()
         Arm.enable()
+        ArmSim.enable()
         Intake.enable()
         PowerInfo.enable()
 //        SignalLights.enable()
@@ -94,9 +94,13 @@ object Robot : MeanlibRobot() {
     override suspend fun disable() {
         Drive.disable()
         Arm.disable()
+        ArmSim.disable()
         Intake.disable()
         PowerInfo.disable()
 //        SignalLights.disable()
+    }
+    override suspend fun simulate() {
+        println("got to simulate")
     }
 
     private fun initTimeMeasurement(){
