@@ -108,7 +108,7 @@ suspend fun intakeFromGround() = use(Arm, Intake) {
         path.addVector2(Pose.GROUND_INTAKE_POSE_NEAR.wristPosition)
         path.addVector2(Pose.GROUND_INTAKE_POSE_FAR.wristPosition)
         val distance = path.length
-        val rate = 10.0  //  inches per second
+        val rate = 30.0  //  inches per second
         val time = distance / rate
         path.addEasePoint(0.0, 0.0)
         path.addEasePoint(time, 1.0)
@@ -174,7 +174,11 @@ suspend fun intakeFromGround() = use(Arm, Intake) {
     }
 }
 
-suspend fun backScoreCone() = use(Arm, Intake) {
-    animateToPose(Pose.BACK_MIDDLE_SCORE)
+suspend fun backScoreAwayCone() = use(Arm, Intake) {
+    animateToPose(Pose.BACK_MIDDLE_SCORE_CONE_AWAY)
+}
+
+suspend fun backScoreTowardCone() = use(Arm, Intake) {
+    animateToPose(Pose.BACK_MIDDLE_SCORE_CONE_TOWARD)
 }
 

@@ -64,10 +64,14 @@ object OI {
         driverController::rightBumper.whenTrue {Arm.shoulderBrakeMode()}
 
         operatorController::back.whenTrue { Arm.resetShoulderZero()}
-        operatorController::start.whenTrue { if (Intake.wristAngle < -75.0.degrees) animateToPose(Pose.BACK_DRIVE_POSE) else if (Intake.wristAngle > 75.0.degrees) animateToPose(Pose.FRONT_DRIVE_POSE) }
-//        operatorController::rightBumper.whenTrue { tippedConeIntake() }
-        operatorController::rightBumper.whenTrue { backScoreCone() }
-//        driverController::b.whenTrue{Drive.setAngleOffsets()}
+        operatorController::start.whenTrue {
+            Arm.wristPosOffset = Vector2(0.0, 0.0)
+            Intake.wristOffset = 0.0.degrees
+            Intake.pivotOffset = 0.0.degrees
+            if (Intake.wristAngle < -75.0.degrees) animateToPose(Pose.BACK_DRIVE_POSE) else if (Intake.wristAngle > 75.0.degrees) animateToPose(Pose.FRONT_DRIVE_POSE)
+        }
+        operatorController::leftBumper.whenTrue { backScoreTowardCone() }
+        operatorController::rightBumper.whenTrue { backScoreAwayCone() }
         operatorController::a.whenTrue {
             if (Intake.wristAngle < -75.degrees) {
                 animateToPose(Pose.FLIP_INTAKE_TO_FRONT_POSE)
@@ -80,7 +84,8 @@ object OI {
             }
         }
         operatorController::b.whenTrue {
-            animateToPose(Pose.BACK_MIDDLE_SCORE_DOWN)
+            animateToPose(Pose.current + Pose(Vector2(-4.0, -3.0), 30.0.degrees, 0.0.degrees))
+            Intake.intakeMotor.setPercentOutput(0.2)
         }
         ({operatorController.rightTrigger > 0.1}).whenTrue { intakeFromGround() }
     }

@@ -48,7 +48,7 @@ object Arm : Subsystem("Arm") {
 //    val elbowPose = table.getEntry("Elbow Pose")
 
     val shoulderAngle: Angle
-        get() = -(shoulderEncoder.value - 3020.0).degrees / (if (shoulderEncoder.value - 3020.0 < 0.0) 12.4 else 10.5)
+        get() = -(shoulderEncoder.value - 3020.0).degrees / (if (shoulderEncoder.value - 3020.0 < 0.0) 12.4 else 10.5) + shoulderOffset
     var shoulderOffset = 0.0.degrees
     var shoulderSetpoint: Angle = shoulderAngle
         set(value) {
@@ -149,7 +149,7 @@ object Arm : Subsystem("Arm") {
         )
     }
 
-    const val REACH_LIMIT = 40.0
+    const val REACH_LIMIT = 48.0
     const val HEIGHT_LIMIT = 50.0
     const val FLOOR_HEIGHT = -5.0
     const val ROBOT_COVER_HEIGHT = 9.0
@@ -157,7 +157,10 @@ object Arm : Subsystem("Arm") {
 
     var wristPosition = forwardKinematics(shoulderAngle, elbowAngle)
         set(position) {
-            var clampedPosition = position
+            field = position
+            var clampedPosition = position + wristPosOffset
+
+            //clamp
             clampedPosition.x = clampedPosition.x.coerceIn(-REACH_LIMIT, REACH_LIMIT)
             clampedPosition.y = clampedPosition.y.coerceIn(FLOOR_HEIGHT, HEIGHT_LIMIT)
             if (clampedPosition.x.absoluteValue < ROBOT_HALF_WIDTH) {  // over top of robot
@@ -167,9 +170,10 @@ object Arm : Subsystem("Arm") {
                     (HEIGHT_LIMIT / ROBOT_HALF_WIDTH) * clampedPosition.x.absoluteValue + ROBOT_COVER_HEIGHT
                 )
             }
-            field = clampedPosition
+
+            //set shoulder/angle setpoints
             val (shoulder, elbow) = inverseKinematics(clampedPosition)
-           // println("clampPosition=${clampedPosition} shoulder=${shoulder}  elbow=${elbow}")
+//            println("shoulder=${round(shoulder.asDegrees, 1)}  elbow=${round(elbow.asDegrees, 1)} field=${field} ")
             if (!shoulder.asDegrees.isNaN()) {
                 shoulderSetpoint = shoulder
             }
@@ -177,6 +181,8 @@ object Arm : Subsystem("Arm") {
                 elbowSetpoint = elbow
             }
         }
+
+    var wristPosOffset = Vector2(0.0, 0.0)
 
     init {
         println("Arm init")
@@ -259,6 +265,14 @@ object Arm : Subsystem("Arm") {
                 shoulderFollowerEntry.setDouble(shoulderFollowerAngle.asDegrees)
                 shoulderIsZeroedEntry.setBoolean(shoulderIsZeroed)
 
+                var move = Vector2(
+                    OI.operatorController.leftThumbstickX.deadband(0.2),
+                    -OI.operatorController.leftThumbstickY.deadband(0.2)
+                )
+                move *= 12.0 * 0.02   // d = r * t  where rate is inches per second and time is 1/50 second
+                wristPosOffset += move
+                wristPosition += Vector2(0.0, 0.0)
+
                 //zeroing
                 if ((shoulderMotor.position - shoulderAngle.asDegrees).absoluteValue > 2.0) {
                     println("Resetting shoulder to $shoulderAngle")
@@ -319,12 +333,7 @@ object Arm : Subsystem("Arm") {
 
     override suspend fun default() {
         periodic {
-            var move = Vector2(
-                OI.operatorController.leftThumbstickX.deadband(0.2),
-                -OI.operatorController.leftThumbstickY.deadband(0.2)
-            )
-            move *= 12.0 * 0.02   // d = r * t  where rate is inches per second and time is 1/50 second
-            wristPosition += move
+            wristPositionXEntry.setDouble(wristPosition.x)
         }
     }
 

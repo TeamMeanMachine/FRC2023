@@ -4,6 +4,7 @@ import edu.wpi.first.wpilibj.Timer
 import org.team2471.frc.lib.coroutines.periodic
 import org.team2471.frc.lib.framework.use
 import org.team2471.frc.lib.math.Vector2
+import org.team2471.frc.lib.math.round
 import org.team2471.frc.lib.motion_profiling.MotionCurve
 import org.team2471.frc.lib.motion_profiling.Path2D
 import org.team2471.frc.lib.units.Angle
@@ -20,8 +21,8 @@ data class Pose(val wristPosition: Vector2, val wristAngle: Angle, val pivotAngl
         val GROUND_INTAKE_POSE_FAR = Pose(Vector2(40.0, 11.0), 90.0.degrees, 0.0.degrees)
         val SHELF_INTAKE_POSE = Pose(Vector2(0.0, 9.0), -90.0.degrees, 180.0.degrees)
         val LOW_SCORE = Pose(Vector2(0.0, 9.0), -90.0.degrees, 180.0.degrees)
-        val BACK_MIDDLE_SCORE = Pose(Vector2(-36.0, 36.0), -90.0.degrees, 0.0.degrees)
-        val BACK_MIDDLE_SCORE_DOWN = Pose(Vector2(-36.0, 28.0), -90.0.degrees, 0.0.degrees)
+        val BACK_MIDDLE_SCORE_CONE_AWAY = Pose(Vector2(-35.0, 28.0), -180.0.degrees, -180.0.degrees)
+        val BACK_MIDDLE_SCORE_CONE_TOWARD = Pose(Vector2(-34.0, 26.0), -120.0.degrees, 0.0.degrees)
         val HIGH_SCORE = Pose(Vector2(0.0, 9.0), -90.0.degrees, 180.0.degrees)
         val FRONT_DRIVE_POSE = Pose(Vector2(0.0, 9.0), 92.0.degrees, -90.0.degrees)
         val BACK_DRIVE_POSE = Pose(Vector2(0.0, 9.0), -92.0.degrees, -90.0.degrees)
@@ -30,26 +31,29 @@ data class Pose(val wristPosition: Vector2, val wristAngle: Angle, val pivotAngl
         val FLIP_INTAKE_TO_FRONT_POSE = Pose(Vector2(28.0, 20.0), -90.0.degrees, -90.0.degrees)
         val FLIP_INTAKE_TO_FRONT_WRIST = Pose(Vector2(28.0, 20.0), 90.0.degrees, -90.0.degrees)
     }
+
+    operator fun plus(otherPose: Pose) = Pose(wristPosition + otherPose.wristPosition, wristAngle + otherPose.wristAngle, pivotAngle + otherPose.pivotAngle)
 }
 
 suspend fun animateToPose(pose: Pose) = use(Arm, Intake) {
-    println("Starting Animation")
+    println("Starting Animation $pose")
     val path = Path2D("newPath")
     path.addVector2(Pose.current.wristPosition)
     path.addVector2(pose.wristPosition)
     var distance = path.length
-    var rate = 10.0  //  inches per second
+    var rate = 30.0  //  inches per second
     var wristPosTime = distance / rate
 
     distance = (Intake.wristSetpoint.asDegrees - Intake.wristAngle.asDegrees).absoluteValue
-    rate = 20.0 // deg per second
+    rate = 40.0 // deg per second
     var wristTime = distance / rate
 
     distance = (Intake.pivotSetpoint.asDegrees - Intake.pivotAngle.asDegrees).absoluteValue
-    rate = 10.0 // deg per second
+    rate = 30.0 // deg per second
     var pivotTime = distance / rate
 
     val time = maxOf(wristPosTime, wristTime, pivotTime)
+    println("wristPosT: ${round(wristPosTime, 1)}    wristT: ${round(wristTime, 1)}      pivotT: ${round(pivotTime, 1)}")
 
     path.addEasePoint(0.0,0.0)
     path.addEasePoint(time, 1.0)
