@@ -85,7 +85,7 @@ object OI {
         }
         operatorController::b.whenTrue {
             animateToPose(Pose.current + Pose(Vector2(-4.0, -3.0), 30.0.degrees, 0.0.degrees))
-            Intake.intakeMotor.setPercentOutput(0.2)
+//            Intake.intakeMotor.setPercentOutput(0.2) intake bad
         }
         ({operatorController.rightTrigger > 0.1}).whenTrue { intakeFromGround() }
     }

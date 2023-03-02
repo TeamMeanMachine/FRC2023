@@ -29,7 +29,7 @@ import kotlin.math.sin
 object Intake : Subsystem("Intake") {
     val wristMotor = MotorController(SparkMaxID(Sparks.WRIST))
     val pivotMotor = MotorController(TalonID(Talons.INTAKE_PIVOT))
-    val intakeMotor = MotorController(SparkMaxID(Sparks.INTAKE))
+//    val intakeMotor = MotorController(SparkMaxID(Sparks.INTAKE)) intake bad
     val wristSensor = DigitalInput(DigitalSensors.WRIST_SWITCH)
     val pivotSensor = AnalogInput(AnalogSensors.INTAKE_PIVOT)
 
@@ -92,12 +92,12 @@ object Intake : Subsystem("Intake") {
     var wristIsReset = false
 
     var wristMin = -90.0.degrees
-        get() = -115.0.degrees + Arm.elbowAngle
+        get() = round(-115.0+ Arm.elbowAngle.asDegrees, 4).degrees
     var wristMax = 90.0.degrees
-        get() = 115.0.degrees + Arm.elbowAngle
+        get() = round(115.0 + Arm.elbowAngle.asDegrees, 4).degrees
     var linearFilter = LinearFilter.movingAverage(5)
     var holdingObject: Boolean = false
-        get() = linearFilter.calculate(intakeMotor.current) > INTAKE_DETECT_CONE
+        get() = false //linearFilter.calculate(intakeMotor.current) > INTAKE_DETECT_CONE   //intake bad
 
     const val INTAKE_POWER = 1.0
     const val INTAKE_HOLD = 0.4
@@ -106,9 +106,9 @@ object Intake : Subsystem("Intake") {
 
     init {
         wristMotor.restoreFactoryDefaults()
-        intakeMotor.restoreFactoryDefaults()
+//        intakeMotor.restoreFactoryDefaults() intake bad
         wristMotor.config(20) {
-            feedbackCoefficient = 261.0 / 1273.0 * 208.1 / 359.0 //redo!
+            feedbackCoefficient = 261.0 / 1273.0 * 200.0 / 360.0
             coastMode()
             pid {
                 p(0.00001)
@@ -121,16 +121,17 @@ object Intake : Subsystem("Intake") {
             brakeMode()
             currentLimit(30, 40, 1)
         }
-        intakeMotor.config {
-            brakeMode()
-            currentLimit(0, 60, 0)
-            burnSettings()
-        }
+//        intakeMotor.config { intake bad
+//            brakeMode()
+//            currentLimit(0, 60, 0)
+//            burnSettings()
+//        }
 
         wristMotor.setRawOffset(90.0)
         GlobalScope.launch(MeanlibDispatcher) {
             var tempPivot: Angle
 
+            pivotCurve.storeValue(-185.0, 0.0)
             pivotCurve.storeValue(-179.0, 0.0)
             pivotCurve.storeValue(-170.0, 0.18) //.05
             pivotCurve.storeValue(-90.0, 0.28)
@@ -140,6 +141,7 @@ object Intake : Subsystem("Intake") {
             pivotCurve.storeValue(90.0, -0.28)
             pivotCurve.storeValue(170.0, -0.18)
             pivotCurve.storeValue(179.0, 0.0)
+            pivotCurve.storeValue(185.0, 0.0)
 
             wristSetpointEntry.setDouble(wristAngle.asDegrees)
             pivotSetpointEntry.setDouble(pivotAngle.asDegrees)
@@ -170,7 +172,7 @@ object Intake : Subsystem("Intake") {
 //                pose3d = Pose3d(0.0,0.0,0.0, Rotation3d(0.0, 0.0, wristAngle.asDegrees))
 //                wristPose.setValue(pose3d)
 
-                intakeCurrentEntry.setDouble(intakeMotor.current)
+//                intakeCurrentEntry.setDouble(intakeMotor.current) intake bad
                 setPivotPower()
 //                println("min: ${round(wristMin.asDegrees, 1)}  max ${round(wristMax.asDegrees, 1)}")
 //                println("power: ${round(power, 1)}      openLoop: ${round(openLoopPower, 1)}    error: ${round(pError, 1)}   setpoint: ${round(pivotSetpoint.asDegrees, 1)}    angle: ${round(pivotAngle.asDegrees, 1)}")

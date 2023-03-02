@@ -85,7 +85,7 @@ suspend fun tippedConeIntake() = use(Intake, Arm) {
         )
     } else {
         println("Tip Cone Intake: OFF")
-        Intake.intakeMotor.setPercentOutput(0.0)
+//        Intake.intakeMotor.setPercentOutput(0.0) intake bad
         animateToPose(Pose.FRONT_DRIVE_POSE)
         isIntaking = false
     }
@@ -99,32 +99,31 @@ suspend fun intakeCurrentLogic() {
     var linearFilter = LinearFilter.movingAverage(5)
     periodic {
         //-1.0
-        linearFilter.calculate(Intake.intakeMotor.current)
+//        linearFilter.calculate(Intake.intakeMotor.current) intake bad
         if (!isTimerStarted) {
             t.start()
             isTimerStarted = true
             intakeDetectTime = 10000.0
-            Intake.intakeMotor.setPercentOutput(-Intake.INTAKE_POWER)
+//            Intake.intakeMotor.setPercentOutput(-Intake.INTAKE_POWER) intake bad
             println("timer is started")
         } else if (t.get() > 2.0) {
-            if (linearFilter.calculate(Intake.intakeMotor.current) > Intake.INTAKE_DETECT_CONE && intakeDetectTime == 10000.0) {
-                intakeDetectTime = t.get() + 0.5
-                println("detected = ${intakeDetectTime}")
-            }
-            if (t.get() > intakeDetectTime) {
-                Intake.holdingObject = true
-                println("t_get = ${t.get()}")
-            }
-            if (t.get() > intakeDetectTime + 2.0) Intake.intakeMotor.setPercentOutput(-Intake.INTAKE_HOLD)
-        } else {
-            //    println("Min Timer not Reached → ${t.get()}")
+//            if (linearFilter.calculate(Intake.intakeMotor.current) > Intake.INTAKE_DETECT_CONE && intakeDetectTime == 10000.0) { intake bad
+            intakeDetectTime = t.get() + 0.5
+            println("detected = ${intakeDetectTime}")
         }
+        if (t.get() > intakeDetectTime) {
+            Intake.holdingObject = true
+            println("t_get = ${t.get()}")
+        }
+//            if (t.get() > intakeDetectTime + 2.0) Intake.intakeMotor.setPercentOutput(-Intake.INTAKE_HOLD) intake bad
+
         if (OI.operatorRightTrigger < 0.05) {
-            Intake.intakeMotor.setPercentOutput(if (Intake.holdingObject) -Intake.INTAKE_HOLD else 0.0)
+//            Intake.intakeMotor.setPercentOutput(if (Intake.holdingObject) -Intake.INTAKE_HOLD else 0.0) intake bad
             this.stop()
         }
     }
-}
+    }
+
 suspend fun intakeFromGround() = use(Arm, Intake) {
     try {
         println("in intakeFromGround")
@@ -134,7 +133,7 @@ suspend fun intakeFromGround() = use(Arm, Intake) {
         path.addVector2(Pose.GROUND_INTAKE_POSE_NEAR.wristPosition)
         path.addVector2(Pose.GROUND_INTAKE_POSE_FAR.wristPosition)
         val distance = path.length
-        val rate = 30.0  //  inches per second
+        val rate = 55.0  //  inches per second
         val time = distance / rate
         path.addEasePoint(0.0, 0.0)
         path.addEasePoint(time, 1.0)
@@ -149,8 +148,8 @@ suspend fun intakeFromGround() = use(Arm, Intake) {
 
         val pivotCurve = MotionCurve()
         pivotCurve.storeValue(0.0, Pose.current.pivotAngle.asDegrees)
-        pivotCurve.storeValue(time * 0.25, -150.0)
-        pivotCurve.storeValue(time * 0.35, -135.0)
+        pivotCurve.storeValue(startOfExtend * 0.7, -90.0)
+        pivotCurve.storeValue(startOfExtend * 0.9, -70.0)
         pivotCurve.storeValue(startOfExtend, Pose.GROUND_INTAKE_POSE_NEAR.pivotAngle.asDegrees)
         pivotCurve.storeValue(time, Pose.GROUND_INTAKE_POSE_FAR.pivotAngle.asDegrees)
 
@@ -167,7 +166,7 @@ suspend fun intakeFromGround() = use(Arm, Intake) {
                 this.stop()
             }
         }
-        Intake.intakeMotor.setPercentOutput(-Intake.INTAKE_POWER)
+//        Intake.intakeMotor.setPercentOutput(-Intake.INTAKE_POWER) intake bad
         if (OI.operatorController.rightTrigger > 0.05) {
             parallel({
                 periodic {
@@ -194,7 +193,7 @@ suspend fun intakeFromGround() = use(Arm, Intake) {
 //        }
 //    }
     } finally {
-        Intake.intakeMotor.setPercentOutput(if (Intake.holdingObject) -Intake.INTAKE_HOLD else 0.0)
+//        Intake.intakeMotor.setPercentOutput(if (Intake.holdingObject) -Intake.INTAKE_HOLD else 0.0) intake bad
         animateToPose(Pose.GROUND_INTAKE_FRONT)
         animateToPose(Pose.FRONT_DRIVE_POSE)
     }
@@ -205,6 +204,7 @@ suspend fun backScoreAwayCone() = use(Arm, Intake) {
 }
 
 suspend fun backScoreTowardCone() = use(Arm, Intake) {
-    animateToPose(Pose.BACK_MIDDLE_SCORE_CONE_TOWARD)
+    animateToPose(Pose.BACK_HIGH_SCORE_CONE_TOWARD_MID)
+    animateToPose(Pose.BACK_HIGH_SCORE_CONE_TOWARD)
 }
 

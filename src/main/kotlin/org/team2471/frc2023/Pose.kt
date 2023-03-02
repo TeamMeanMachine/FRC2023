@@ -16,14 +16,15 @@ data class Pose(val wristPosition: Vector2, val wristAngle: Angle, val pivotAngl
         val current: Pose
             get() = Pose(Arm.wristPosition, Intake.wristAngle, Intake.pivotAngle)
         val START_POSE = Pose(Vector2(0.0, 9.0), -90.0.degrees, -90.0.degrees)
-        val GROUND_INTAKE_FRONT = Pose(Vector2(18.0, 10.0), 90.0.degrees, -90.0.degrees)
+        val GROUND_INTAKE_FRONT = Pose(Vector2(18.0, 15.0), 90.0.degrees, -90.0.degrees)
         val GROUND_INTAKE_POSE_NEAR = Pose(Vector2(18.0, 11.0), 90.0.degrees, 0.0.degrees)
         val GROUND_INTAKE_POSE_FAR = Pose(Vector2(40.0, 11.0), 90.0.degrees, 0.0.degrees)
         val SHELF_INTAKE_POSE = Pose(Vector2(0.0, 9.0), -90.0.degrees, 180.0.degrees)
         val LOW_SCORE = Pose(Vector2(0.0, 9.0), -90.0.degrees, 180.0.degrees)
         val BACK_MIDDLE_SCORE_CONE_AWAY = Pose(Vector2(-35.0, 28.0), -180.0.degrees, -180.0.degrees)
-        val BACK_MIDDLE_SCORE_CONE_TOWARD = Pose(Vector2(-34.0, 26.0), -120.0.degrees, 0.0.degrees)
-        val HIGH_SCORE = Pose(Vector2(0.0, 9.0), -90.0.degrees, 180.0.degrees)
+        val BACK_MIDDLE_SCORE_CONE_TOWARD = Pose(Vector2(-34.0, 26.0), -100.0.degrees, 0.0.degrees)
+        val BACK_HIGH_SCORE_CONE_TOWARD_MID = Pose(Vector2(-28.0, 42.0), -100.0.degrees, 0.0.degrees)
+        val BACK_HIGH_SCORE_CONE_TOWARD = Pose(Vector2(-52.0, 42.0), -100.0.degrees, 0.0.degrees)
         val FRONT_DRIVE_POSE = Pose(Vector2(0.0, 9.0), 92.0.degrees, -90.0.degrees)
         val BACK_DRIVE_POSE = Pose(Vector2(0.0, 9.0), -92.0.degrees, -90.0.degrees)
         val FLIP_INTAKE_TO_BACK_POSE = Pose(Vector2(-28.0, 26.0), 90.0.degrees, -90.0.degrees)
@@ -41,19 +42,19 @@ suspend fun animateToPose(pose: Pose) = use(Arm, Intake) {
     path.addVector2(Pose.current.wristPosition)
     path.addVector2(pose.wristPosition)
     var distance = path.length
-    var rate = 30.0  //  inches per second
+    var rate = 55.0  //  inches per second
     var wristPosTime = distance / rate
 
-    distance = (Intake.wristSetpoint.asDegrees - Intake.wristAngle.asDegrees).absoluteValue
-    rate = 40.0 // deg per second
+    distance = (pose.wristAngle.asDegrees - Intake.wristAngle.asDegrees).absoluteValue
+    rate = 200.0 // deg per second
     var wristTime = distance / rate
 
-    distance = (Intake.pivotSetpoint.asDegrees - Intake.pivotAngle.asDegrees).absoluteValue
-    rate = 30.0 // deg per second
+    distance = (pose.pivotAngle.asDegrees - Intake.pivotAngle.asDegrees).absoluteValue
+    rate = 200.0 // deg per second
     var pivotTime = distance / rate
 
     val time = maxOf(wristPosTime, wristTime, pivotTime)
-    println("wristPosT: ${round(wristPosTime, 1)}    wristT: ${round(wristTime, 1)}      pivotT: ${round(pivotTime, 1)}")
+    println("wristPosT: ${round(wristPosTime, 1)}    wristAngle: ${round(Intake.wristAngle.asDegrees, 1)} wristT: ${round(wristTime, 1)}      pivotT: ${round(pivotTime, 1)}")
 
     path.addEasePoint(0.0,0.0)
     path.addEasePoint(time, 1.0)
