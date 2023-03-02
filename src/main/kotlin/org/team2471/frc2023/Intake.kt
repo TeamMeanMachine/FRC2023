@@ -4,7 +4,10 @@ import edu.wpi.first.math.filter.LinearFilter
 import edu.wpi.first.networktables.NetworkTableInstance
 import edu.wpi.first.wpilibj.AnalogInput
 import edu.wpi.first.wpilibj.DigitalInput
-
+import io.github.pseudoresonance.pixy2api.Pixy2
+import io.github.pseudoresonance.pixy2api.Pixy2CCC
+import io.github.pseudoresonance.pixy2api.Pixy2Line
+import io.github.pseudoresonance.pixy2api.links.SPILink
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.team2471.frc.lib.actuators.*
@@ -14,14 +17,11 @@ import org.team2471.frc.lib.coroutines.periodic
 import org.team2471.frc.lib.framework.Subsystem
 import org.team2471.frc.lib.framework.use
 import org.team2471.frc.lib.input.Controller
-import org.team2471.frc.lib.math.Vector2
 import org.team2471.frc.lib.math.deadband
-import org.team2471.frc.lib.math.round
 import org.team2471.frc.lib.motion_profiling.MotionCurve
 import org.team2471.frc.lib.units.Angle
 import org.team2471.frc.lib.units.asRadians
 import org.team2471.frc.lib.units.degrees
-import org.team2471.frc.lib.util.Timer
 import kotlin.math.absoluteValue
 import kotlin.math.sin
 
@@ -45,6 +45,11 @@ object Intake : Subsystem("Intake") {
     val intakePowerEntry = table.getEntry("Intake Power")
     val wristPose = table.getEntry("Wrist Pose")
     val pivotPose = table.getEntry("Pivot Pose")
+    val coneOrientationEntry = table.getEntry("Cone Orientation")
+    val coneMinBlockY = table.getEntry("Pixy Min Block Y")
+    val coneMinArea = table.getEntry("Pixy Min Area")
+    val coneMaxBlockCount = table.getEntry("Pixy Max Blocks")
+
 
     val wristAngle: Angle
         get() = wristMotor.position.degrees
@@ -99,12 +104,15 @@ object Intake : Subsystem("Intake") {
     var holdingObject: Boolean = false
         get() = linearFilter.calculate(intakeMotor.current) > INTAKE_DETECT_CONE
 
+    lateinit var pixy : Pixy2
+
     const val INTAKE_POWER = 1.0
     const val INTAKE_HOLD = 0.4
     const val INTAKE_DETECT_CONE = 55
     const val INTAKE_CURR = 55.0
 
     init {
+        initializePixy()
         wristMotor.restoreFactoryDefaults()
         intakeMotor.restoreFactoryDefaults()
         wristMotor.config(20) {
@@ -144,6 +152,13 @@ object Intake : Subsystem("Intake") {
             wristSetpointEntry.setDouble(wristAngle.asDegrees)
             pivotSetpointEntry.setDouble(pivotAngle.asDegrees)
 
+            coneMaxBlockCount.setInteger(100)
+            coneMaxBlockCount.setInteger(6)
+            coneMinArea.setInteger(100)
+
+//            wristSetpoint = -90.0.degrees
+//            pivotSetpoint = -180.0.degrees
+
             println("pFeed: ${pFeedEntry.getDouble(0.0)}")
 
             periodic {
@@ -152,6 +167,9 @@ object Intake : Subsystem("Intake") {
                 pivotSetpointEntry.setDouble(pivotSetpoint.asDegrees)
                 pErrorEntry.setDouble(pivotSetpoint.asDegrees - pivotAngle.asDegrees)
                 pFeedEntry.setDouble(pFeedForward)
+                val coneOrinetation = coneUp()
+
+                coneOrientationEntry.setInteger(if (coneOrinetation == null) -1 else if (coneOrinetation) 1 else 0)
 
                 var pivot = OI.operatorController.rightThumbstickX.deadband(0.2)
                 var wrist = OI.operatorController.rightThumbstickY.deadband(0.2)
@@ -204,7 +222,65 @@ object Intake : Subsystem("Intake") {
         pivotSetpoint = pivotAngle
         wristSetpoint = wristAngle
     }
+
+    fun initializePixy() {
+        pixy = Pixy2.createInstance(SPILink()) // Creates a new Pixy2 camera using SPILink
+        pixy.init() // Initializes the camera and prepares to send/receive data
+        pixy.setLamp(1.toByte(), 1.toByte()) // Turns the LEDs on
+        pixy.setLED(255, 255, 255) // Sets the RGB LED to full white
+    }
+
+    fun coneUp(): Boolean? {
+        try {
+            val blockCount: Int = pixy.ccc.getBlocks(false, (Pixy2CCC.CCC_SIG1 + Pixy2CCC.CCC_SIG2), coneMaxBlockCount.getInteger(10).toInt())
+            println("Found $blockCount blocks!") // Reports number of blocks found
+            if (blockCount <= 0) {
+                return false // If blocks were not found, stop processing
+            }
+            val blocks: ArrayList<Pixy2CCC.Block> = pixy.ccc.blockCache // Gets a list of all blocks found by the Pixy2
+            for (block in blocks) { // Loops through all blocks and finds the widest one
+                if (block.y < coneMinBlockY.getInteger(100) && block.area > coneMinArea.getInteger(100)) {
+                    return true
+                }
+            }
+        } catch (ex:java.lang.Exception) {
+            println("Pixy 2 exception")
+            return null
+        }
+        return false
+    }
+
+    fun getBiggestBlock(): Pixy2CCC.Block? {
+        // Gets the number of "blocks", identified targets, that match signature 1 on the Pixy2,
+        // does not wait for new data if none is available,
+        // and limits the number of returned blocks to 25, for a slight increase in efficiency
+        var largestBlock: Pixy2CCC.Block? = null
+        try {
+            val blockCount: Int = pixy.ccc.getBlocks(false, Pixy2CCC.CCC_SIG1.toInt(), 25)
+            println("Found $blockCount blocks!") // Reports number of blocks found
+            if (blockCount <= 0) {
+                return null // If blocks were not found, stop processing
+            }
+            val blocks: ArrayList<Pixy2CCC.Block> = pixy.ccc.blockCache // Gets a list of all blocks found by the Pixy2
+            for (block in blocks) { // Loops through all blocks and finds the widest one
+                if (largestBlock == null) {
+                    largestBlock = block
+                } else if (block.width > largestBlock.width) {
+                    largestBlock = block
+                }
+            }
+            if (largestBlock != null) {
+                println("Area: ${largestBlock.height * largestBlock.width} , distance from ground ${largestBlock.y + largestBlock.height}")
+            }
+        } catch (ex:java.lang.Exception) {
+            println("Pixy 2 exception")
+        }
+        return largestBlock
+    }
 }
+
+val Pixy2CCC.Block.area : Int
+    get() = this.width * this.height
 
 suspend fun Intake.pivotTest() = use(this) {
     var angle = pivotAngle
