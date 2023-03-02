@@ -1,9 +1,6 @@
 package org.team2471.frc2023
 
 import com.ctre.phoenix.sensors.CANCoder
-import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator
-import edu.wpi.first.math.geometry.Pose2d
-import edu.wpi.first.math.geometry.Rotation2d
 import edu.wpi.first.networktables.NetworkTableEntry
 import edu.wpi.first.networktables.NetworkTableInstance
 import edu.wpi.first.wpilibj.*
@@ -29,9 +26,7 @@ import org.team2471.frc.lib.motion_profiling.Path2D
 import org.team2471.frc.lib.motion_profiling.following.SwerveParameters
 import org.team2471.frc.lib.units.*
 import kotlin.math.absoluteValue
-import kotlin.math.cos
 import kotlin.math.sign
-import kotlin.math.sin
 
 @OptIn(DelicateCoroutinesApi::class)
 object Drive : Subsystem("Drive"), SwerveDrive {
@@ -40,7 +35,6 @@ object Drive : Subsystem("Drive"), SwerveDrive {
     val navXGyroEntry = table.getEntry("NavX Gyro")
     val limitingFactor : Double
         get() = 1.0
-    val robotFieldEntry = table.getSubTable("Field").getEntry("Robot")
     val odometer0Entry = table.getEntry("Odometer 0")
     val odometer1Entry = table.getEntry("Odometer 1")
     val odometer2Entry = table.getEntry("Odometer 2")
@@ -49,10 +43,10 @@ object Drive : Subsystem("Drive"), SwerveDrive {
     val absoluteAngle1Entry = table.getEntry("Analog Angle 1")
     val absoluteAngle2Entry = table.getEntry("Analog Angle 2")
     val absoluteAngle3Entry = table.getEntry("Analog Angle 3")
-    val motorAngle0Entry = table.getEntry("Motor Angle 0")
-    val motorAngle1Entry = table.getEntry("Motor Angle 1")
-    val motorAngle2Entry = table.getEntry("Motor Angle 2")
-    val motorAngle3Entry = table.getEntry("Motor Angle 3")
+//    val motorAngle0Entry = table.getEntry("Motor Angle 0")
+//    val motorAngle1Entry = table.getEntry("Motor Angle 1")
+//    val motorAngle2Entry = table.getEntry("Motor Angle 2")
+//    val motorAngle3Entry = table.getEntry("Motor Angle 3")
 
     val motorPower0Entry = table.getEntry("Motor Power 0")
     val motorPower1Entry = table.getEntry("Motor Power 1")
@@ -79,18 +73,18 @@ object Drive : Subsystem("Drive"), SwerveDrive {
             }
             return dblArray
         }
-    val targetArray : DoubleArray
-        get() {
-            val dblArray = DoubleArray(8)
-            var i = 0
-            for (mod in modules) {
-                dblArray[i] = (mod as Module).power
-                i++
-                dblArray[i] = mod.angleSetpoint.asDegrees
-                i++
-            }
-            return dblArray
-        }
+//    val targetArray : DoubleArray
+//        get() {
+//            val dblArray = DoubleArray(8)
+//            var i = 0
+//            for (mod in modules) {
+//                dblArray[i] = (mod as Module).power
+//                i++
+//                dblArray[i] = mod.angleSetpoint.asDegrees
+//                i++
+//            }
+//            return dblArray
+//        }
 
     /**
      * Coordinates of modules
@@ -149,7 +143,9 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         get() = -gyro.rate.degrees.perSecond
 
     override var velocity = Vector2(0.0, 0.0)
-    override var position = Vector2(0.0, -12.0)
+    override var position = Vector2(0.0, 0.0)
+    override val combinedPosition: Vector2
+        get() = PoseEstimator.currentPose
     override var robotPivot = Vector2(0.0, 0.0)
     override var headingSetpoint = 0.0.degrees
 
@@ -179,8 +175,8 @@ object Drive : Subsystem("Drive"), SwerveDrive {
     val teleopPDController =  PDConstantFController(0.012, 0.09, 0.05)
     var aimPDController = teleopPDController
 
-    var lastPosition : Pose2d = Pose2d()
-    var chargeMode = false
+//    var prevPosition : Vector2 = Vector2(0.0, 0.0)
+//    var chargeMode = false
 
 
     val isHumanDriving
@@ -215,16 +211,16 @@ object Drive : Subsystem("Drive"), SwerveDrive {
             rateCurve.storeValue(1.0, 2.0)  // distance, rate
             rateCurve.storeValue(8.0, 6.0)  // distance, rate
 
-            val defaultXYPos = doubleArrayOf(0.0,0.0)
+            //val defaultXYPos = doubleArrayOf(0.0,0.0)
 
-            val robotHalfWidthFeet = robotHalfWidth.asFeet
+      //      val robotHalfWidthFeet = robotHalfWidth.asFeet
 
-            val reducedField = Vector2(fieldCenterOffset.x.meters.asFeet - robotHalfWidthFeet, fieldCenterOffset.y.meters.asFeet - robotHalfWidthFeet)
-            lastPosition = Pose2d(position.x.feet.asMeters+fieldCenterOffset.x, position.y.feet.asMeters+fieldCenterOffset.y, -Rotation2d((heading-90.0.degrees).asRadians))
+        //    val reducedField = Vector2(fieldCenterOffset.x.meters.asFeet - robotHalfWidthFeet, fieldCenterOffset.y.meters.asFeet - robotHalfWidthFeet)
+//            lastPosition = Pose2d(position.x.feet.asMeters+fieldCenterOffset.x, position.y.feet.asMeters+fieldCenterOffset.y, -Rotation2d((heading-90.0.degrees).asRadians))
 
             println("in init just before periodic")
             periodic {
-                var (x, y) = position
+                val (x, y) = position
 //                if (x.absoluteValue > reducedField.x || y.absoluteValue > reducedField.y ){
 //                    println("Coercing x inside field dimensions")
 //                    x = x.coerceIn(-reducedField.x, reducedField.x)
@@ -259,27 +255,6 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         }
     }
 
-    fun getFieldOffsets(arrObjects : DoubleArray ): ArrayList<Double>{
-        val sinRobot = sin(lastPosition.rotation.radians - 90.0.degrees.asRadians)
-        val cosRobot = cos(lastPosition.rotation.radians - 90.0.degrees.asRadians)
-        val returnArray = ArrayList<Double>()
-
-
-        for (i in 0..arrObjects.size) {
-            if ((i + 1) % 3 != 0)
-                continue
-            val cargoX = (arrObjects[i-2] - 3.0)
-            val cargoY = arrObjects[i-1]
-            //val cargoWithBot = Vector2((cargoX * sinRobot) + lastPosition.x, (cargoY * cosRobot) + lastPosition.y)
-            val cargoWithBot = Vector2((cargoX * cosRobot - cargoY * sinRobot) + lastPosition.x, (cargoY * cosRobot + cargoX * sinRobot) + lastPosition.y)
-            //val cargoWithBot = fieldObject.robotPose + Transform2d(Translation2d(redCargo[i-2], redCargo[i-1]), Rotation2d(gyro.angle.degrees.asRadians+90.0.degrees.asRadians))
-            returnArray.add(cargoWithBot.x)
-            returnArray.add(cargoWithBot.y)
-            returnArray.add(0.0)
-        }
-        return returnArray
-    }
-
     override fun preEnable() {
         super.preEnable()
         //initializeSteeringMotors()
@@ -302,9 +277,19 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         super.onDisable()
     }
 
+    override fun poseUpdate(poseTwist: SwerveDrive.Pose) {
+        //MAPoseEstimator.addDriveData(Timer.getFPGATimestamp(), Twist2d(poseTwist.position.y, poseTwist.position.x, -poseTwist.heading.asRadians))
+    }
+
+    override fun resetOdom() {
+        PoseEstimator.zeroOffset()
+       // MAPoseEstimator.resetPose(FieldManager.convertTMMtoWPI(pose.position.x.feet, pose.position.y.feet, pose.heading))
+    }
 
     fun zeroGyro() {
-        heading = 0.0.degrees
+        heading = if (FieldManager.isBlueAlliance) 180.0.degrees else 0.0.degrees
+        PoseEstimator.zeroOffset()
+       // MAPoseEstimator.resetPose(FieldManager.convertTMMtoWPI(pose.position.x.feet, pose.position.y.feet, pose.heading))
         //gyro.reset()
     }
 
@@ -575,18 +560,88 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         Drive.driveAlongPath(newPath) { abortPath() }
     }
 
-    suspend fun dynamicGoToScore(goalPosition: Vector2) = use(Drive){
+    suspend fun dynamicGoToScoreCheck() {
+        periodic {
+            if (!isHumanDriving || !OI.driverController.y) {
+                stop()
+            }
+        }
+        if (OI.driverController.y && !isHumanDriving) {
+            FieldManager.getSelectedNode()?.let { dynamicGoToScore(it.alignPosition) }
+        }
+    }
+    suspend fun dynamicGoToScore(goalPosition: Vector2, safeSide: SafeSide = SafeSide.DYNAMIC) = use(Drive){
+        println("GoalPosition: $goalPosition")
+        println(PoseEstimator.currentPose.y)
+        println(FieldManager.insideSafePointClose.y)
         val newPath = Path2D("newPath")
         newPath.addEasePoint(0.0,0.0)
-        val p1 = position
-        val p2 = Vector2(2.0,-10.0)
-        val p3 = Vector2(2.0,-19.0)
-        val p4 = Vector2(goalPosition.x,-21.0)
-        val distance = (p2 - p1).length + (p4 - p3).length + (p3 - p2).length
+        var distance = 0.0
+        val p1 = PoseEstimator.currentPose
+        var p2 = PoseEstimator.currentPose
+        var p3 = PoseEstimator.currentPose
+        if ((FieldManager.isRedAlliance && PoseEstimator.currentPose.y > FieldManager.insideSafePointFar.y) || (FieldManager.isBlueAlliance && PoseEstimator.currentPose.y < FieldManager.insideSafePointFar.y)) {
+            p2 = when(safeSide) {
+                SafeSide.DYNAMIC -> if (PoseEstimator.currentPose.x > FieldManager.centerOfChargeX)  FieldManager.insideSafePointFar else FieldManager.outsideSafePointFar
+                SafeSide.INSIDE -> FieldManager.insideSafePointFar
+                SafeSide.OUTSIDE -> FieldManager.outsideSafePointFar
+                SafeSide.CHARGE -> Vector2(FieldManager.centerOfChargeX, FieldManager.outsideSafePointFar.y)
+            }
+            distance += (p2 - p1).length
+            println("InsideFar")
+        }
+        if ((FieldManager.isRedAlliance && PoseEstimator.currentPose.y > FieldManager.insideSafePointClose.y) || (FieldManager.isBlueAlliance && PoseEstimator.currentPose.y < FieldManager.insideSafePointClose.y)) {
+            p3 = when(safeSide) {
+                SafeSide.DYNAMIC -> if (PoseEstimator.currentPose.x > FieldManager.centerOfChargeX)  FieldManager.insideSafePointClose else FieldManager.outsideSafePointClose
+                SafeSide.INSIDE -> FieldManager.insideSafePointClose
+                SafeSide.OUTSIDE -> FieldManager.outsideSafePointClose
+                SafeSide.CHARGE -> Vector2(FieldManager.centerOfChargeX, FieldManager.outsideSafePointFar.y)
+            }
+            distance += (p3 - p2).length
+            println("InsideClose")
+        }
+        val p4 = Vector2(goalPosition.x,goalPosition.y + if (FieldManager.isBlueAlliance) -1.0 else 1.0)
+        distance += (p4 - p3).length
+        val p5 = Vector2(goalPosition.x, goalPosition.y)
+        distance += (p5 - p4).length
+        println("Distance: $distance")
         val rateCurve = MotionCurve()
         rateCurve.setMarkBeginOrEndKeysToZeroSlope(false)
         rateCurve.storeValue(1.0, 2.0)  // distance, rate
-        rateCurve.storeValue(8.0, 6.0)  // distance, rate
+        rateCurve.storeValue(8.0, 4.0)  // distance, rate
+        val rate = rateCurve.getValue(distance) // ft per sec
+        val time = distance / rate
+        newPath.addEasePoint(time, 1.0)
+        newPath.addVector2(p1)
+        newPath.addVector2(p2)
+        newPath.addVector2(p3)
+        newPath.addVector2(p4)
+        newPath.addVector2(p5)
+        newPath.addHeadingPoint(0.0, heading.asDegrees)
+        newPath.addHeadingPoint(1.0, heading.asDegrees)// + (180.0.degrees - heading).wrap().asDegrees)
+        Drive.driveAlongPath(newPath){ abortPath() }
+    }
+    suspend fun dynamicGoToGamePieceOnFloor(goalPosition: Vector2) = use(Drive){
+        val newPath = Path2D("newPath")
+        newPath.addEasePoint(0.0,0.0)
+        var distance = 0.0
+        val p1 = PoseEstimator.currentPose
+        var p2 = PoseEstimator.currentPose
+        var p3 = PoseEstimator.currentPose
+        if ((FieldManager.isRedAlliance && PoseEstimator.currentPose.y < FieldManager.insideSafePointClose.y) || (!FieldManager.isRedAlliance && PoseEstimator.currentPose.y > FieldManager.insideSafePointClose.y)) {
+            p2 = FieldManager.insideSafePointClose
+            distance += (p2 - p1).length
+        }
+        if ((FieldManager.isRedAlliance && PoseEstimator.currentPose.y < FieldManager.insideSafePointFar.y) || (!FieldManager.isRedAlliance && PoseEstimator.currentPose.y > FieldManager.insideSafePointFar.y)) {
+            p3 = FieldManager.insideSafePointFar
+            distance += (p3 - p2).length
+        }
+        val p4 = Vector2(goalPosition.x,goalPosition.y)
+        distance += (p4 - p3).length
+        val rateCurve = MotionCurve()
+        rateCurve.setMarkBeginOrEndKeysToZeroSlope(false)
+        rateCurve.storeValue(1.0, 2.0)  // distance, rate
+        rateCurve.storeValue(8.0, 4.0)  // distance, rate
         val rate = rateCurve.getValue(distance) // ft per sec
         val time = distance / rate
         newPath.addEasePoint(time, 1.0)
@@ -595,7 +650,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         newPath.addVector2(p3)
         newPath.addVector2(p4)
         newPath.addHeadingPoint(0.0, heading.asDegrees)
-        newPath.addHeadingPoint(time, 0.0)
+        newPath.addHeadingPoint(0.25, heading.asDegrees + (180.0.degrees - heading).wrap().asDegrees)
         Drive.driveAlongPath(newPath){ abortPath() }
     }
     suspend fun gotoScoringPosition() = use(Drive) {
@@ -606,22 +661,24 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         else {
             val newPath = Path2D("newPath")
             newPath.addEasePoint(0.0,0.0)
-            newPath.addEasePoint(3.5, 1.0)
+            newPath.addEasePoint(13.5, 1.0)
             newPath.addVector2(position)
             newPath.addVector2(scoreNode.alignPosition)
             val distance = newPath.length
             val rate = rateCurve.getValue(distance) // ft per sec
             val time = distance / rate
             newPath.addEasePoint(time, 1.0)
-            newPath.addHeadingPoint(0.0, heading.asDegrees)
+            newPath.addHeadingPoint(0.0, heading.asDegrees )
+            newPath.addHeadingPoint(5.0, 180.0)
             println("${scoreNode.alignPosition}")
             Drive.driveAlongPath(newPath){ abortPath() }
         }
     }
 
     suspend fun calibrateRobotPosition() = use(Drive) {
-        position = Vector2(-11.5, -21.25)
-        heading= 0.0.degrees
+        position = Vector2(-11.5, if (FieldManager.isBlueAlliance) 21.25 else -21.25)
+        zeroGyro()
+        PoseEstimator.zeroOffset()
     }
 }
 

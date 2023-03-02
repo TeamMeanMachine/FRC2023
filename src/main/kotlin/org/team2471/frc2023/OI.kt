@@ -16,10 +16,10 @@ object OI {
 
 
     private val driveTranslationX: Double
-        get() = driverController.leftThumbstickX.deadband(deadBandDriver).squareWithSign()
+        get() = (if (FieldManager.isRedAlliance) 1.0 else -1.0) * driverController.leftThumbstickX.deadband(deadBandDriver).squareWithSign()
 
     private val driveTranslationY: Double
-        get() = -driverController.leftThumbstickY.deadband(deadBandDriver).squareWithSign()
+        get() = (if (FieldManager.isRedAlliance) -1.0 else 1.0) * driverController.leftThumbstickY.deadband(deadBandDriver).squareWithSign()
 
     val driveTranslation: Vector2
         get() = Vector2(driveTranslationX, driveTranslationY) //does owen want this cubed?
@@ -56,10 +56,10 @@ object OI {
         driverController::back.whenTrue { Drive.zeroGyro();
             Drive.initializeSteeringMotors() }
         driverController::start.whenTrue {Drive.calibrateRobotPosition() }
-        operatorController::x.whenTrue { scoreIfReady() }
+//        operatorController::x.whenTrue { scoreIfReady() }
        // driverController::a.whenTrue { Drive.dynamicDriveThreeFeetY()}
-       // driverController::b.whenTrue { Drive.dynamicGoToFeeder()}
-        driverController::y.whenTrue { Drive.gotoScoringPosition()}
+//        driverController::b.whenTrue { Drive.dynamicGoToFeeder()}
+        driverController::y.whenTrue { Drive.dynamicGoToScoreCheck() }
         driverController::leftBumper.whenTrue {Arm.shoulderCoastMode()}
         driverController::rightBumper.whenTrue {Arm.shoulderBrakeMode()}
 

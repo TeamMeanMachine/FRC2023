@@ -13,32 +13,58 @@ import org.team2471.frc.lib.motion_profiling.Path2D
 import org.team2471.frc.lib.units.degrees
 import org.team2471.frc.lib.util.Timer
 
-suspend fun scoreIfReady() {
-    var startGoScore = false
-    periodic {
-
+//suspend fun scoreIfReady() {
+//    var startGoScore = false
+//    periodic {
+//
+////        println("Checking if driving... ${OI.driveRotation}  ${OI.driveTranslation.length}")
+//
+//        if (!Drive.isHumanDriving) {
+//            startGoScore = true
+//            stop()
+//        }
+//    }
+//    if (startGoScore) {
+//        goScore()
+//    }
+//}
+//
+//
+//suspend fun goScore() = use(Drive, Arm, Intake, name = "goScore") {
+//    periodic {
+//        if (!OI.operatorController.x || Drive.isHumanDriving) {
+//            stop()
+//        }
+////        val scoringPos = FieldConstants.Grids.high3dTranslations[NodeDeckHub.selectedNode.toInt()]
+//        println()
+//    }
+//}
+//suspend fun scoreIfReady(){
+//    var startGoScore = false
+//    periodic {
+//
 //        println("Checking if driving... ${OI.driveRotation}  ${OI.driveTranslation.length}")
-
-        if (!Drive.isHumanDriving) {
-            startGoScore = true
-            stop()
-        }
-    }
-    if (startGoScore) {
-        goScore()
-    }
-}
-
-
-suspend fun goScore() = use(Drive, Arm, Intake, name = "goScore") {
-    periodic {
-        if (!OI.operatorController.x || Drive.isHumanDriving) {
-            stop()
-        }
-//        val scoringPos = FieldConstants.Grids.high3dTranslations[NodeDeckHub.selectedNode.toInt()]
-        println()
-    }
-}
+//
+//        if (!Drive.isHumanDriving) {
+//            startGoScore = true
+//            stop()
+//        }
+//    }
+//    if (startGoScore) {
+//        goScore()
+//    }
+//}
+//
+//
+//suspend fun goScore() = use(Drive, Arm, Intake, name = "goScore") {
+//    periodic {
+//        if (!OI.operatorController.x || Drive.isHumanDriving) {
+//            stop()
+//        }
+////        val scoringPos = FieldConstants.Grids.high3dTranslations[NodeDeckHub.selectedNode.toInt()]
+//        println()
+//    }
+//}
 
 suspend fun intakeCone() = use(Intake, Arm) {
     Intake.pivotSetpoint = 90.0.degrees

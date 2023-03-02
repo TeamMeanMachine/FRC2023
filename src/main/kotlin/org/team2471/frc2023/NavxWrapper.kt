@@ -30,5 +30,7 @@ class NavxWrapper : Gyro {
     override fun reset() = navx.reset()
 
     var deltaTime: Double = 1.0
-        set(value) {}
+        set(value) {
+            field = value
+        }
 }

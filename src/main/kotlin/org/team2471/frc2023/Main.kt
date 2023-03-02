@@ -44,14 +44,19 @@ object Robot : MeanlibRobot() {
         }
         println("NEVER GONNA GIVE YOU UP")
         println(BuildConfig.BUILD_TIME)
+
         FieldManager
         OI
+
         Drive.zeroGyro()
         Drive.heading = 0.0.degrees
 
         AutoChooser
         NodeDeckHub
-//        AprilTag
+        AprilTag
+        PoseEstimator
+        SignalLights
+//        MAPoseEstimator
         Intake
         Arm
         PowerInfo
@@ -63,7 +68,7 @@ object Robot : MeanlibRobot() {
         Arm.enable()
         Intake.enable()
         PowerInfo.enable()
-//        SignalLights.enable()
+        SignalLights.enable()
         println("field centric? ${SmartDashboard.getBoolean("Use Gyro", true) && !DriverStation.isAutonomous()}")
         println("ending enable")
     }
@@ -96,7 +101,7 @@ object Robot : MeanlibRobot() {
         Arm.disable()
         Intake.disable()
         PowerInfo.disable()
-//        SignalLights.disable()
+        SignalLights.disable()
     }
 
     private fun initTimeMeasurement(){

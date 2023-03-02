@@ -65,6 +65,7 @@ object AutoChooser {
         addOption("Outer Three Auto", "outerThreeAuto")
         addOption("Outer Two Auto", "outerTwoAuto")
         addOption("Inner Three Auto", "innerThreeAuto")
+        addOption("NodeDeck", "nodeDeck")
 
     }
 
@@ -132,6 +133,7 @@ object AutoChooser {
             "Outer Three Auto" -> outerThreeAuto()
             "Outer Two Auto" -> outerTwoAuto()
             "Inner Three Auto" -> innerThreeAuto()
+            "NodeDeck" -> nodeDeckAuto()
             else -> println("No function found for ---->$selAuto<-----  ${Robot.recentTimeTaken()}")
         }
         SmartDashboard.putString("autoStatus", "complete")
@@ -171,6 +173,14 @@ object AutoChooser {
             Drive.driveAlongPath(auto["04 DropCube2"])
             Drive.driveAlongPath(auto["05 ToCharge"])
         }
+    }
+    suspend fun nodeDeckAuto() = use(Drive, Intake, Arm) {
+        FieldManager.resetClosestGamePieceOnField()
+        Drive.position = FieldManager.startingPosition
+        Drive.zeroGyro()
+        PoseEstimator.zeroOffset()
+        Drive.dynamicGoToGamePieceOnFloor(FieldManager.getClosestGamePieceOnField())
+
     }
 
 
