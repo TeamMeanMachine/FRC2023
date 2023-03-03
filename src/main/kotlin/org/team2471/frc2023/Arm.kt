@@ -17,6 +17,7 @@ import org.team2471.frc.lib.motion_profiling.MotionCurve
 import org.team2471.frc.lib.units.Angle
 import org.team2471.frc.lib.units.degrees
 import org.team2471.frc.lib.units.radians
+import org.team2471.frc2023.Robot.isCompBot
 import kotlin.math.*
 
 object Arm : Subsystem("Arm") {
@@ -76,7 +77,7 @@ object Arm : Subsystem("Arm") {
     var waitForNegative = false
     var waitForPositive = false
     val elbowAngle: Angle
-        get() = elbowMotor.position.degrees + elbowOffset
+        get() = if (isCompBot) -(elbowEncoder.value.degrees * 180.0 / 2008.0 - 315.0.degrees).wrap() else elbowMotor.position.degrees
     var elbowOffset = 0.0.degrees
     var elbowSetpoint: Angle = elbowAngle
         set(value) {
@@ -278,6 +279,10 @@ object Arm : Subsystem("Arm") {
                     println("Resetting shoulder to $shoulderAngle")
                     shoulderMotor.setRawOffset(shoulderAngle.asDegrees)
                     shoulderFollowerMotor.setRawOffset(shoulderAngle.asDegrees)
+                }
+                if ((elbowMotor.position - elbowAngle.asDegrees).absoluteValue > 4.0) {
+                    println("Resetting elbow to $elbowAngle")
+                    elbowMotor.setRawOffset(elbowAngle.asDegrees)
                 }
 //                if (!shoulderIsZeroed) {
 //                    tempShoulder = shoulderAngle

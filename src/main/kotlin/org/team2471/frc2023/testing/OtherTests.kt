@@ -45,3 +45,9 @@ suspend fun Intake.feedFowardTest() = use(Intake) {
         power += 0.03
     }
 }
+
+//suspend fun Intake.intakeTest() = use(Intake) {
+//    periodic {
+//        intakeMotor.setPercentOutput(OI.operatorRightY)
+//    }
+//}
