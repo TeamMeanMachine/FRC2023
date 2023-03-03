@@ -1,0 +1,41 @@
+{
+  "version": "2.2.1",
+  "layout": [
+    {
+      "type": 5,
+      "fields": [],
+      "listFields": [
+        [
+          {
+            "type": "Robot",
+            "key": "/Pose Estimator/Combined Advantage Pose",
+            "fieldTypeIndex": 0
+          },
+          {
+            "type": "Ghost",
+            "key": "/Drive/advantageScopePose",
+            "fieldTypeIndex": 0
+          }
+        ]
+      ],
+      "options": {
+        "game": "2023",
+        "unitDistance": "meters",
+        "unitRotation": "degrees",
+        "origin": "right",
+        "size": 0.75,
+        "allianceBumpers": "auto",
+        "allianceOrigin": "blue",
+        "orientation": "blue left, red right"
+      },
+      "title": "Odometry"
+    },
+    {
+      "type": 2,
+      "fields": [
+        "/Pose Estimator/Combined Advantage Pose"
+      ],
+      "title": "Table"
+    }
+  ]
+}
