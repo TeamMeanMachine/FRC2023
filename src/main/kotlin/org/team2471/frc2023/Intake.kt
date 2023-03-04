@@ -1,12 +1,12 @@
 package org.team2471.frc2023
 
+import edu.wpi.first.math.filter.Debouncer
 import edu.wpi.first.math.filter.LinearFilter
 import edu.wpi.first.networktables.NetworkTableInstance
 import edu.wpi.first.wpilibj.AnalogInput
 import edu.wpi.first.wpilibj.DigitalInput
 import io.github.pseudoresonance.pixy2api.Pixy2
 import io.github.pseudoresonance.pixy2api.Pixy2CCC
-import io.github.pseudoresonance.pixy2api.Pixy2Line
 import io.github.pseudoresonance.pixy2api.links.SPILink
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -50,10 +50,13 @@ object Intake : Subsystem("Intake") {
     val coneMinBlockY = table.getEntry("Pixy Min Block Y")
     val coneMinArea = table.getEntry("Pixy Min Area")
     val coneMaxBlockCount = table.getEntry("Pixy Max Blocks")
+    val coneFacingUpEntry = table.getEntry("Cone Is Up")
+    val coneDebouncer = Debouncer(0.5,Debouncer.DebounceType.kFalling)
 
 
     val wristAngle: Angle
         get() = wristMotor.position.degrees
+    var coneFacingUp = false
     var wristOffset = 0.0.degrees
     var wristSetpoint: Angle = wristAngle
         get() = wristSetpointEntry.getDouble(0.0).degrees
@@ -61,7 +64,7 @@ object Intake : Subsystem("Intake") {
             field = value.asDegrees.coerceIn(wristMin.asDegrees, wristMax.asDegrees).degrees
             wristSetpointEntry.setDouble(field.asDegrees)
 //            println("field: ${round(field.asDegrees,1)}     offset: ${round(wristOffset.asDegrees, 1)}")
-            wristMotor.setPositionSetpoint((field + wristOffset).asDegrees)
+//            wristMotor.setPositionSetpoint((field + wristOffset).asDegrees)
         }
 
     val pivotAnalogAngle: Angle
@@ -169,9 +172,9 @@ object Intake : Subsystem("Intake") {
             wristSetpointEntry.setDouble(wristAngle.asDegrees)
             pivotSetpointEntry.setDouble(pivotAngle.asDegrees)
 
-            coneMaxBlockCount.setInteger(100)
-            coneMaxBlockCount.setInteger(6)
-            coneMinArea.setInteger(100)
+            coneMaxBlockCount.setInteger(20)
+            coneMinArea.setInteger(20)
+            coneMinBlockY.setInteger(100)
 
 //            wristSetpoint = -90.0.degrees
 //            pivotSetpoint = -180.0.degrees
@@ -182,9 +185,11 @@ object Intake : Subsystem("Intake") {
                 pivotSetpointEntry.setDouble(pivotSetpoint.asDegrees)
                 pErrorEntry.setDouble(pivotSetpoint.asDegrees - pivotAngle.asDegrees)
                 pFeedEntry.setDouble(pFeedForward)
-                val coneOrinetation = coneUp()
+                val coneOrientation = coneUp()
+                coneFacingUp = coneDebouncer.calculate(coneOrientation == true)
 
-                coneOrientationEntry.setInteger(if (coneOrinetation == null) -1 else if (coneOrinetation) 1 else 0)
+                coneOrientationEntry.setInteger(if (coneOrientation == null) -1 else if (coneOrientation) 1 else 0)
+                coneFacingUpEntry.setBoolean(coneFacingUp)
 
                 var pivot = OI.operatorController.rightThumbstickX.deadband(0.2)
                 var wrist = OI.operatorController.rightThumbstickY.deadband(0.2)
@@ -249,7 +254,7 @@ object Intake : Subsystem("Intake") {
     fun coneUp(): Boolean? {
         try {
             val blockCount: Int = pixy.ccc.getBlocks(false, (Pixy2CCC.CCC_SIG1 + Pixy2CCC.CCC_SIG2), coneMaxBlockCount.getInteger(10).toInt())
-            //println("Found $blockCount blocks!") // Reports number of blocks found
+            //println("Found $blockCount blocks $blockCount!") // Reports number of blocks found
             if (blockCount <= 0) {
                 return false // If blocks were not found, stop processing
             }

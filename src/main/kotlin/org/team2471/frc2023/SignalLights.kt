@@ -31,6 +31,7 @@ object SignalLights : Subsystem("SignalLights") {
 
                 if (Intake.holdDetectedTime + 3.0 > Timer.getFPGATimestamp()) {
                     flashGreen()
+                    println("Setting To Green!")
                 } else if (Intake.holdDetectedTime + 3.0 < Timer.getFPGATimestamp() && state == LightState.GREEN) {
                     idle()
                 }
