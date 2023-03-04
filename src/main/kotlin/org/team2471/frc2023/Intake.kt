@@ -18,6 +18,7 @@ import org.team2471.frc.lib.framework.Subsystem
 import org.team2471.frc.lib.framework.use
 import org.team2471.frc.lib.input.Controller
 import org.team2471.frc.lib.math.deadband
+import org.team2471.frc.lib.math.round
 import org.team2471.frc.lib.motion_profiling.MotionCurve
 import org.team2471.frc.lib.units.Angle
 import org.team2471.frc.lib.units.asRadians
@@ -114,6 +115,7 @@ object Intake : Subsystem("Intake") {
         get() {
             return linearFilter.calculate(intakeMotor.current) > INTAKE_DETECT_CONE
         }   //intake bad
+    var holdDetectedTime = -5.0
 
     lateinit var pixy : Pixy2
 
@@ -247,7 +249,7 @@ object Intake : Subsystem("Intake") {
     fun coneUp(): Boolean? {
         try {
             val blockCount: Int = pixy.ccc.getBlocks(false, (Pixy2CCC.CCC_SIG1 + Pixy2CCC.CCC_SIG2), coneMaxBlockCount.getInteger(10).toInt())
-            println("Found $blockCount blocks!") // Reports number of blocks found
+            //println("Found $blockCount blocks!") // Reports number of blocks found
             if (blockCount <= 0) {
                 return false // If blocks were not found, stop processing
             }

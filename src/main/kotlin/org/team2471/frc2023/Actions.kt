@@ -113,6 +113,7 @@ suspend fun intakeCurrentLogic() {
             }
             if (t.get() > intakeDetectTime) {
                 Intake.holdingObject = true
+                Intake.holdDetectedTime = edu.wpi.first.wpilibj.Timer.getFPGATimestamp()
                 println("t_get = ${t.get()}")
             }
             if (t.get() > intakeDetectTime + 2.0) Intake.intakeMotor.setPercentOutput(Intake.INTAKE_HOLD_CONE) //intake bad

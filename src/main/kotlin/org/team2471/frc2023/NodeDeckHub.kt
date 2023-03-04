@@ -15,6 +15,7 @@ object NodeDeckHub {
     private val shoulderCoastModeEntry = nodeDeckTable.getEntry("setShoulderCoastMode")
     private val shoulderBrakeModeEntry = nodeDeckTable.getEntry("setShoulderBrakeMode")
     private val armPoseEntry = nodeDeckTable.getEntry("armPose")
+    private val isFloorConeEntry  = nodeDeckTable.getEntry("isFloorCone")
     val shoulderBrakeMode: Boolean
         get() = shoulderBrakeModeEntry.getBoolean(false)
     val shoulderCoastMode: Boolean
@@ -25,6 +26,11 @@ object NodeDeckHub {
         get() = isStartingInsideEntry.getBoolean(false)
     val selectedNode
         get() = selectedNodeEntry.getInteger(0)
+    val isFloorCone: Boolean
+        get() = isFloorConeEntry.getBoolean(false)
+
+    private var lastNode: Long = 0
+    private var lastFloorState = false
 
     init {
         GlobalScope.launch {
@@ -40,6 +46,23 @@ object NodeDeckHub {
                     shoulderBrakeModeEntry.setBoolean(false)
                     println("shoulderBrakeMode: $shoulderBrakeMode")
                 }
+
+                if (selectedNode != lastNode || lastFloorState != isFloorCone) {
+                    // NodeDeck has updated! Call Things!
+                    val color: GamePiece? = FieldManager.nodeList[selectedNode.toInt()]?.coneOrCube
+
+                    when (color) {
+                        GamePiece.CONE -> SignalLights.flashYellow()        // YELLOW
+                        GamePiece.CUBE -> SignalLights.flashPurple()        // PURPLE
+                        GamePiece.BOTH -> {     // OH NO ITS A FLOOR REQUEST
+                            if (isFloorCone) SignalLights.flashYellow()     // YELLOW
+                            else SignalLights.flashPurple()                 // PURPLE
+                        }
+                        else -> {}
+                    }
+                }
+                lastNode = selectedNode;
+                lastFloorState = isFloorCone;
             }
         }
     }
