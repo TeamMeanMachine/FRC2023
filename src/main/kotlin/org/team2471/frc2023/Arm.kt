@@ -50,6 +50,9 @@ object Arm : Subsystem("Arm") {
     var shoulderZeroBackward = false
     var seesElbowSwitch = false
 
+    val driverInControlEntry = table.getEntry("Driver in Control")
+    val operatorInControlEntry = table.getEntry("Operator in Control")
+
     val shoulderAngle: Angle
         get() = if (isCompBot) (-(shoulderEncoder.value - 3020.0).degrees / (if (shoulderEncoder.value - 3020.0 < 0.0) 12.1 else 10.5) + shoulderOffset) else shoulderEncoder.value.degrees
     val shoulderAnalogAngle: Angle
@@ -255,6 +258,10 @@ object Arm : Subsystem("Arm") {
 
             println("shoulderFollower: ${shoulderFollowerEntry.getDouble(0.0)}")
             periodic {
+
+                driverInControlEntry.setBoolean(OI.controlledBy == OI.personInControl.DRIVER)
+                operatorInControlEntry.setBoolean(OI.controlledBy == OI.personInControl.OPERATOR)
+
                 shoulderEntry.setDouble(shoulderAngle.asDegrees)
                 elbowEntry.setDouble(elbowAngle.asDegrees)
 

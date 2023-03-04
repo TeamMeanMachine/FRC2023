@@ -13,6 +13,7 @@ object OI {
     private val deadBandDriver = 0.1
     private val deadBandOperator = 0.1
 
+    var controlledBy = personInControl.NONE
 
     private val driveTranslationX: Double
         get() = (if (FieldManager.isRedAlliance) 1.0 else -1.0) * driverController.leftThumbstickX.deadband(deadBandDriver).squareWithSign()
@@ -58,17 +59,24 @@ object OI {
        // driverController::a.whenTrue { Drive.dynamicDriveThreeFeetY()}
 //        driverController::b.whenTrue { Drive.dynamicGoToFeeder()}
         driverController::leftBumper.whenTrue { Drive.dynamicGoToScoreCheck() }
-        ({driveRightTrigger > 0.1}).whenTrue { //score
+        ({driveRightTrigger > 0.1}).whenTrue { //score testing time
             scoreObject()
         }
         ({driveLeftTrigger > 0.1}).whenTrue {
             flip()
         }
 
-
         operatorController::back.whenTrue { Arm.resetShoulderZero()}
         operatorController::start.whenTrue {
-            toDrivePose()
+            if (controlledBy == personInControl.DRIVER) {
+                println("driver is in control")
+            } else {
+//                operatorInControl = true
+                controlledBy == personInControl.OPERATOR
+                toDrivePose()
+//                operatorInControl = false
+                controlledBy == personInControl.NONE
+            }
         }
         operatorController::leftBumper.whenTrue { backScoreTowardCone() }
         operatorController::rightBumper.whenTrue { backScoreAwayCone() }
@@ -76,5 +84,8 @@ object OI {
             Intake.intakeMotor.setPercentOutput(1.0)
         }
         ({operatorController.leftTrigger > 0.1}).whenTrue { intakeFromGround() } //testing time
+    }
+    enum class personInControl{
+    DRIVER, OPERATOR, NONE
     }
 }
