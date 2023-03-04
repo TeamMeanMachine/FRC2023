@@ -46,13 +46,17 @@ object PoseEstimator {
             return
         }
 
-        val kApril = kAprilEntry.getDouble(0.25)
-        val latencyPose = Drive.lookupPose(detection.timestamp)?.position
-        if (latencyPose != null) {
-            val odomDiff = Drive.position - latencyPose
-            val apriltagPose = Vector2(detection.pose.x, detection.pose.y) + odomDiff
-            offset = offset * (1.0 - kApril) + (Drive.position - apriltagPose) * kApril
+        try {
+            val kApril = kAprilEntry.getDouble(0.25)
+            val latencyPose = Drive.lookupPose(detection.timestamp)?.position
+            if (latencyPose != null) {
+                val odomDiff = Drive.position - latencyPose
+                val apriltagPose = Vector2(detection.pose.x, detection.pose.y) + odomDiff
+                offset = offset * (1.0 - kApril) + (Drive.position - apriltagPose) * kApril
 //        println(offset)
+            }
+        } catch(ex:Exception) {
+            println("error in vision")
         }
     }
     fun zeroOffset() {
