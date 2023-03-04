@@ -57,8 +57,8 @@ object Robot : MeanlibRobot() {
         PoseEstimator
         SignalLights
 //        MAPoseEstimator
-        Intake
         Arm
+        Intake
         PowerInfo
     }
 
@@ -91,6 +91,7 @@ object Robot : MeanlibRobot() {
 
     override suspend fun test()  {
         println("test mode begin. Hi.")
+        Intake.intakeTest()
 //        Drive.setAngleOffsets()
     }
 

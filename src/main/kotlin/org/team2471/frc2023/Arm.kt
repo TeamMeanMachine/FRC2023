@@ -13,6 +13,7 @@ import org.team2471.frc.lib.coroutines.periodic
 import org.team2471.frc.lib.framework.Subsystem
 import org.team2471.frc.lib.math.Vector2
 import org.team2471.frc.lib.math.deadband
+import org.team2471.frc.lib.math.round
 import org.team2471.frc.lib.motion_profiling.MotionCurve
 import org.team2471.frc.lib.units.Angle
 import org.team2471.frc.lib.units.degrees
@@ -77,7 +78,7 @@ object Arm : Subsystem("Arm") {
     var waitForNegative = false
     var waitForPositive = false
     val elbowAngle: Angle
-        get() = if (isCompBot) -(elbowEncoder.value.degrees * 180.0 / 2008.0 - 315.0.degrees).wrap() else elbowMotor.position.degrees
+        get() = elbowMotor.position.degrees  // if (isCompBot) -(elbowEncoder.value.degrees * 180.0 / 2008.0 - 315.0.degrees).wrap() else
     var elbowOffset = 0.0.degrees
     var elbowSetpoint: Angle = elbowAngle
         set(value) {
@@ -280,41 +281,16 @@ object Arm : Subsystem("Arm") {
                     shoulderMotor.setRawOffset(shoulderAngle.asDegrees)
                     shoulderFollowerMotor.setRawOffset(shoulderAngle.asDegrees)
                 }
-                if ((elbowMotor.position - elbowAngle.asDegrees).absoluteValue > 4.0) {
-                    println("Resetting elbow to $elbowAngle")
+                if ((elbowMotor.position - elbowAngle.asDegrees).absoluteValue > 4.0) { //testing time
+                    println("Resetting elbow from ${round(elbowMotor.position, 1)} to ${round(elbowAngle.asDegrees, 1)}")
                     elbowMotor.setRawOffset(elbowAngle.asDegrees)
                 }
-//                if (!shoulderIsZeroed) {
-//                    tempShoulder = shoulderAngle
-//                    val shoulderForward = shoulderDirection.calculate(tempShoulder.asDegrees) > 0.0
-//                    if (!shoulderSensor.get()) {
-//                        if (shoulderForward && !previousShoulderSensor) {
-//                            shoulderMotor.setRawOffset(SHOULDER_MAGNET)
-//                            if (waitForPositive) {
-//                                shoulderNegSlop = (shoulderAngle.asDegrees - SHOULDER_MAGNET).absoluteValue.degrees
-////                                shoulderPosIsZeroed = true
-//                            } else {
-//                                waitForPositive = true
-//                            }
-//                        }
-//                        previousShoulderSensor = true
-//                    } else {
-//                        if (!shoulderForward && previousShoulderSensor) {
-//                            shoulderMotor.setRawOffset(SHOULDER_MAGNET)
-//                            if (waitForNegative) {
-//                                shoulderPosSlop = (shoulderAngle.asDegrees - SHOULDER_MAGNET).absoluteValue.degrees
-////                                shoulderNegIsZeroed = true
-//                            } else {
-//                                waitForNegative = true
-//                            }
-//                        }
-//                        previousShoulderSensor = false
-//                    }
-//                    if (waitForPositive && shoulderAngle > 20.0.degrees) waitForPositive = false
-//                    if (waitForNegative && shoulderAngle < -20.0.degrees) waitForNegative = false
-//                }
 
                 tempElbow = elbowAngle
+//                if (!elbowSensor.get()) {
+//                    elbowOffset -= tempElbow
+//                    elbowIsZeroed = true
+//                }
                 prevShoulder = tempShoulder
                 prevElbow = tempElbow
             }
@@ -331,7 +307,6 @@ object Arm : Subsystem("Arm") {
         shoulderMotor.setPercentOutput(0.0)
         shoulderFollowerMotor.setPercentOutput(0.0)
         elbowMotor.setPercentOutput(0.0)
-        Intake.wristMotor.setPercentOutput(0.0)
         wristPosition = forwardKinematics(shoulderMotor.position.degrees, elbowAngle)
         println("wristPos: $wristPosition")
     }

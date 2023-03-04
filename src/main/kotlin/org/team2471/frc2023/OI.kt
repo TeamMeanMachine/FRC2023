@@ -56,37 +56,33 @@ object OI {
         driverController::back.whenTrue { Drive.zeroGyro();
             Drive.initializeSteeringMotors() }
         driverController::start.whenTrue {Drive.calibrateRobotPosition() }
-//        operatorController::x.whenTrue { scoreIfReady() }
        // driverController::a.whenTrue { Drive.dynamicDriveThreeFeetY()}
 //        driverController::b.whenTrue { Drive.dynamicGoToFeeder()}
-        driverController::y.whenTrue { Drive.dynamicGoToScoreCheck() }
-        driverController::leftBumper.whenTrue {Arm.shoulderCoastMode()}
-        driverController::rightBumper.whenTrue {Arm.shoulderBrakeMode()}
+        driverController::leftBumper.whenTrue { Drive.dynamicGoToScoreCheck() }
+        ({driveRightTrigger > 0.1}).whenTrue { //score testing time
+            Intake.intakeMotor.setPercentOutput(1.0)
+//            animateToPose(Pose.current + Pose(Vector2(-6.0, -3.0), 30.0.degrees, 0.0.degrees))
+//            Intake.intakeMotor.setPercentOutput(0.2) //intake bad
+//            Drive.maxTranslation = 1.0
+        }
+        ({driveLeftTrigger > 0.1}).whenTrue {
+            flip()
+        }
 
         operatorController::back.whenTrue { Arm.resetShoulderZero()}
         operatorController::start.whenTrue {
             Arm.wristPosOffset = Vector2(0.0, 0.0)
             Intake.wristOffset = 0.0.degrees
             Intake.pivotOffset = 0.0.degrees
+            Intake.intakeMotor.setPercentOutput(0.0)
             if (Intake.wristAngle < -75.0.degrees) animateToPose(Pose.BACK_DRIVE_POSE) else if (Intake.wristAngle > 75.0.degrees) animateToPose(Pose.FRONT_DRIVE_POSE)
+            Drive.maxTranslation = 1.0
         }
         operatorController::leftBumper.whenTrue { backScoreTowardCone() }
         operatorController::rightBumper.whenTrue { backScoreAwayCone() }
-        operatorController::a.whenTrue {
-            if (Intake.wristAngle < -75.degrees) {
-                animateToPose(Pose.FLIP_INTAKE_TO_FRONT_POSE)
-                animateToPose(Pose.FLIP_INTAKE_TO_FRONT_WRIST)
-                animateToPose(Pose.FRONT_DRIVE_POSE)
-            } else if (Intake.wristAngle > 75.0.degrees) {
-                animateToPose(Pose.FLIP_INTAKE_TO_BACK_POSE)
-                animateToPose(Pose.FLIP_INTAKE_TO_BACK_WRIST)
-                animateToPose(Pose.BACK_DRIVE_POSE)
-            }
-        }
         operatorController::b.whenTrue {
-            animateToPose(Pose.current + Pose(Vector2(-4.0, -3.0), 30.0.degrees, 0.0.degrees))
-//            Intake.intakeMotor.setPercentOutput(0.2) intake bad
+            Intake.intakeMotor.setPercentOutput(1.0)
         }
-        ({operatorController.rightTrigger > 0.1}).whenTrue { intakeFromGround() }
+        ({operatorController.leftTrigger > 0.1}).whenTrue { intakeFromGround() } //testing time
     }
 }

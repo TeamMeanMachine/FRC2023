@@ -29,7 +29,7 @@ import kotlin.math.sin
 object Intake : Subsystem("Intake") {
     val wristMotor = MotorController(SparkMaxID(Sparks.WRIST))
     val pivotMotor = MotorController(TalonID(Talons.INTAKE_PIVOT))
-//    val intakeMotor = MotorController(SparkMaxID(Sparks.INTAKE)) intake bad
+    val intakeMotor = MotorController(SparkMaxID(Sparks.INTAKE)) //intake bad
     val wristSensor = DigitalInput(DigitalSensors.WRIST_SWITCH)
     val pivotSensor = AnalogInput(AnalogSensors.INTAKE_PIVOT)
 
@@ -90,31 +90,44 @@ object Intake : Subsystem("Intake") {
             pivotSetpointEntry.setDouble(field.asDegrees)
         }
     val pivotPDController = PDController(0.100, 0.001) //0.1, 0.001  //0.03, 0.04)   //0.35, 0.03
+    var prevPFeedForward = 0.0
     val pFeedForward: Double
-        get() = pivotCurve.getValue((pivotAngle + if (wristAngle > 0.0.degrees) 180.0.degrees else 0.0.degrees).wrap().asDegrees) * sin(wristAngle.asRadians.absoluteValue)
+        get() {
+            try {
+                val temp: Double = pivotCurve.getValue((pivotAngle + if (wristAngle > 0.0.degrees) 180.0.degrees else 0.0.degrees).wrap().asDegrees) * sin(wristAngle.asRadians.absoluteValue)
+                prevPFeedForward = temp
+            } catch (ex: Exception){
+                println("pFeedForward returned null.")
+            }
+            return prevPFeedForward
+        }
     val pivotCurve = MotionCurve()
 
     var wristIsReset = false
 
     var wristMin = -90.0.degrees
-        get() = round(-115.0+ Arm.elbowAngle.asDegrees, 4).degrees
+        get() = round(-140.0+ Arm.elbowAngle.asDegrees, 4).degrees
     var wristMax = 90.0.degrees
-        get() = round(115.0 + Arm.elbowAngle.asDegrees, 4).degrees
-    var linearFilter = LinearFilter.movingAverage(5)
+        get() = round(140.0 + Arm.elbowAngle.asDegrees, 4).degrees
+    var linearFilter = LinearFilter.movingAverage(10)
     var holdingObject: Boolean = false
-        get() = false //linearFilter.calculate(intakeMotor.current) > INTAKE_DETECT_CONE   //intake bad
+        get() {
+            return linearFilter.calculate(intakeMotor.current) > INTAKE_DETECT_CONE
+        }   //intake bad
 
     lateinit var pixy : Pixy2
 
     const val INTAKE_POWER = 1.0
-    const val INTAKE_HOLD = 0.4
-    const val INTAKE_DETECT_CONE = 55
+    const val INTAKE_CONE = -1.0
+    const val INTAKE_HOLD = 0.25
+    const val INTAKE_HOLD_CONE = -0.25
+    const val INTAKE_DETECT_CONE = 25
     const val INTAKE_CURR = 55.0
 
     init {
         initializePixy()
         wristMotor.restoreFactoryDefaults()
-//        intakeMotor.restoreFactoryDefaults() intake bad
+        intakeMotor.restoreFactoryDefaults() //intake bad
         wristMotor.config(20) {
             feedbackCoefficient = 261.0 / 1273.0 * 200.0 / 360.0
             coastMode()
@@ -129,27 +142,27 @@ object Intake : Subsystem("Intake") {
             brakeMode()
             currentLimit(30, 40, 1)
         }
-//        intakeMotor.config { intake bad
-//            brakeMode()
-//            currentLimit(0, 60, 0)
-//            burnSettings()
-//        }
+        intakeMotor.config { //intake bad
+            brakeMode()
+            currentLimit(0, 60, 0)
+            burnSettings()
+        }
+
+        pivotCurve.storeValue(-185.0, 0.0)
+        pivotCurve.storeValue(-179.0, 0.0)
+        pivotCurve.storeValue(-170.0, 0.18) //.05
+        pivotCurve.storeValue(-90.0, 0.28)
+        pivotCurve.storeValue(-45.0, 0.09)
+        pivotCurve.storeValue(0.0, 0.0)
+        pivotCurve.storeValue(45.0, -0.09)
+        pivotCurve.storeValue(90.0, -0.28)
+        pivotCurve.storeValue(170.0, -0.18)
+        pivotCurve.storeValue(179.0, 0.0)
+        pivotCurve.storeValue(185.0, 0.0)
 
         wristMotor.setRawOffset(90.0)
         GlobalScope.launch(MeanlibDispatcher) {
             var tempPivot: Angle
-
-            pivotCurve.storeValue(-185.0, 0.0)
-            pivotCurve.storeValue(-179.0, 0.0)
-            pivotCurve.storeValue(-170.0, 0.18) //.05
-            pivotCurve.storeValue(-90.0, 0.28)
-            pivotCurve.storeValue(-45.0, 0.09)
-            pivotCurve.storeValue(0.0, 0.0)
-            pivotCurve.storeValue(45.0, -0.09)
-            pivotCurve.storeValue(90.0, -0.28)
-            pivotCurve.storeValue(170.0, -0.18)
-            pivotCurve.storeValue(179.0, 0.0)
-            pivotCurve.storeValue(185.0, 0.0)
 
             wristSetpointEntry.setDouble(wristAngle.asDegrees)
             pivotSetpointEntry.setDouble(pivotAngle.asDegrees)
@@ -160,8 +173,6 @@ object Intake : Subsystem("Intake") {
 
 //            wristSetpoint = -90.0.degrees
 //            pivotSetpoint = -180.0.degrees
-
-            println("pFeed: ${pFeedEntry.getDouble(0.0)}")
 
             periodic {
                 wristEntry.setDouble(wristAngle.asDegrees)
@@ -190,7 +201,7 @@ object Intake : Subsystem("Intake") {
 //                pose3d = Pose3d(0.0,0.0,0.0, Rotation3d(0.0, 0.0, wristAngle.asDegrees))
 //                wristPose.setValue(pose3d)
 
-//                intakeCurrentEntry.setDouble(intakeMotor.current) intake bad
+                intakeCurrentEntry.setDouble(intakeMotor.current) //intake bad
                 setPivotPower()
 //                println("min: ${round(wristMin.asDegrees, 1)}  max ${round(wristMax.asDegrees, 1)}")
 //                println("power: ${round(power, 1)}      openLoop: ${round(openLoopPower, 1)}    error: ${round(pError, 1)}   setpoint: ${round(pivotSetpoint.asDegrees, 1)}    angle: ${round(pivotAngle.asDegrees, 1)}")
@@ -221,6 +232,7 @@ object Intake : Subsystem("Intake") {
     }
 
     override fun preEnable() {
+        wristMotor.setPercentOutput(0.0)
         pivotSetpoint = pivotAngle
         wristSetpoint = wristAngle
     }

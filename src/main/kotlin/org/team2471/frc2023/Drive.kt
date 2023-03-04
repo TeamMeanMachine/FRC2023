@@ -26,6 +26,7 @@ import org.team2471.frc.lib.motion_profiling.Path2D
 import org.team2471.frc.lib.motion_profiling.following.SwerveParameters
 import org.team2471.frc.lib.units.*
 import kotlin.math.absoluteValue
+import kotlin.math.max
 import kotlin.math.sign
 
 @OptIn(DelicateCoroutinesApi::class)
@@ -178,6 +179,12 @@ object Drive : Subsystem("Drive"), SwerveDrive {
 //    var prevPosition : Vector2 = Vector2(0.0, 0.0)
 //    var chargeMode = false
 
+    var maxTranslation = 1.0
+    var maxRotation = 1.0
+        get() = linearMap(0.05, 70.0, 1.0, 0.0, Arm.wristPosition.x.absoluteValue)
+
+    const val MAX_INTAKE_TRANSLATION = 0.5
+    const val MAX_SCORE_TRANSLATION = 0.3
 
     val isHumanDriving
         get() = OI.driveTranslation.length != 0.0 || OI.driveRotation != 0.0
@@ -305,8 +312,8 @@ object Drive : Subsystem("Drive"), SwerveDrive {
             val useGyro2 = useGyroEntry.getBoolean(true) && !DriverStation.isAutonomous()
 
             drive(
-                OI.driveTranslation * 1.0,
-                turn * 1.0,
+                OI.driveTranslation * maxTranslation,
+                turn * maxRotation,
                 useGyro2,
                 useGyro2
             )
@@ -562,11 +569,11 @@ object Drive : Subsystem("Drive"), SwerveDrive {
 
     suspend fun dynamicGoToScoreCheck() {
         periodic {
-            if (!isHumanDriving || !OI.driverController.y) {
+            if (!isHumanDriving || !OI.driverController.leftBumper) {
                 stop()
             }
         }
-        if (OI.driverController.y && !isHumanDriving) {
+        if (OI.driverController.leftBumper && !isHumanDriving) {
             FieldManager.getSelectedNode()?.let { dynamicGoToScore(it.alignPosition) }
         }
     }
@@ -600,7 +607,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
             distance += (p3 - p2).length
             println("InsideClose")
         }
-        val p4 = Vector2(goalPosition.x,goalPosition.y + if (FieldManager.isBlueAlliance) -1.0 else 1.0)
+        val p4 = Vector2(goalPosition.x,goalPosition.y + if (FieldManager.isBlueAlliance) -0.1 else 0.1)
         distance += (p4 - p3).length
         val p5 = Vector2(goalPosition.x, goalPosition.y)
         distance += (p5 - p4).length

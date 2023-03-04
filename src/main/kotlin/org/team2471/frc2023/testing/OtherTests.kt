@@ -46,8 +46,9 @@ suspend fun Intake.feedFowardTest() = use(Intake) {
     }
 }
 
-//suspend fun Intake.intakeTest() = use(Intake) {
-//    periodic {
-//        intakeMotor.setPercentOutput(OI.operatorRightY)
-//    }
-//}
+suspend fun Intake.intakeTest() = use(Intake) {
+    periodic {
+        intakeMotor.setPercentOutput(OI.operatorRightY)
+        println("intake power: ${OI.operatorRightY}")
+    }
+}

@@ -20,7 +20,7 @@ object FieldManager {
     val nodeList: HashMap<Int, ScoringNode> = HashMap()
     val gamePieceStartingPos = ArrayList<Vector2>(8)
     var allianceSidePieces : MutableList<Vector2>? = null
-    val scoringNodeYPosition = (fieldCenterOffset.y.meters - gridYOffset - Drive.robotHalfWidth).asFeet
+    val scoringNodeYPosition = (fieldCenterOffset.y.meters - gridYOffset - Drive.robotHalfWidth - 1.0.feet).asFeet
     val avoidanceZones = ArrayList<AvoidanceZone>()
     val gamePieceOnFieldFromCenterY = 47.36.inches
     val gamePieceOnFieldFromCenterX = 22.39.inches
