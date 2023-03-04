@@ -226,7 +226,7 @@ suspend fun intakeCurrentLogic() {
     }
 
     suspend fun backScoreAwayCone() = use(Arm, Intake) {
-        if (Intake.wristAngle.asDegrees < -80.0) {
+        if (Arm.wristPosition.x < -10.0 || Intake.wristAngle.asDegrees < -40.0) {
             Drive.maxTranslation = 0.3 //make this a constant
             when (FieldManager.getSelectedNode()?.level) {
                 Level.HIGH -> {
@@ -246,7 +246,7 @@ suspend fun intakeCurrentLogic() {
     }
 
     suspend fun backScoreTowardCone() = use(Arm, Intake) {
-        if (Intake.wristAngle.asDegrees < -80.0) {
+        if (Arm.wristPosition.x < -10.0 || Intake.wristAngle.asDegrees < -40.0) {
             Drive.maxTranslation = 0.3
             when (FieldManager.getSelectedNode()?.level) {
                 Level.HIGH -> {
@@ -275,5 +275,30 @@ suspend fun intakeCurrentLogic() {
             animateToPose(Pose.FLIP_INTAKE_TO_BACK_WRIST)
             animateToPose(Pose.BACK_DRIVE_POSE)
         }
+    }
+
+    suspend fun scoreObject() = use(Arm, Intake) {
+        println("in scoreObject")
+//        when (FieldManager.getSelectedNode()?.level) {
+//            Level.MID -> {
+                val midPose = Pose.current + Pose(Vector2(2.0, -2.0), 40.0.degrees, 0.0.degrees)
+                animateToPose(midPose, 1.0)
+                Intake.intakeMotor.setPercentOutput(0.7)
+
+                delay(1.0) //just for testing that they separately work. remove later
+                animateToPose(midPose + Pose(Vector2(6.0, -2.0), 10.0.degrees, 0.0.degrees))
+//            }
+//            else -> println("Currently can't score there.")
+//        }
+
+    }
+
+    suspend fun toDrivePose() = use(Arm, Intake) {
+        Arm.wristPosOffset = Vector2(0.0, 0.0)
+        Intake.wristOffset = 0.0.degrees
+        Intake.pivotOffset = 0.0.degrees
+        Intake.intakeMotor.setPercentOutput(0.0)
+        if (Arm.wristPosition.x < 0.0) animateToPose(Pose.BACK_DRIVE_POSE) else if (Arm.wristPosition.y > 0.0) animateToPose(Pose.FRONT_DRIVE_POSE)
+        Drive.maxTranslation = 1.0
     }
 
