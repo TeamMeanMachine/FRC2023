@@ -18,7 +18,6 @@ import org.team2471.frc.lib.motion_profiling.MotionCurve
 import org.team2471.frc.lib.units.Angle
 import org.team2471.frc.lib.units.degrees
 import org.team2471.frc.lib.units.radians
-import org.team2471.frc2023.Robot.isCompBot
 import kotlin.math.*
 
 object Arm : Subsystem("Arm") {
@@ -259,8 +258,8 @@ object Arm : Subsystem("Arm") {
             println("shoulderFollower: ${shoulderFollowerEntry.getDouble(0.0)}")
             periodic {
 
-                driverInControlEntry.setBoolean(OI.controlledBy == OI.personInControl.DRIVER)
-                operatorInControlEntry.setBoolean(OI.controlledBy == OI.personInControl.OPERATOR)
+                driverInControlEntry.setBoolean(OI.controlledBy == OI.PERSONINCONTROL.DRIVER)
+                operatorInControlEntry.setBoolean(OI.controlledBy == OI.PERSONINCONTROL.OPERATOR)
 
                 shoulderEntry.setDouble(shoulderAngle.asDegrees)
                 elbowEntry.setDouble(elbowAngle.asDegrees)

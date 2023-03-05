@@ -13,7 +13,7 @@ object OI {
     private val deadBandDriver = 0.1
     private val deadBandOperator = 0.1
 
-    var controlledBy = personInControl.NONE
+    var controlledBy = PERSONINCONTROL.NONE
 
     private val driveTranslationX: Double
         get() = (if (FieldManager.isRedAlliance) 1.0 else -1.0) * driverController.leftThumbstickX.deadband(deadBandDriver).squareWithSign()
@@ -58,34 +58,59 @@ object OI {
         driverController::start.whenTrue {Drive.calibrateRobotPosition() }
        // driverController::a.whenTrue { Drive.dynamicDriveThreeFeetY()}
 //        driverController::b.whenTrue { Drive.dynamicGoToFeeder()}
-        driverController::leftBumper.whenTrue { Drive.dynamicGoToScoreCheck() }
+
+        driverController::leftBumper.whenTrue {
+                Drive.dynamicGoToScoreCheck()
+            }
+
         ({driveRightTrigger > 0.1}).whenTrue { //score testing time
-            scoreObject()
+            safeAnimationCheck(PERSONINCONTROL.DRIVER){
+                scoreObject()
+            }
         }
         ({driveLeftTrigger > 0.1}).whenTrue {
-            flip()
+            safeAnimationCheck(PERSONINCONTROL.DRIVER) {
+                flip()
+            }
         }
 
         operatorController::back.whenTrue { Arm.resetShoulderZero()}
         operatorController::start.whenTrue {
-            if (controlledBy == personInControl.DRIVER) {
-                println("driver is in control")
-            } else {
-//                operatorInControl = true
-                controlledBy == personInControl.OPERATOR
+            safeAnimationCheck(PERSONINCONTROL.OPERATOR) {
                 toDrivePose()
-//                operatorInControl = false
-                controlledBy == personInControl.NONE
             }
         }
-        operatorController::leftBumper.whenTrue { backScoreTowardCone() }
-        operatorController::rightBumper.whenTrue { backScoreAwayCone() }
+        operatorController::leftBumper.whenTrue {
+            safeAnimationCheck(PERSONINCONTROL.OPERATOR) {
+                backScoreTowardCone()
+            }
+        }
+        operatorController::rightBumper.whenTrue {
+            safeAnimationCheck(PERSONINCONTROL.OPERATOR) {
+                backScoreAwayCone()
+            }
+        }
         operatorController::b.whenTrue {
             Intake.intakeMotor.setPercentOutput(1.0)
         }
-        ({operatorController.leftTrigger > 0.1}).whenTrue { intakeFromGround() } //testing time
+        ({operatorController.leftTrigger > 0.1}).whenTrue {
+            safeAnimationCheck(PERSONINCONTROL.OPERATOR) {
+                intakeFromGround()
+            } //testing time
+        }
     }
-    enum class personInControl{
-    DRIVER, OPERATOR, NONE
+    suspend fun safeAnimationCheck (wantsControl: PERSONINCONTROL, actionWithAnimation : suspend() -> Unit) {
+        if (controlledBy==PERSONINCONTROL.DRIVER && wantsControl==PERSONINCONTROL.OPERATOR){
+            println("driver Is In Control")
+        } else if (controlledBy==PERSONINCONTROL.OPERATOR && wantsControl==PERSONINCONTROL.DRIVER){
+            println("operator Is In Control")
+        } else {
+            controlledBy = wantsControl
+            actionWithAnimation ()
+            controlledBy = PERSONINCONTROL.NONE
+        }
+    }
+    enum class PERSONINCONTROL{
+        DRIVER, OPERATOR, NONE
     }
 }
