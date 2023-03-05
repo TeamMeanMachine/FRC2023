@@ -578,55 +578,61 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         }
     }
     suspend fun dynamicGoToScore(goalPosition: Vector2, safeSide: SafeSide = SafeSide.DYNAMIC) = use(Drive){
-        println("GoalPosition: $goalPosition")
-        println(PoseEstimator.currentPose.y)
-        println(FieldManager.insideSafePointClose.y)
-        val newPath = Path2D("newPath")
-        newPath.addEasePoint(0.0,0.0)
-        var distance = 0.0
-        val p1 = PoseEstimator.currentPose
-        var p2 = PoseEstimator.currentPose
-        var p3 = PoseEstimator.currentPose
-        if ((FieldManager.isRedAlliance && PoseEstimator.currentPose.y > FieldManager.insideSafePointFar.y) || (FieldManager.isBlueAlliance && PoseEstimator.currentPose.y < FieldManager.insideSafePointFar.y)) {
-            p2 = when(safeSide) {
-                SafeSide.DYNAMIC -> if (PoseEstimator.currentPose.x > FieldManager.centerOfChargeX)  FieldManager.insideSafePointFar else FieldManager.outsideSafePointFar
-                SafeSide.INSIDE -> FieldManager.insideSafePointFar
-                SafeSide.OUTSIDE -> FieldManager.outsideSafePointFar
-                SafeSide.CHARGE -> Vector2(FieldManager.centerOfChargeX, FieldManager.outsideSafePointFar.y)
+        if (OI.controlledBy == OI.personInControl.OPERATOR) {
+            println("operator is in control")
+        } else {
+            OI.controlledBy = OI.personInControl.DRIVER
+            println("GoalPosition: $goalPosition")
+            println(PoseEstimator.currentPose.y)
+            println(FieldManager.insideSafePointClose.y)
+            val newPath = Path2D("newPath")
+            newPath.addEasePoint(0.0, 0.0)
+            var distance = 0.0
+            val p1 = PoseEstimator.currentPose
+            var p2 = PoseEstimator.currentPose
+            var p3 = PoseEstimator.currentPose
+            if ((FieldManager.isRedAlliance && PoseEstimator.currentPose.y > FieldManager.insideSafePointFar.y) || (FieldManager.isBlueAlliance && PoseEstimator.currentPose.y < FieldManager.insideSafePointFar.y)) {
+                p2 = when (safeSide) {
+                    SafeSide.DYNAMIC -> if (PoseEstimator.currentPose.x > FieldManager.centerOfChargeX) FieldManager.insideSafePointFar else FieldManager.outsideSafePointFar
+                    SafeSide.INSIDE -> FieldManager.insideSafePointFar
+                    SafeSide.OUTSIDE -> FieldManager.outsideSafePointFar
+                    SafeSide.CHARGE -> Vector2(FieldManager.centerOfChargeX, FieldManager.outsideSafePointFar.y)
+                }
+                distance += (p2 - p1).length
+                println("InsideFar")
             }
-            distance += (p2 - p1).length
-            println("InsideFar")
-        }
-        if ((FieldManager.isRedAlliance && PoseEstimator.currentPose.y > FieldManager.insideSafePointClose.y) || (FieldManager.isBlueAlliance && PoseEstimator.currentPose.y < FieldManager.insideSafePointClose.y)) {
-            p3 = when(safeSide) {
-                SafeSide.DYNAMIC -> if (PoseEstimator.currentPose.x > FieldManager.centerOfChargeX)  FieldManager.insideSafePointClose else FieldManager.outsideSafePointClose
-                SafeSide.INSIDE -> FieldManager.insideSafePointClose
-                SafeSide.OUTSIDE -> FieldManager.outsideSafePointClose
-                SafeSide.CHARGE -> Vector2(FieldManager.centerOfChargeX, FieldManager.outsideSafePointFar.y)
+            if ((FieldManager.isRedAlliance && PoseEstimator.currentPose.y > FieldManager.insideSafePointClose.y) || (FieldManager.isBlueAlliance && PoseEstimator.currentPose.y < FieldManager.insideSafePointClose.y)) {
+                p3 = when (safeSide) {
+                    SafeSide.DYNAMIC -> if (PoseEstimator.currentPose.x > FieldManager.centerOfChargeX) FieldManager.insideSafePointClose else FieldManager.outsideSafePointClose
+                    SafeSide.INSIDE -> FieldManager.insideSafePointClose
+                    SafeSide.OUTSIDE -> FieldManager.outsideSafePointClose
+                    SafeSide.CHARGE -> Vector2(FieldManager.centerOfChargeX, FieldManager.outsideSafePointFar.y)
+                }
+                distance += (p3 - p2).length
+                println("InsideClose")
             }
-            distance += (p3 - p2).length
-            println("InsideClose")
+            val p4 = Vector2(goalPosition.x, goalPosition.y + if (FieldManager.isBlueAlliance) -0.1 else 0.1)
+            distance += (p4 - p3).length
+            val p5 = Vector2(goalPosition.x, goalPosition.y)
+            distance += (p5 - p4).length
+            println("Distance: $distance")
+            val rateCurve = MotionCurve()
+            rateCurve.setMarkBeginOrEndKeysToZeroSlope(false)
+            rateCurve.storeValue(1.0, 2.0)  // distance, rate
+            rateCurve.storeValue(8.0, 4.0)  // distance, rate
+            val rate = rateCurve.getValue(distance) // ft per sec
+            val time = distance / rate
+            newPath.addEasePoint(time, 1.0)
+            newPath.addVector2(p1)
+            newPath.addVector2(p2)
+            newPath.addVector2(p3)
+            newPath.addVector2(p4)
+            newPath.addVector2(p5)
+            newPath.addHeadingPoint(0.0, heading.asDegrees)
+            newPath.addHeadingPoint(1.0, heading.asDegrees)// + (180.0.degrees - heading).wrap().asDegrees)
+            Drive.driveAlongPath(newPath) { abortPath() }
+            OI.controlledBy = OI.personInControl.NONE
         }
-        val p4 = Vector2(goalPosition.x,goalPosition.y + if (FieldManager.isBlueAlliance) -0.1 else 0.1)
-        distance += (p4 - p3).length
-        val p5 = Vector2(goalPosition.x, goalPosition.y)
-        distance += (p5 - p4).length
-        println("Distance: $distance")
-        val rateCurve = MotionCurve()
-        rateCurve.setMarkBeginOrEndKeysToZeroSlope(false)
-        rateCurve.storeValue(1.0, 2.0)  // distance, rate
-        rateCurve.storeValue(8.0, 4.0)  // distance, rate
-        val rate = rateCurve.getValue(distance) // ft per sec
-        val time = distance / rate
-        newPath.addEasePoint(time, 1.0)
-        newPath.addVector2(p1)
-        newPath.addVector2(p2)
-        newPath.addVector2(p3)
-        newPath.addVector2(p4)
-        newPath.addVector2(p5)
-        newPath.addHeadingPoint(0.0, heading.asDegrees)
-        newPath.addHeadingPoint(1.0, heading.asDegrees)// + (180.0.degrees - heading).wrap().asDegrees)
-        Drive.driveAlongPath(newPath){ abortPath() }
     }
     suspend fun dynamicGoToGamePieceOnFloor(goalPosition: Vector2) = use(Drive){
         val newPath = Path2D("newPath")
