@@ -10,11 +10,9 @@ import org.photonvision.PhotonCamera
 import org.photonvision.PhotonPoseEstimator
 import org.photonvision.targeting.PhotonPipelineResult
 import org.team2471.frc.lib.coroutines.periodic
-import org.team2471.frc.lib.units.asMeters
-import org.team2471.frc.lib.units.asRadians
-import org.team2471.frc.lib.units.degrees
-import org.team2471.frc.lib.units.inches
+import org.team2471.frc.lib.units.*
 import kotlin.math.abs
+import kotlin.math.absoluteValue
 
 
 object AprilTag {
@@ -25,10 +23,13 @@ object AprilTag {
 
     private val aprilTagFieldLayout : AprilTagFieldLayout = AprilTagFieldLayout.loadFromResource(AprilTagFields.kDefaultField.m_resourceFile)
     private val validTags : List<Int> = aprilTagFieldLayout.tags.map { it.ID }
-    private val camFront = PhotonCamera("PVFront")
-    private val camBack = PhotonCamera("PVBack")
-    private val frontPoseEstimator : PhotonPoseEstimator
-    private val backPoseEstimator : PhotonPoseEstimator
+
+    private var camFront: PhotonCamera? = null
+    private var camBack: PhotonCamera? = null
+
+
+    private var frontPoseEstimator : PhotonPoseEstimator? = null
+    private var backPoseEstimator : PhotonPoseEstimator? = null
     private const val maxAmbiguity = 0.1
     private var lastPose = Pose2d(0.0,0.0, Rotation2d(0.0))
     private var lastDetectionTime = 0.0
@@ -46,17 +47,39 @@ object AprilTag {
         Rotation3d(0.0.degrees.asRadians, 11.0.degrees.asRadians, 180.0.degrees.asRadians)
     )
     init {
+        try {
+            if (pvTable.containsSubTable("PVFront")) {
+           camFront = PhotonCamera("PVFront")
+
         frontPoseEstimator = PhotonPoseEstimator(aprilTagFieldLayout, PhotonPoseEstimator.PoseStrategy.MULTI_TAG_PNP, camFront, robotToCamFront)
+            }
+        } catch (ex:Exception) {
+            println("Front pose failed")
+        }
+        try {
+            if (pvTable.containsSubTable("PVBack")) {
+                camBack = PhotonCamera("PVBack")
         backPoseEstimator = PhotonPoseEstimator(aprilTagFieldLayout, PhotonPoseEstimator.PoseStrategy.MULTI_TAG_PNP, camBack, robotToCamBack)
+            }
+        } catch (ex:Exception) {
+            println("Back pose failed")
+        }
+//        frontPoseEstimator.setMultiTagFallbackStrategy(PhotonPoseEstimator.PoseStrategy.CLOSEST_TO_REFERENCE_POSE)
+//        backPoseEstimator.setMultiTagFallbackStrategy(PhotonPoseEstimator.PoseStrategy.CLOSEST_TO_REFERENCE_POSE)
         GlobalScope.launch {
             periodic {
-//                if (PoseEstimator.currentPose.y < 23.52083 || PoseEstimator.currentPose.y > 31.7916) {
+
+//                frontPoseEstimator.referencePose = Pose3d(Pose2d(PoseEstimator.currentPose.toWPIField(), Rotation2d(Drive.heading.asRadians)))
+//                backPoseEstimator.referencePose = Pose3d(Pose2d(PoseEstimator.currentPose.toWPIField(), Rotation2d(Drive.heading.asRadians)))
+                try {
                 val frontCamSelected = useFrontCam()
                 frontCamSelectedEntry.setBoolean(frontCamSelected)
                 val maybePose = if (frontCamSelected) {
-                    getEstimatedGlobalPose(camFront, frontPoseEstimator)
+
+                        frontPoseEstimator?.let { camFront?.let { it1 -> getEstimatedGlobalPose(it1, it) } }
+
                 } else {
-                    getEstimatedGlobalPose(camBack, backPoseEstimator)
+                        backPoseEstimator?.let { camBack?.let { it1 -> getEstimatedGlobalPose(it1, it) } }
                 }
                 if (maybePose != null) {
 //                        println("MaybePose: $maybePose")
@@ -73,8 +96,9 @@ object AprilTag {
 //                        stdDevs.fill(0.3)
 //                        MAPoseEstimator.addVisionData(listOf(TimestampedVisionUpdate(lastDetection.timestamp, FieldManager.convertTMMtoWPI(
 //                            lastDetection.pose.x.feet, lastDetection.pose.y.feet,  lastDetection.pose.rotation.degrees.degrees), stdDevs)))
+                }} catch (ex:Exception) {
+                    println("Error in apriltag")
                 }
-//                }
             }
         }
     }
@@ -91,12 +115,20 @@ object AprilTag {
     }
 
     fun getEstimatedGlobalPose(camera: PhotonCamera, estimator: PhotonPoseEstimator): Pose2d? {
-
-        val cameraResult: PhotonPipelineResult = camera.latestResult
+        try {
+            val cameraResult: PhotonPipelineResult = camera.latestResult
         val validTargets = cameraResult.targets//.filter{ validTags.contains(it.fiducialId) && it.poseAmbiguity < maxAmbiguity }
         //val poseList = cameraResult.targets.map { it.poseAmbiguity }.toString()
-
-        if (validTargets.count() < 2) {// || validTargets.count() != cameraResult.targets.count()) {
+        for (target in validTargets) {
+            if (target.fiducialId > 8) {
+                println("Invalid Tag")
+                return null
+            }
+        }
+        if (validTargets.isEmpty()) {
+            return null
+        }
+        if (validTargets.count() < 2 && !(PoseEstimator.currentPose.y.absoluteValue > FieldManager.chargeFromCenterY.asFeet && validTargets.first().poseAmbiguity < 0.05)) {// || validTargets.count() != cameraResult.targets.count()) {
 //            if (validTargets.count() < cameraResult.targets.count()) {
 //                print("invalid target detected : ")
 //                if (cameraResult.targets.any { !validTags.contains(it.fiducialId) }) {
@@ -118,6 +150,9 @@ object AprilTag {
             result.estimatedPose.toPose2d()
         } else {
             null
+        }
+        } catch (ex: Exception) {
+            return null
         }
     }
 //
