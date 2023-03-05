@@ -49,9 +49,8 @@ object AprilTag {
     init {
         try {
             if (pvTable.containsSubTable("PVFront")) {
-           camFront = PhotonCamera("PVFront")
-
-        frontPoseEstimator = PhotonPoseEstimator(aprilTagFieldLayout, PhotonPoseEstimator.PoseStrategy.MULTI_TAG_PNP, camFront, robotToCamFront)
+                camFront = PhotonCamera("PVFront")
+                frontPoseEstimator = PhotonPoseEstimator(aprilTagFieldLayout, PhotonPoseEstimator.PoseStrategy.MULTI_TAG_PNP, camFront, robotToCamFront)
             }
         } catch (ex:Exception) {
             println("Front pose failed")
@@ -59,7 +58,7 @@ object AprilTag {
         try {
             if (pvTable.containsSubTable("PVBack")) {
                 camBack = PhotonCamera("PVBack")
-        backPoseEstimator = PhotonPoseEstimator(aprilTagFieldLayout, PhotonPoseEstimator.PoseStrategy.MULTI_TAG_PNP, camBack, robotToCamBack)
+                backPoseEstimator = PhotonPoseEstimator(aprilTagFieldLayout, PhotonPoseEstimator.PoseStrategy.MULTI_TAG_PNP, camBack, robotToCamBack)
             }
         } catch (ex:Exception) {
             println("Back pose failed")
@@ -72,31 +71,31 @@ object AprilTag {
 //                frontPoseEstimator.referencePose = Pose3d(Pose2d(PoseEstimator.currentPose.toWPIField(), Rotation2d(Drive.heading.asRadians)))
 //                backPoseEstimator.referencePose = Pose3d(Pose2d(PoseEstimator.currentPose.toWPIField(), Rotation2d(Drive.heading.asRadians)))
                 try {
-                val frontCamSelected = true // useFrontCam()
-                frontCamSelectedEntry.setBoolean(frontCamSelected)
-                val maybePose = if (frontCamSelected) {
-
-                        frontPoseEstimator?.let { camFront?.let { it1 -> getEstimatedGlobalPose(it1, it) } }
-
-                } else {
-                        backPoseEstimator?.let { camBack?.let { it1 -> getEstimatedGlobalPose(it1, it) } }
-                }
-                if (maybePose != null) {
-//                        println("MaybePose: $maybePose")
-                    advantagePoseEntry.setDoubleArray(
-                        doubleArrayOf(
-                            maybePose.x,
-                            maybePose.y,
-                            maybePose.rotation.degrees
+                    val frontCamSelected = useFrontCam()
+                    frontCamSelectedEntry.setBoolean(frontCamSelected)
+                    var maybePose: Pose2d?
+                    var numTarget = 0
+                    if (frontCamSelected) {
+                        maybePose = frontPoseEstimator?.let { camFront?.let { it1 -> getEstimatedGlobalPose(it1, it) } }
+                        numTarget = camFront?.latestResult?.targets?.count() ?: 0
+                    } else {
+                        maybePose = backPoseEstimator?.let { camBack?.let { it1 -> getEstimatedGlobalPose(it1, it) } }
+                        numTarget = camBack?.latestResult?.targets?.count() ?: 0
+                    }
+                    if (maybePose != null) {
+    //                        println("MaybePose: $maybePose")
+                        advantagePoseEntry.setDoubleArray(
+                            doubleArrayOf(
+                                maybePose.x,
+                                maybePose.y,
+                                maybePose.rotation.degrees
+                            )
                         )
-                    )
-                    lastPose = maybePose
-                    PoseEstimator.addVision(lastDetection)
-//                        val stdDevs = Matrix(Nat.N3(), Nat.N1())
-//                        stdDevs.fill(0.3)
-//                        MAPoseEstimator.addVisionData(listOf(TimestampedVisionUpdate(lastDetection.timestamp, FieldManager.convertTMMtoWPI(
-//                            lastDetection.pose.x.feet, lastDetection.pose.y.feet,  lastDetection.pose.rotation.degrees.degrees), stdDevs)))
-                }} catch (ex:Exception) {
+                        lastPose = maybePose
+
+                        PoseEstimator.addVision(lastDetection, numTarget)
+                    }
+                } catch (ex:Exception) {
                     println("Error in apriltag")
                 }
             }

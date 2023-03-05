@@ -266,11 +266,11 @@ suspend fun intakeCurrentLogic() {
 
     suspend fun flip() = use(Arm) {
         Drive.maxTranslation = 1.0
-        if (Intake.wristAngle < -75.degrees) {
+        if (Intake.wristAngle < -75.degrees || Arm.wristPosition.x < -10.0) {
             animateToPose(Pose.FLIP_INTAKE_TO_FRONT_POSE)
             animateToPose(Pose.FLIP_INTAKE_TO_FRONT_WRIST)
             animateToPose(Pose.FRONT_DRIVE_POSE)
-        } else if (Intake.wristAngle > 75.0.degrees) {
+        } else if (Intake.wristAngle > 75.0.degrees || Arm.wristPosition.x > 10.0) {
             animateToPose(Pose.FLIP_INTAKE_TO_BACK_POSE)
             animateToPose(Pose.FLIP_INTAKE_TO_BACK_WRIST)
             animateToPose(Pose.BACK_DRIVE_POSE)
@@ -279,19 +279,18 @@ suspend fun intakeCurrentLogic() {
 
     suspend fun scoreObject() = use(Arm, Intake) {
         println("in scoreObject")
-//        when (FieldManager.getSelectedNode()?.level) {
-//            Level.MID -> {
-                val midPose = Pose.current + Pose(Vector2(2.0, -2.0), 40.0.degrees, 0.0.degrees)
+        when (FieldManager.getSelectedNode()?.level) {
+            Level.MID -> {
+                val midPose = Pose.current + Pose(Vector2(7.0, -2.0), 40.0.degrees, 0.0.degrees)
                 animateToPose(midPose, 1.0)
-                Intake.intakeMotor.setPercentOutput(0.7)
+                Intake.intakeMotor.setPercentOutput(0.6)
 
                 delay(1.0) //just for testing that they separately work. remove later
                 animateToPose(midPose + Pose(Vector2(6.0, -2.0), 10.0.degrees, 0.0.degrees))
-//            }
-//            else -> println("Currently can't score there.")
-//        }
-        toDrivePose()
-
+            }
+            else -> println("Currently can't score there.")
+        }
+        flip()
     }
 
     suspend fun toDrivePose() = use(Arm, Intake) {

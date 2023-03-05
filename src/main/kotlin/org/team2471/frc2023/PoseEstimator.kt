@@ -39,7 +39,7 @@ object PoseEstimator {
             }
         }
     }
-    fun addVision(detection: AprilDetection) {
+    fun addVision(detection: AprilDetection, numTarget: Int) {
         //Ignoring Vision data if timestamp is before the last zero
         if (detection.timestamp < lastZeroTimestamp) {
 //            println("Stopping...")
@@ -47,7 +47,7 @@ object PoseEstimator {
         }
 
         try {
-            val kApril = kAprilEntry.getDouble(0.25)
+            val kApril = kAprilEntry.getDouble(0.25) * if (numTarget < 2) 0.2 else 1.0
             val latencyPose = Drive.lookupPose(detection.timestamp)?.position
             if (latencyPose != null) {
                 val odomDiff = Drive.position - latencyPose
