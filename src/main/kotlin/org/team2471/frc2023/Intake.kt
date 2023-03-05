@@ -247,7 +247,7 @@ object Intake : Subsystem("Intake") {
     fun initializePixy() {
         pixy = Pixy2.createInstance(SPILink()) // Creates a new Pixy2 camera using SPILink
         pixy.init() // Initializes the camera and prepares to send/receive data
-        pixy.setLamp(1.toByte(), 1.toByte()) // Turns the LEDs on
+        pixy.setLamp(0.toByte(), 0.toByte()) // Turns the LEDs on
         pixy.setLED(255, 255, 255) // Sets the RGB LED to full white
     }
 

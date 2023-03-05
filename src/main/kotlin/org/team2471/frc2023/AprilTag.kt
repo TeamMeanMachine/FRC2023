@@ -117,27 +117,18 @@ object AprilTag {
         try {
             val cameraResult: PhotonPipelineResult = camera.latestResult
         val validTargets = cameraResult.targets//.filter{ validTags.contains(it.fiducialId) && it.poseAmbiguity < maxAmbiguity }
-        //val poseList = cameraResult.targets.map { it.poseAmbiguity }.toString()
+        if (validTargets.isEmpty()) {
+            // println("AprilTag: Empty Tags")
+            return null
+        }
         for (target in validTargets) {
             if (target.fiducialId > 8) {
-                println("Invalid Tag")
+         //       println("AprilTag: Invalid Tag")
                 return null
             }
         }
-        if (validTargets.isEmpty()) {
-            return null
-        }
-        if (validTargets.count() < 2 && !(PoseEstimator.currentPose.y.absoluteValue > FieldManager.chargeFromCenterY.asFeet && validTargets.first().poseAmbiguity < 0.05)) {// || validTargets.count() != cameraResult.targets.count()) {
-//            if (validTargets.count() < cameraResult.targets.count()) {
-//                print("invalid target detected : ")
-//                if (cameraResult.targets.any { !validTags.contains(it.fiducialId) }) {
-//                    print("invalid id  ")
-//                }
-//                if (cameraResult.targets.any {it.poseAmbiguity >= maxAmbiguity}) {
-//                    print("ambiguity too high ${poseList} ")
-//                }
-//                println(" ")
-//            }
+        if (validTargets.count() < 2 && validTargets.first().poseAmbiguity > 0.05) {
+        //    println("AprilTag: Pose Ambiguity too low")
             return null
         }
         //println("at least 2 valid targets found ${poseList}")
@@ -145,6 +136,10 @@ object AprilTag {
 //                println("newPose: $newPose")
         return if (newPose?.isPresent == true) {
             val result = newPose.get()
+            if (validTargets.count() < 2 && result.estimatedPose.y.absoluteValue < (FieldManager.chargeFromCenterY + FieldManager.chargingStationDepth).asMeters) {
+              //  println("AprilTag: Single target too far away ${result.estimatedPose.y.absoluteValue} vs ${(FieldManager.chargeFromCenterY + FieldManager.chargingStationDepth).asMeters}")
+                return null
+            }
             lastDetectionTime = result.timestampSeconds
             result.estimatedPose.toPose2d()
         } else {
