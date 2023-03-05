@@ -2,8 +2,6 @@ package org.team2471.frc2023//package org.team2471.frc2023
 
 import edu.wpi.first.wpilibj.SerialPort
 import edu.wpi.first.wpilibj.Timer
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 import org.team2471.frc.lib.framework.Subsystem
 import org.team2471.frc.lib.coroutines.periodic
 import org.team2471.frc.lib.input.Controller
@@ -22,7 +20,7 @@ object SignalLights : Subsystem("SignalLights") {
             }
         }
         idle()
-        GlobalScope.launch {
+        /*GlobalScope.launch {
             periodic {
                 when (OI.operatorController.dPad) {
                     Controller.Direction.LEFT -> idle()
@@ -36,7 +34,7 @@ object SignalLights : Subsystem("SignalLights") {
                     idle()
                 }
             }
-        }
+        }*/
     }
     fun flashYellow() {
         if (this.state != LightState.YELLOW) {
@@ -45,6 +43,7 @@ object SignalLights : Subsystem("SignalLights") {
             serial?.write(byteArrayOf('y'.code.toByte()), 1)
         }
     }
+
     fun flashPurple(){
         if (this.state != LightState.PURPLE) {
             println("flashing purple")
@@ -52,20 +51,15 @@ object SignalLights : Subsystem("SignalLights") {
             serial?.write(byteArrayOf('p'.code.toByte()), 1)
         }
     }
-    fun flashGreen(){
+
+    fun green(){
         if (this.state != LightState.GREEN) {
             println("flashing green")
             this.state = LightState.GREEN
             serial?.write(byteArrayOf('g'.code.toByte()), 1)
         }
     }
-    fun rainbow(){
-        if (this.state != LightState.RAINBOW) {
-            println("flashing rainbow")
-            this.state = LightState.RAINBOW
-            serial?.write(byteArrayOf('r'.code.toByte()), 1)
-        }
-    }
+
     fun idle(){
         if (this.state != LightState.IDLE) {
             println("starting signal lights")
@@ -73,6 +67,7 @@ object SignalLights : Subsystem("SignalLights") {
             serial?.write(byteArrayOf('s'.code.toByte()), 1)
         }
     }
+
     fun off(){
         if (this.state != LightState.OFF) {
             println("signal lights off")
@@ -80,37 +75,25 @@ object SignalLights : Subsystem("SignalLights") {
             serial?.write(byteArrayOf('o'.code.toByte()), 1)
         }
     }
-    fun doD(){
-        println("signal lights off")
-        serial?.write(byteArrayOf('d'.code.toByte()), 1)
-    }
+
     override suspend fun default() {
         periodic {
             when (OI.operatorController.dPad) {
-                Controller.Direction.DOWN -> flashYellow()
-                    Controller.Direction.UP -> flashPurple()
-                Controller.Direction.LEFT -> doD()
-                Controller.Direction.RIGHT -> off()
+                Controller.Direction.LEFT -> idle()
+                Controller.Direction.RIGHT -> green()
                 else -> {}
             }
-//            if (OI.operatorController.y) {
-//                // Pattern - yellow flashing
-//                flashYellow()
-//                //flashYellow()
-//            }
-//            else if (OI.operatorController.x) {
-//                // Pattern - purple flashing
-//                flashPurple()
-//                //flashPurple()
-//            }
-//            else if (OI.operatorController.b){
-//                if(OI.operatorController.y){
-//                    rainbow()
-//                }
-//            }
+
+            if (Intake.holdDetectedTime + 3.0 > Timer.getFPGATimestamp()) {
+                green()
+                println("Setting To Green!")
+            } else if (Intake.holdDetectedTime + 3.0 < Timer.getFPGATimestamp() && state == LightState.GREEN) {
+                idle()
+            }
         }
     }
-    fun connectToSerial(port:SerialPort.Port){
+
+    private fun connectToSerial(port:SerialPort.Port) {
         try {
             serial = SerialPort(9600, port)
             println("connected to ${port.name}")
@@ -118,6 +101,7 @@ object SignalLights : Subsystem("SignalLights") {
             println("failed to connect to serial port : ${port.name}")
         }
     }
+
     override fun preEnable() {
         // Set starting pattern - Red
         for (port in ports) {
@@ -125,6 +109,7 @@ object SignalLights : Subsystem("SignalLights") {
                 connectToSerial(port)
             }
         }
+
         idle()
     }
 
@@ -136,5 +121,5 @@ object SignalLights : Subsystem("SignalLights") {
 }
 
 enum class LightState {
-    PURPLE, YELLOW, GREEN, IDLE, RAINBOW, OFF
+    PURPLE, YELLOW, GREEN, IDLE, RED, BLUE, OFF
 }
