@@ -51,7 +51,7 @@ object Arm : Subsystem("Arm") {
     var seesElbowSwitch = false
 
     val shoulderAngle: Angle
-        get() = if (isCompBot) (-(shoulderEncoder.value - 3020.0).degrees / (if (shoulderEncoder.value - 3020.0 < 0.0) 12.1 else 10.5) + shoulderOffset) else shoulderEncoder.value.degrees
+        get() = (-shoulderEncoder.value.degrees + 1186.degrees) / if (-shoulderEncoder.value + 1186 < 0.0) 12.4 else 9.8 //(-shoulderEncoder.value.degrees / (if (-shoulderEncoder.value + 113.0 < 0.0) 16.0 else 10.5) + 113.0.degrees)
     val shoulderAnalogAngle: Angle
         get() = shoulderEncoder.value.degrees
     var shoulderOffset = 0.0.degrees
@@ -77,7 +77,7 @@ object Arm : Subsystem("Arm") {
     val shoulderFollowerAngle: Angle
         get() = shoulderFollowerMotor.position.degrees + shoulderOffset
     val elbowAngle: Angle
-        get() = if (isCompBot) -(elbowEncoder.value.degrees * 180.0 / 2008.0 - 315.0.degrees).wrap() else elbowEncoder.value.degrees
+        get() = (-elbowEncoder.value.degrees + 2687.degrees) * 90.0 / 1054.0 // if (isCompBot) -(elbowEncoder.value.degrees * 180.0 / 2008.0 - 315.0.degrees).wrap() else elbowEncoder.value.degrees
     var elbowOffset = 0.0.degrees
     var elbowSetpoint: Angle = elbowAngle
         set(value) {

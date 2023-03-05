@@ -64,7 +64,7 @@ object Intake : Subsystem("Intake") {
             field = value.asDegrees.coerceIn(wristMin.asDegrees, wristMax.asDegrees).degrees
             wristSetpointEntry.setDouble(field.asDegrees)
 //            println("field: ${round(field.asDegrees,1)}     offset: ${round(wristOffset.asDegrees, 1)}")
-//            wristMotor.setPositionSetpoint((field + wristOffset).asDegrees)
+            wristMotor.setPositionSetpoint((field + wristOffset).asDegrees)
         }
 
     val pivotAnalogAngle: Angle

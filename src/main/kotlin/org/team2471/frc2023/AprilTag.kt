@@ -72,7 +72,7 @@ object AprilTag {
 //                frontPoseEstimator.referencePose = Pose3d(Pose2d(PoseEstimator.currentPose.toWPIField(), Rotation2d(Drive.heading.asRadians)))
 //                backPoseEstimator.referencePose = Pose3d(Pose2d(PoseEstimator.currentPose.toWPIField(), Rotation2d(Drive.heading.asRadians)))
                 try {
-                val frontCamSelected = useFrontCam()
+                val frontCamSelected = true // useFrontCam()
                 frontCamSelectedEntry.setBoolean(frontCamSelected)
                 val maybePose = if (frontCamSelected) {
 

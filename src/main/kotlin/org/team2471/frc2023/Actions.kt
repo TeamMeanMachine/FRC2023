@@ -290,6 +290,7 @@ suspend fun intakeCurrentLogic() {
 //            }
 //            else -> println("Currently can't score there.")
 //        }
+        toDrivePose()
 
     }
 

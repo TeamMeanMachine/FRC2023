@@ -9,7 +9,6 @@ import org.team2471.frc.lib.motion_profiling.MotionCurve
 import org.team2471.frc.lib.motion_profiling.Path2D
 import org.team2471.frc.lib.units.Angle
 import org.team2471.frc.lib.units.degrees
-import java.util.Optional
 import kotlin.math.absoluteValue
 
 data class Pose(val wristPosition: Vector2, val wristAngle: Angle, val pivotAngle: Angle) {
@@ -18,12 +17,12 @@ data class Pose(val wristPosition: Vector2, val wristAngle: Angle, val pivotAngl
             get() = Pose(Arm.wristPosition, Intake.wristAngle, Intake.pivotAngle)
         val START_POSE = Pose(Vector2(0.0, 9.0), -90.0.degrees, -90.0.degrees)
         val GROUND_INTAKE_FRONT = Pose(Vector2(18.0, 15.0), 90.0.degrees, -90.0.degrees)
-        val GROUND_INTAKE_POSE_NEAR = Pose(Vector2(18.0, 12.0), 90.0.degrees, 0.0.degrees)
-        val GROUND_INTAKE_POSE_FAR = Pose(Vector2(40.0, 12.0), 90.0.degrees, 0.0.degrees)
+        val GROUND_INTAKE_POSE_NEAR = Pose(Vector2(18.0, 10.5), 90.0.degrees, 0.0.degrees)
+        val GROUND_INTAKE_POSE_FAR = Pose(Vector2(40.0, 10.5), 90.0.degrees, 0.0.degrees)
 //        val SHELF_INTAKE_POSE = Pose(Vector2(0.0, 9.0), -90.0.degrees, 180.0.degrees)
 //        val LOW_SCORE = Pose(Vector2(0.0, 9.0), -90.0.degrees, 180.0.degrees)
-        val BACK_MIDDLE_SCORE_CONE_AWAY = Pose(Vector2(-35.0, 28.0), -200.0.degrees, -180.0.degrees)
-        val BACK_MIDDLE_SCORE_CONE_TOWARD = Pose(Vector2(-34.0, 26.0), -100.0.degrees, 0.0.degrees)
+        val BACK_MIDDLE_SCORE_CONE_AWAY = Pose(Vector2(-42.0, 22.0), -180.0.degrees, -180.0.degrees)
+        val BACK_MIDDLE_SCORE_CONE_TOWARD = Pose(Vector2(-34.0, 29.0), -100.0.degrees, 0.0.degrees)
         val BACK_HIGH_SCORE_CONE_TOWARD_MID = Pose(Vector2(-28.0, 42.0), -100.0.degrees, 0.0.degrees)
         val BACK_HIGH_SCORE_CONE_TOWARD = Pose(Vector2(-52.0, 42.0), -100.0.degrees, 0.0.degrees)
         val BACK_HIGH_SCORE_CONE_AWAY_MID = Pose(Vector2(-29.0, 44.0), -200.0.degrees, -180.0.degrees)
