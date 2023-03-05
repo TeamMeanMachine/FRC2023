@@ -284,12 +284,11 @@ suspend fun intakeCurrentLogic() {
                 val midPose = Pose.current + Pose(Vector2(7.0, -2.0), 40.0.degrees, 0.0.degrees)
                 animateToPose(midPose, 1.0)
                 Intake.intakeMotor.setPercentOutput(0.6)
-
-                delay(1.0) //just for testing that they separately work. remove later
                 animateToPose(midPose + Pose(Vector2(6.0, -2.0), 10.0.degrees, 0.0.degrees))
             }
             else -> println("Currently can't score there.")
         }
+        toDrivePose()
         flip()
     }
 
