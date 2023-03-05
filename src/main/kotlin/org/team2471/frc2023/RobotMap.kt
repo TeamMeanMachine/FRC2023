@@ -23,9 +23,9 @@ object AnalogSensors {
 }
 
 object DigitalSensors {
-    const val SHOULDER_SWTICH = 5
-    const val ELBOW_SWITCH = 4
-    const val WRIST_SWITCH = 6
+    const val SHOULDER_SWTICH = 6
+    const val ELBOW_SWITCH = 5
+    const val WRIST_SWITCH = 4
 }
 
 object Falcons {

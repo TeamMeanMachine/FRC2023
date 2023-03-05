@@ -5,7 +5,6 @@ import org.team2471.frc.lib.math.Vector2
 import org.team2471.frc.lib.math.cube
 import org.team2471.frc.lib.math.deadband
 import org.team2471.frc.lib.math.squareWithSign
-import org.team2471.frc.lib.units.degrees
 
 object OI {
     val driverController = XboxController(0)
@@ -59,24 +58,17 @@ object OI {
        // driverController::a.whenTrue { Drive.dynamicDriveThreeFeetY()}
 //        driverController::b.whenTrue { Drive.dynamicGoToFeeder()}
         driverController::leftBumper.whenTrue { Drive.dynamicGoToScoreCheck() }
-        ({driveRightTrigger > 0.1}).whenTrue { //score testing time
-            Intake.intakeMotor.setPercentOutput(1.0)
-//            animateToPose(Pose.current + Pose(Vector2(-6.0, -3.0), 30.0.degrees, 0.0.degrees))
-//            Intake.intakeMotor.setPercentOutput(0.2) //intake bad
-//            Drive.maxTranslation = 1.0
+        ({driveRightTrigger > 0.1}).whenTrue { //score
+            scoreObject()
         }
         ({driveLeftTrigger > 0.1}).whenTrue {
             flip()
         }
 
+
         operatorController::back.whenTrue { Arm.resetShoulderZero()}
         operatorController::start.whenTrue {
-            Arm.wristPosOffset = Vector2(0.0, 0.0)
-            Intake.wristOffset = 0.0.degrees
-            Intake.pivotOffset = 0.0.degrees
-            Intake.intakeMotor.setPercentOutput(0.0)
-            if (Intake.wristAngle < -75.0.degrees) animateToPose(Pose.BACK_DRIVE_POSE) else if (Intake.wristAngle > 75.0.degrees) animateToPose(Pose.FRONT_DRIVE_POSE)
-            Drive.maxTranslation = 1.0
+            toDrivePose()
         }
         operatorController::leftBumper.whenTrue { backScoreTowardCone() }
         operatorController::rightBumper.whenTrue { backScoreAwayCone() }

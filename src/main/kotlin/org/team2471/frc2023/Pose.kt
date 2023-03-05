@@ -9,6 +9,7 @@ import org.team2471.frc.lib.motion_profiling.MotionCurve
 import org.team2471.frc.lib.motion_profiling.Path2D
 import org.team2471.frc.lib.units.Angle
 import org.team2471.frc.lib.units.degrees
+import java.util.Optional
 import kotlin.math.absoluteValue
 
 data class Pose(val wristPosition: Vector2, val wristAngle: Angle, val pivotAngle: Angle) {
@@ -38,7 +39,7 @@ data class Pose(val wristPosition: Vector2, val wristAngle: Angle, val pivotAngl
     operator fun plus(otherPose: Pose) = Pose(wristPosition + otherPose.wristPosition, wristAngle + otherPose.wristAngle, pivotAngle + otherPose.pivotAngle)
 }
 
-suspend fun animateToPose(pose: Pose) = use(Arm, Intake) {
+suspend fun animateToPose(pose: Pose, minTime: Double = 0.0) = use(Arm, Intake) {
     println("Starting Animation $pose")
     val path = Path2D("newPath")
     path.addVector2(Pose.current.wristPosition)
@@ -55,8 +56,8 @@ suspend fun animateToPose(pose: Pose) = use(Arm, Intake) {
     rate = 200.0 // deg per second
     var pivotTime = distance / rate
 
-    val time = maxOf(wristPosTime, wristTime, pivotTime)
-    println("wristPosT: ${round(wristPosTime, 1)}    wristAngle: ${round(Intake.wristAngle.asDegrees, 1)} wristT: ${round(wristTime, 1)}      pivotT: ${round(pivotTime, 1)}")
+    val time = maxOf(wristPosTime, wristTime, pivotTime, minTime)
+    println("wristPosT: ${round(wristPosTime, 1)}    wristT: ${round(wristTime, 1)}      pivotT: ${round(pivotTime, 1)}    minT: ${round(minTime, 1)}")
 
     path.addEasePoint(0.0,0.0)
     path.addEasePoint(time, 1.0)

@@ -40,17 +40,20 @@ object Arm : Subsystem("Arm") {
     val shoulderIKEntry = table.getEntry("Shoulder IK Angle")
     val elbowIKEntry = table.getEntry("Elbow IK Angle")
     val shoulderFollowerEntry = table.getEntry("Shoulder Follower Angle")
+    val xFKEntry = table.getEntry("X FK Wrist Position")
+    val yFKENtry = table.getEntry("Y FK Wrist Position")
     val shoulderZeroedForwardEntry = table.getEntry("Shoulder Zero Forward")
     val shoulderZeroedBackwardEntry = table.getEntry("Shoulder Zero Backward")
     val shoulderIsZeroedEntry = table.getEntry("Shoulder Is Zeroed")
     var shoulderGetZeroCount = 0
     var shoulderZeroForward = false
     var shoulderZeroBackward = false
-//    val shoulderPose = table.getEntry("Shoulder Pose")
-//    val elbowPose = table.getEntry("Elbow Pose")
+    var seesElbowSwitch = false
 
     val shoulderAngle: Angle
-        get() = -(shoulderEncoder.value - 3020.0).degrees / (if (shoulderEncoder.value - 3020.0 < 0.0) 12.4 else 10.5) + shoulderOffset
+        get() = if (isCompBot) (-(shoulderEncoder.value - 3020.0).degrees / (if (shoulderEncoder.value - 3020.0 < 0.0) 12.1 else 10.5) + shoulderOffset) else shoulderEncoder.value.degrees
+    val shoulderAnalogAngle: Angle
+        get() = shoulderEncoder.value.degrees
     var shoulderOffset = 0.0.degrees
     var shoulderSetpoint: Angle = shoulderAngle
         set(value) {
@@ -73,12 +76,8 @@ object Arm : Subsystem("Arm") {
     var prevShoulder = shoulderAngle
     val shoulderFollowerAngle: Angle
         get() = shoulderFollowerMotor.position.degrees + shoulderOffset
-    var shoulderNegSlop = 0.0.degrees
-    var shoulderPosSlop = 0.0.degrees
-    var waitForNegative = false
-    var waitForPositive = false
     val elbowAngle: Angle
-        get() = elbowMotor.position.degrees  // if (isCompBot) -(elbowEncoder.value.degrees * 180.0 / 2008.0 - 315.0.degrees).wrap() else
+        get() = if (isCompBot) -(elbowEncoder.value.degrees * 180.0 / 2008.0 - 315.0.degrees).wrap() else elbowEncoder.value.degrees
     var elbowOffset = 0.0.degrees
     var elbowSetpoint: Angle = elbowAngle
         set(value) {
@@ -93,8 +92,10 @@ object Arm : Subsystem("Arm") {
     val elbowCurve = MotionCurve()
     var tempElbow = elbowAngle
     var prevElbow = elbowAngle
-
     var elbowIsZeroed = false
+    val elbowFilter = LinearFilter.movingAverage(5)
+    val elbowDirection
+        get() = elbowFilter.calculate(tempElbow.asDegrees - prevElbow.asDegrees)
 
     val SHOULDER_BOTTOM = -40.0
     val SHOULDER_TOP = 40.0
@@ -158,6 +159,7 @@ object Arm : Subsystem("Arm") {
     const val ROBOT_HALF_WIDTH = 36.0 / 2.0
 
     var wristPosition = forwardKinematics(shoulderAngle, elbowAngle)
+//        get() = forwardKinematics(shoulderAngle, elbowAngle)
         set(position) {
             field = position
             var clampedPosition = position + wristPosOffset
@@ -184,7 +186,10 @@ object Arm : Subsystem("Arm") {
             }
         }
 
+//    val actualWristPosition
+//        get() = forwardKinematics(shoulderAngle, elbowAngle)
     var wristPosOffset = Vector2(0.0, 0.0)
+
 
     init {
         println("Arm init")
@@ -192,7 +197,7 @@ object Arm : Subsystem("Arm") {
         shoulderFollowerMotor.restoreFactoryDefaults()
         elbowMotor.restoreFactoryDefaults()
         shoulderMotor.config(20) {
-            feedbackCoefficient = 360.0 / 42.0 / 184.0  // ticks / degrees / gear ratio
+            feedbackCoefficient = 360.0 / 42.0 / 165.0 //184.0  // ticks / degrees / gear ratio
             coastMode()
             inverted(false)
             pid {
@@ -203,7 +208,7 @@ object Arm : Subsystem("Arm") {
             burnSettings()
         }
         shoulderFollowerMotor.config(20) {
-            feedbackCoefficient = 360.0 / 42.0 / 184.0  // ticks / degrees / gear ratio
+            feedbackCoefficient = 360.0 / 42.0 / 165.0  // ticks / degrees / gear ratio
             coastMode()
             inverted(false)
             pid {
@@ -266,6 +271,9 @@ object Arm : Subsystem("Arm") {
                 elbowIKEntry.setDouble(ikElbow.asDegrees)
                 shoulderFollowerEntry.setDouble(shoulderFollowerAngle.asDegrees)
                 shoulderIsZeroedEntry.setBoolean(shoulderIsZeroed)
+                val (fkX, fkY) = forwardKinematics(shoulderAngle, elbowAngle)
+                xFKEntry.setDouble(fkX)
+                yFKENtry.setDouble(fkY)
 
                 var move = Vector2(
                     OI.operatorController.leftThumbstickX.deadband(0.2),
@@ -277,7 +285,7 @@ object Arm : Subsystem("Arm") {
 
                 //zeroing
                 if ((shoulderMotor.position - shoulderAngle.asDegrees).absoluteValue > 2.0) {
-                    println("Resetting shoulder to $shoulderAngle")
+                    println("Resetting shoulder from ${round(shoulderMotor.position, 1)} to ${round(shoulderAngle.asDegrees, 1)}")
                     shoulderMotor.setRawOffset(shoulderAngle.asDegrees)
                     shoulderFollowerMotor.setRawOffset(shoulderAngle.asDegrees)
                 }
@@ -288,8 +296,19 @@ object Arm : Subsystem("Arm") {
 
                 tempElbow = elbowAngle
 //                if (!elbowSensor.get()) {
-//                    elbowOffset -= tempElbow
-//                    elbowIsZeroed = true
+//                    if (!seesElbowSwitch){
+//                        println("zeroing from elbow ${round(elbowAngle.asDegrees, 1)}")
+//                        elbowOffset -= if (elbowDirection <= 0.0) tempElbow - 4.0.degrees else tempElbow + 1.0.degrees
+//                        println("to elbow ${round(elbowAngle.asDegrees, 1)}")
+//                    }
+//                    seesElbowSwitch = true
+//                } else {
+//                    if (seesElbowSwitch) {
+//                        println("zeroing from elbow ${round(elbowAngle.asDegrees, 1)}")
+//                        elbowOffset -= if (elbowDirection >= 0.0) tempElbow - 4.0.degrees else tempElbow + 1.0.degrees
+//                        println("to elbow ${round(elbowAngle.asDegrees, 1)}")
+//                    }
+//                    seesElbowSwitch = false
 //                }
                 prevShoulder = tempShoulder
                 prevElbow = tempElbow

@@ -165,7 +165,7 @@ object Intake : Subsystem("Intake") {
         pivotCurve.storeValue(179.0, 0.0)
         pivotCurve.storeValue(185.0, 0.0)
 
-        wristMotor.setRawOffset(90.0)
+        wristMotor.setRawOffset(-90.0)
         GlobalScope.launch(MeanlibDispatcher) {
             var tempPivot: Angle
 
