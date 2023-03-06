@@ -23,6 +23,7 @@ import org.team2471.frc.lib.motion_profiling.MotionCurve
 import org.team2471.frc.lib.units.Angle
 import org.team2471.frc.lib.units.asRadians
 import org.team2471.frc.lib.units.degrees
+import org.team2471.frc2023.Robot.isCompBot
 import kotlin.math.absoluteValue
 import kotlin.math.sin
 
@@ -59,16 +60,15 @@ object Intake : Subsystem("Intake") {
     var coneFacingUp = false
     var wristOffset = 0.0.degrees
     var wristSetpoint: Angle = wristAngle
-        get() = wristSetpointEntry.getDouble(0.0).degrees
         set(value) {
             field = value.asDegrees.coerceIn(wristMin.asDegrees, wristMax.asDegrees).degrees
-            wristSetpointEntry.setDouble(field.asDegrees)
 //            println("field: ${round(field.asDegrees,1)}     offset: ${round(wristOffset.asDegrees, 1)}")
             wristMotor.setPositionSetpoint((field + wristOffset).asDegrees)
+            wristSetpointEntry.setDouble((field + wristOffset).asDegrees)
         }
 
     val pivotAnalogAngle: Angle
-        get() = ((pivotSensor.value - 3595.0).degrees / 4096.0 * 360.0).wrap()
+        get() = ((pivotSensor.value - if (isCompBot) 3595.0 else 39.8).degrees / 4096.0 * 360.0).wrap()
     var pivotOffset: Angle = 0.0.degrees
 
     val pivotAngle: Angle

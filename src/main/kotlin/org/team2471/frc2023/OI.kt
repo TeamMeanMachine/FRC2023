@@ -1,12 +1,13 @@
 package org.team2471.frc2023
 
+import org.team2471.frc.lib.framework.Subsystem
 import org.team2471.frc.lib.input.*
 import org.team2471.frc.lib.math.Vector2
 import org.team2471.frc.lib.math.cube
 import org.team2471.frc.lib.math.deadband
 import org.team2471.frc.lib.math.squareWithSign
 
-object OI {
+object OI : Subsystem("OI") {
     val driverController = XboxController(0)
     val operatorController = XboxController(1)
 
@@ -98,6 +99,10 @@ object OI {
                 intakeFromGround()
             } //testing time
         }
+    }
+
+    override fun preEnable() {
+        controlledBy = PERSONINCONTROL.NONE
     }
     suspend fun safeAnimationCheck (wantsControl: PERSONINCONTROL, actionWithAnimation : suspend() -> Unit) {
         if (controlledBy==PERSONINCONTROL.DRIVER && wantsControl==PERSONINCONTROL.OPERATOR){

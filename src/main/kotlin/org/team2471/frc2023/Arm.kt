@@ -18,6 +18,7 @@ import org.team2471.frc.lib.motion_profiling.MotionCurve
 import org.team2471.frc.lib.units.Angle
 import org.team2471.frc.lib.units.degrees
 import org.team2471.frc.lib.units.radians
+import org.team2471.frc2023.Robot.isCompBot
 import kotlin.math.*
 
 object Arm : Subsystem("Arm") {
@@ -53,7 +54,7 @@ object Arm : Subsystem("Arm") {
     val operatorInControlEntry = table.getEntry("Operator in Control")
 
     val shoulderAngle: Angle
-        get() = (-shoulderEncoder.value.degrees + 1186.degrees) / if (-shoulderEncoder.value + 1186 < 0.0) 12.4 else 9.8 //(-shoulderEncoder.value.degrees / (if (-shoulderEncoder.value + 113.0 < 0.0) 16.0 else 10.5) + 113.0.degrees)
+        get() = if (isCompBot) ((-shoulderEncoder.value.degrees + 1186.degrees) / if (-shoulderEncoder.value + 1186 < 0.0) 12.4 else 9.8) else ((-shoulderEncoder.value.degrees + 1175.degrees) / if (-shoulderEncoder.value + 1175 < 0.0) 11.2 else 11.2) //(-shoulderEncoder.value.degrees / (if (-shoulderEncoder.value + 113.0 < 0.0) 16.0 else 10.5) + 113.0.degrees)
     val shoulderAnalogAngle: Angle
         get() = shoulderEncoder.value.degrees
     var shoulderOffset = 0.0.degrees
@@ -79,7 +80,7 @@ object Arm : Subsystem("Arm") {
     val shoulderFollowerAngle: Angle
         get() = shoulderFollowerMotor.position.degrees + shoulderOffset
     val elbowAngle: Angle
-        get() = (-elbowEncoder.value.degrees + 2738.degrees) * 90.0 / 1054.0 // if (isCompBot) -(elbowEncoder.value.degrees * 180.0 / 2008.0 - 315.0.degrees).wrap() else elbowEncoder.value.degrees
+        get() = if (isCompBot) (-elbowEncoder.value.degrees + 2738.degrees) * 90.0 / 1054.0 else (-elbowEncoder.value.degrees + 1834.degrees) * 90.0 / 1054.0
     var elbowOffset = 0.0.degrees
     var elbowSetpoint: Angle = elbowAngle
         set(value) {

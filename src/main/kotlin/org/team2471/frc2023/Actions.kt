@@ -248,17 +248,19 @@ suspend fun intakeCurrentLogic() {
     suspend fun backScoreTowardCone() = use(Arm, Intake) {
         if (Arm.wristPosition.x < -10.0 || Intake.wristAngle.asDegrees < -40.0) {
             Drive.maxTranslation = 0.3
-            when (FieldManager.getSelectedNode()?.level) {
-                Level.HIGH -> {
-                    animateToPose(Pose.BACK_HIGH_SCORE_CONE_TOWARD_MID)
-                    animateToPose(Pose.BACK_HIGH_SCORE_CONE_TOWARD)
-                }
-                Level.MID -> {
-                    animateToPose(Pose.BACK_MIDDLE_SCORE_CONE_TOWARD)
-                }
-                Level.LOW -> println("Low is not an option yet")
-                else -> { println("Error: Node level not given back") }
-            }
+            animateToPose(Pose.BACK_MIDDLE_SCORE_CONE_TOWARD)
+
+//            when (FieldManager.getSelectedNode()?.level) {
+//                Level.HIGH -> {
+//                    animateToPose(Pose.BACK_HIGH_SCORE_CONE_TOWARD_MID)
+//                    animateToPose(Pose.BACK_HIGH_SCORE_CONE_TOWARD)
+//                }
+//                Level.MID -> {
+//                    animateToPose(Pose.BACK_MIDDLE_SCORE_CONE_TOWARD)
+//                }
+//                Level.LOW -> println("Low is not an option yet")
+//                else -> { println("Error: Node level not given back") }
+//            }
         } else {
             println("Wrong side--flip first!!")
         }
