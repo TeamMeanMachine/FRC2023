@@ -618,7 +618,11 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         rateCurve.storeValue(1.0, 2.0)  // distance, rate
         rateCurve.storeValue(8.0, 4.0)  // distance, rate
         val rate = rateCurve.getValue(distance) // ft per sec
-        val time = distance / rate
+        var time = distance / rate
+        val finalHeading = if (FieldManager.isBlueAlliance) 180.0 else 0.0
+        val minSpin = 4/180.0 * (heading - finalHeading.degrees).wrap().asDegrees.absoluteValue
+        println("printing minimum spin time: $minSpin")
+        time = maxOf(time,minSpin)
         newPath.addEasePoint(time, 1.0)
         newPath.addVector2(p1)
         newPath.addVector2(p2)
@@ -626,7 +630,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         newPath.addVector2(p4)
         newPath.addVector2(p5)
         newPath.addHeadingPoint(0.0, heading.asDegrees)
-        newPath.addHeadingPoint(1.0, heading.asDegrees)// + (180.0.degrees - heading).wrap().asDegrees)
+        newPath.addHeadingPoint(time, finalHeading)
         Drive.driveAlongPath(newPath) { abortPath() }
     }
     suspend fun dynamicGoToGamePieceOnFloor(goalPosition: Vector2) = use(Drive){
