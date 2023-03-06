@@ -180,6 +180,7 @@ object Intake : Subsystem("Intake") {
 //            pivotSetpoint = -180.0.degrees
 
             periodic {
+
                 wristEntry.setDouble(wristAngle.asDegrees)
                 pivotEntry.setDouble(pivotAngle.asDegrees)
                 pivotSetpointEntry.setDouble(pivotSetpoint.asDegrees)
@@ -195,6 +196,8 @@ object Intake : Subsystem("Intake") {
                 var wrist = OI.operatorController.rightThumbstickY.deadband(0.2)
                 pivot *= 45.0 * 0.02  // degrees per second, time 1/50 second
                 wrist *= 45.0 * 0.02
+
+//                wristMotor.setPercentOutput(wrist * 0.5)
                 pivotOffset -= pivot.degrees
                 wristOffset += wrist.degrees
                 wristSetpoint += 0.0.degrees

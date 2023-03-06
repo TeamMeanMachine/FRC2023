@@ -295,7 +295,6 @@ suspend fun intakeCurrentLogic() {
     }
 
     suspend fun toDrivePose() = use(Arm, Intake) {
-        Arm.wristPosOffset = Vector2(0.0, 0.0)
         Intake.wristOffset = 0.0.degrees
         Intake.pivotOffset = 0.0.degrees
         Intake.intakeMotor.setPercentOutput(0.0)

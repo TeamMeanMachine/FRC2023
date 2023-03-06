@@ -50,6 +50,10 @@ object Arm : Subsystem("Arm") {
     var shoulderZeroBackward = false
     var seesElbowSwitch = false
 
+    val wristFrontOffsetEntry = table.getEntry("Front Wrist Offset")
+    val wristBackOffsetEntry = table.getEntry("Back Wrist Offset")
+
+
     val driverInControlEntry = table.getEntry("Driver in Control")
     val operatorInControlEntry = table.getEntry("Operator in Control")
 
@@ -128,6 +132,7 @@ object Arm : Subsystem("Arm") {
         val length1 = elbowLength
         val length2 = endPosition.length
 
+
         // Inner angle alpha
         val cosInnerAlpha = (length2 * length2 + length0 * length0 - length1 * length1) / (2 * length2 * length0)
         val innerAlpha = acos(cosInnerAlpha)
@@ -165,7 +170,7 @@ object Arm : Subsystem("Arm") {
 //        get() = forwardKinematics(shoulderAngle, elbowAngle)
         set(position) {
             field = position
-            var clampedPosition = position + wristPosOffset
+            var clampedPosition = position + if (position.x.absoluteValue < 10.0) Vector2(0.0, 0.0) else wristPosOffset
 
             //clamp
             clampedPosition.x = clampedPosition.x.coerceIn(-REACH_LIMIT, REACH_LIMIT)
@@ -191,7 +196,13 @@ object Arm : Subsystem("Arm") {
 
 //    val actualWristPosition
 //        get() = forwardKinematics(shoulderAngle, elbowAngle)
-    var wristPosOffset = Vector2(0.0, 0.0)
+    var wristPosOffset
+        get() = if (wristPosition.x > 0.0) wristFrontOffset else wristBackOffset
+        set(value) {
+            if (wristPosition.x > 0.0) wristFrontOffset = value else wristBackOffset = value
+        }
+    var wristFrontOffset = Vector2(0.0, 0.0)
+    var wristBackOffset = Vector2(0.0, 0.0)
 
 
     init {
@@ -259,6 +270,9 @@ object Arm : Subsystem("Arm") {
             println("shoulderFollower: ${shoulderFollowerEntry.getDouble(0.0)}")
             periodic {
 
+                wristFrontOffsetEntry.setDoubleArray(arrayOf(wristFrontOffset.x, wristFrontOffset.y))
+                wristBackOffsetEntry.setDoubleArray(arrayOf(wristBackOffset.x, wristBackOffset.y))
+
                 driverInControlEntry.setBoolean(OI.controlledBy == OI.PERSONINCONTROL.DRIVER)
                 operatorInControlEntry.setBoolean(OI.controlledBy == OI.PERSONINCONTROL.OPERATOR)
 
@@ -276,7 +290,7 @@ object Arm : Subsystem("Arm") {
                 val (ikShoulder, ikElbow) = inverseKinematics(wristPosition)
                 shoulderIKEntry.setDouble(ikShoulder.asDegrees)
                 elbowIKEntry.setDouble(ikElbow.asDegrees)
-                shoulderFollowerEntry.setDouble(shoulderFollowerAngle.asDegrees)
+                shoulderFollowerEntry.setDouble(shoulderMotor.position)
                 shoulderIsZeroedEntry.setBoolean(shoulderIsZeroed)
                 val (fkX, fkY) = forwardKinematics(shoulderAngle, elbowAngle)
                 xFKEntry.setDouble(fkX)

@@ -626,7 +626,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         newPath.addVector2(p4)
         newPath.addVector2(p5)
         newPath.addHeadingPoint(0.0, heading.asDegrees)
-        newPath.addHeadingPoint(1.0, heading.asDegrees)// + (180.0.degrees - heading).wrap().asDegrees)
+        newPath.addHeadingPoint(1.0, if (FieldManager.isRedAlliance) (180.0.degrees - heading).wrap().asDegrees else 0.0)
         Drive.driveAlongPath(newPath) { abortPath() }
     }
     suspend fun dynamicGoToGamePieceOnFloor(goalPosition: Vector2) = use(Drive){
