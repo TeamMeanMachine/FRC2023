@@ -111,6 +111,10 @@ object FieldManager {
         return Vector2(modX.meters.asFeet, modY.meters.asFeet)
     }
 
+    fun getNode(nodeID: Int) : ScoringNode? {
+        return nodeList[nodeID]
+    }
+
     fun getSelectedNode() : ScoringNode? {
         return nodeList[NodeDeckHub.selectedNode.toInt()]
     }

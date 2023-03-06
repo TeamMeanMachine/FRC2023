@@ -578,7 +578,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
             }
         }
     }
-    private suspend fun dynamicGoToScore(goalPosition: Vector2, safeSide: SafeSide = SafeSide.DYNAMIC) = use(Drive){
+    suspend fun dynamicGoToScore(goalPosition: Vector2, safeSide: SafeSide = SafeSide.DYNAMIC) = use(Drive){
         println("GoalPosition: $goalPosition")
         println(PoseEstimator.currentPose.y)
         println(FieldManager.insideSafePointClose.y)
@@ -633,7 +633,8 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         newPath.addHeadingPoint(time, finalHeading)
         Drive.driveAlongPath(newPath) { abortPath() }
     }
-    suspend fun dynamicGoToGamePieceOnFloor(goalPosition: Vector2) = use(Drive){
+    suspend fun dynamicGoToGamePieceOnFloor(goalPosition: Vector2, goalHeading: Angle) = use(Drive){
+
         val newPath = Path2D("newPath")
         newPath.addEasePoint(0.0,0.0)
         var distance = 0.0
@@ -655,14 +656,17 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         rateCurve.storeValue(1.0, 2.0)  // distance, rate
         rateCurve.storeValue(8.0, 4.0)  // distance, rate
         val rate = rateCurve.getValue(distance) // ft per sec
-        val time = distance / rate
+        var time = distance / rate
+        val finalHeading = if (FieldManager.isBlueAlliance) 180.0 + goalHeading.asDegrees else 0.0 - goalHeading.asDegrees
+        val minSpin = 4/180.0 * (heading - finalHeading.degrees).wrap().asDegrees.absoluteValue
+        time = maxOf(time, minSpin)
         newPath.addEasePoint(time, 1.0)
         newPath.addVector2(p1)
         newPath.addVector2(p2)
         newPath.addVector2(p3)
         newPath.addVector2(p4)
         newPath.addHeadingPoint(0.0, heading.asDegrees)
-        newPath.addHeadingPoint(0.25, heading.asDegrees + (180.0.degrees - heading).wrap().asDegrees)
+        newPath.addHeadingPoint(time, finalHeading)
         Drive.driveAlongPath(newPath){ abortPath() }
     }
     suspend fun gotoScoringPosition() = use(Drive) {
