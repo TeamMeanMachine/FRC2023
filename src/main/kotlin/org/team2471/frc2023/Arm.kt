@@ -330,6 +330,7 @@ object Arm : Subsystem("Arm") {
 
     override fun preEnable() {
         shoulderMotor.setPercentOutput(0.0)
+        OI.controlledBy = OI.PERSONINCONTROL.NONE
         shoulderFollowerMotor.setPercentOutput(0.0)
         elbowMotor.setPercentOutput(0.0)
         wristPosition = forwardKinematics(shoulderMotor.position.degrees, elbowAngle)
