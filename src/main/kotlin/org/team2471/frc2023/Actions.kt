@@ -81,7 +81,7 @@ suspend fun tippedConeIntake() = use(Intake, Arm) {
         isIntaking = true
         parallel(
             { intakeCurrentLogic() },
-            { animateToPose(Pose.GROUND_INTAKE_POSE_FAR) }
+            { animateToPose(Pose.GROUND_INTAKE_CONE_FAR) }
         )
     } else {
         println("Tip Cone Intake: OFF")
@@ -107,7 +107,7 @@ suspend fun intakeCurrentLogic() {
             Intake.intakeMotor.setPercentOutput(Intake.INTAKE_CONE) //intake bad
             println("timer is started")
         } else if (t.get() > 2.0) {
-            if (linearFilter.calculate(Intake.intakeMotor.current) > Intake.INTAKE_DETECT_CONE && intakeDetectTime == 10000.0) { //intake bad
+            if (linearFilter.calculate(Intake.intakeMotor.current) > Intake.DETECT_CONE && intakeDetectTime == 10000.0) { //intake bad
                 intakeDetectTime = t.get() + 0.5
                 println("detected = ${intakeDetectTime}")
             }
@@ -116,9 +116,9 @@ suspend fun intakeCurrentLogic() {
                 Intake.holdDetectedTime = edu.wpi.first.wpilibj.Timer.getFPGATimestamp()
                 println("t_get = ${t.get()}")
             }
-            if (t.get() > intakeDetectTime + 2.0) Intake.intakeMotor.setPercentOutput(Intake.INTAKE_HOLD_CONE) //intake bad
+            if (t.get() > intakeDetectTime + 2.0) Intake.intakeMotor.setPercentOutput(Intake.HOLD_CONE) //intake bad
             if (OI.operatorRightTrigger < 0.05) {
-                Intake.intakeMotor.setPercentOutput(if (Intake.holdingObject) Intake.INTAKE_HOLD_CONE else 0.0) //intake bad
+                Intake.intakeMotor.setPercentOutput(if (Intake.holdingObject) Intake.HOLD_CONE else 0.0) //intake bad
                 this.stop()
             }
         }
@@ -131,9 +131,15 @@ suspend fun intakeCurrentLogic() {
                 println("in intakeFromGround")
                 val path = Path2D("newPath")
                 path.addVector2(Pose.current.wristPosition)
-                path.addVector2(Pose.GROUND_INTAKE_FRONT.wristPosition)
-                path.addVector2(Pose.GROUND_INTAKE_POSE_NEAR.wristPosition)
-                path.addVector2(Pose.GROUND_INTAKE_POSE_FAR.wristPosition)
+                if (NodeDeckHub.isCone) {
+                    path.addVector2(Pose.GROUND_INTAKE_FRONT_CONE.wristPosition)
+                    path.addVector2(Pose.GROUND_INTAKE_CONE_NEAR.wristPosition)
+                    path.addVector2(Pose.GROUND_INTAKE_CONE_FAR.wristPosition)
+                } else {
+                    path.addVector2(Pose.GROUND_INTAKE_FRONT_CUBE.wristPosition)
+                    path.addVector2(Pose.GROUND_INTAKE_CUBE_NEAR.wristPosition)
+                    path.addVector2(Pose.GROUND_INTAKE_CUBE_FAR.wristPosition)
+                }
                 val distance = path.length
                 val rate = 55.0  //  inches per second
                 val time = distance / rate
@@ -144,16 +150,26 @@ suspend fun intakeCurrentLogic() {
 
                 val wristCurve = MotionCurve()
                 wristCurve.storeValue(0.0, Pose.current.wristAngle.asDegrees)
-                wristCurve.storeValue(time * 0.35, Pose.GROUND_INTAKE_FRONT.wristAngle.asDegrees)
-                wristCurve.storeValue(startOfExtend, Pose.GROUND_INTAKE_POSE_NEAR.wristAngle.asDegrees)
-                wristCurve.storeValue(time, Pose.GROUND_INTAKE_POSE_FAR.wristAngle.asDegrees)
+                wristCurve.storeValue(time * 0.35, Pose.GROUND_INTAKE_FRONT_CONE.wristAngle.asDegrees)
+                if (NodeDeckHub.isCone) {
+                    wristCurve.storeValue(startOfExtend, Pose.GROUND_INTAKE_CONE_NEAR.wristAngle.asDegrees)
+                    wristCurve.storeValue(time, Pose.GROUND_INTAKE_CONE_FAR.wristAngle.asDegrees)
+                } else {
+                    wristCurve.storeValue(startOfExtend, Pose.GROUND_INTAKE_CUBE_NEAR.wristAngle.asDegrees)
+                    wristCurve.storeValue(time, Pose.GROUND_INTAKE_CUBE_FAR.wristAngle.asDegrees)
+                }
 
                 val pivotCurve = MotionCurve()
                 pivotCurve.storeValue(0.0, Pose.current.pivotAngle.asDegrees)
-                pivotCurve.storeValue(startOfExtend * 0.7, -90.0)
-                pivotCurve.storeValue(startOfExtend * 0.9, -70.0)
-                pivotCurve.storeValue(startOfExtend, Pose.GROUND_INTAKE_POSE_NEAR.pivotAngle.asDegrees)
-                pivotCurve.storeValue(time, Pose.GROUND_INTAKE_POSE_FAR.pivotAngle.asDegrees)
+                if (NodeDeckHub.isCone) {
+                    pivotCurve.storeValue(startOfExtend * 0.7, -90.0)
+                    pivotCurve.storeValue(startOfExtend * 0.9, -70.0)
+                    pivotCurve.storeValue(startOfExtend, Pose.GROUND_INTAKE_CONE_NEAR.pivotAngle.asDegrees)
+                    pivotCurve.storeValue(time, Pose.GROUND_INTAKE_CONE_FAR.pivotAngle.asDegrees)
+                } else {
+                    pivotCurve.storeValue(time, Pose.GROUND_INTAKE_CUBE_NEAR.pivotAngle.asDegrees)
+                    pivotCurve.storeValue(startOfExtend, Pose.GROUND_INTAKE_CUBE_FAR.pivotAngle.asDegrees)
+                }
 
                 val slewRateLimiter = SlewRateLimiter(2.0, -2.0, 0.0)
 
@@ -169,7 +185,7 @@ suspend fun intakeCurrentLogic() {
                         this.stop()
                     }
                 }
-                Intake.intakeMotor.setPercentOutput(Intake.INTAKE_CONE) //intake bad
+                Intake.intakeMotor.setPercentOutput(if (NodeDeckHub.isCone) Intake.INTAKE_CONE else Intake.INTAKE_CUBE) //intake bad
                 if (OI.operatorController.leftTrigger > 0.05) {
                     var tInitialHold = -1.0
                     parallel({
@@ -184,7 +200,7 @@ suspend fun intakeCurrentLogic() {
                                     0.0)
                             Intake.wristSetpoint = wristCurve.getValue(tPath).degrees
                             Intake.pivotSetpoint = pivotCurve.getValue(tPath).degrees
-                            Intake.intakeMotor.setPercentOutput(if (tHold > 2.0) Intake.INTAKE_HOLD_CONE else Intake.INTAKE_CONE)
+                            Intake.intakeMotor.setPercentOutput(if (NodeDeckHub.isCone) (if (tHold > 2.0) Intake.HOLD_CONE else Intake.INTAKE_CONE) else (if (tHold > 2.0) Intake.HOLD_CUBE else Intake.INTAKE_CUBE))
                             if (OI.operatorController.leftTrigger < 0.1) {
                                 this.stop()
                             }
@@ -211,9 +227,9 @@ suspend fun intakeCurrentLogic() {
 //    }
             } finally {
                 Drive.maxTranslation = 1.0
-                Intake.intakeMotor.setPercentOutput(if (Intake.holdingObject) -Intake.INTAKE_HOLD else 0.0) //intake bad
-                animateToPose(Pose.GROUND_INTAKE_FRONT)
-                animateToPose(Pose.FRONT_DRIVE_POSE)
+                Intake.intakeMotor.setPercentOutput(if (Intake.holdingObject) (if (NodeDeckHub.isCone) Intake.HOLD_CONE else Intake.HOLD_CUBE) else 0.0) //intake bad
+                animateToPose(Pose.GROUND_INTAKE_FRONT_CONE)
+                toDrivePose()
                 if (Intake.holdingObject) {
                     animateToPose(Pose.FLIP_INTAKE_TO_BACK_POSE)
                     animateToPose(Pose.FLIP_INTAKE_TO_BACK_WRIST)
@@ -248,19 +264,17 @@ suspend fun intakeCurrentLogic() {
     suspend fun backScoreTowardCone() = use(Arm, Intake) {
         if (Arm.wristPosition.x < -10.0 || Intake.wristAngle.asDegrees < -40.0) {
             Drive.maxTranslation = 0.3
-            animateToPose(Pose.BACK_MIDDLE_SCORE_CONE_TOWARD)
-
-//            when (FieldManager.getSelectedNode()?.level) {
-//                Level.HIGH -> {
-//                    animateToPose(Pose.BACK_HIGH_SCORE_CONE_TOWARD_MID)
-//                    animateToPose(Pose.BACK_HIGH_SCORE_CONE_TOWARD)
-//                }
-//                Level.MID -> {
-//                    animateToPose(Pose.BACK_MIDDLE_SCORE_CONE_TOWARD)
-//                }
-//                Level.LOW -> println("Low is not an option yet")
-//                else -> { println("Error: Node level not given back") }
-//            }
+            when (FieldManager.getSelectedNode()?.level) {
+                Level.HIGH -> {
+                    animateToPose(Pose.BACK_HIGH_SCORE_CONE_TOWARD_MID)
+                    animateToPose(Pose.BACK_HIGH_SCORE_CONE_TOWARD)
+                }
+                Level.MID -> {
+                    animateToPose(Pose.BACK_MIDDLE_SCORE_CONE_TOWARD)
+                }
+                Level.LOW -> println("Low is not an option yet")
+                else -> { println("Error: Node level not given back") }
+            }
         } else {
             println("Wrong side--flip first!!")
         }
@@ -281,25 +295,34 @@ suspend fun intakeCurrentLogic() {
 
     suspend fun scoreObject() = use(Arm, Intake) {
         println("in scoreObject")
-        when (FieldManager.getSelectedNode()?.level) {
-            Level.MID -> {
-                val midPose = Pose.current + Pose(Vector2(7.0, -2.0), 40.0.degrees, 0.0.degrees)
-                animateToPose(midPose, 1.0)
-                Intake.intakeMotor.setPercentOutput(Intake.INTAKE_CONE_SPIT)
-                animateToPose(midPose + Pose(Vector2(6.0, -2.0), 10.0.degrees, 0.0.degrees))
-                delay(2.0)
+        if (NodeDeckHub.isCone) {
+            when (FieldManager.getSelectedNode()?.level) {
+                Level.MID -> {
+                    val midPose = Pose.current + Pose(Vector2(7.0, -2.0), 40.0.degrees, 0.0.degrees)
+                    animateToPose(midPose, 1.0)
+                    Intake.intakeMotor.setPercentOutput(Intake.CONE_SPIT)
+                    animateToPose(midPose + Pose(Vector2(6.0, -2.0), 10.0.degrees, 0.0.degrees))
+                    delay(1.0)
+                }
+
+                Level.HIGH -> {
+                    var midPose = Pose.current + Pose(Vector2(2.0, -1.0), 40.0.degrees, 0.0.degrees)
+                    animateToPose(midPose, 1.0)
+                    Intake.intakeMotor.setPercentOutput(Intake.CONE_SPIT)
+                    midPose += Pose(Vector2(6.5, 0.0), 0.0.degrees, 0.0.degrees)
+                    animateToPose(midPose)
+                    midPose += Pose(Vector2(10.0, 4.0), 0.0.degrees, 0.0.degrees)
+                    animateToPose(midPose, 2.0)
+                }
+                else -> println("Currently can't score there.")
             }
-            Level.HIGH -> {
-                var midPose = Pose.current + Pose(Vector2(2.0, -1.0), 40.0.degrees, 0.0.degrees)
-                animateToPose(midPose, 1.0)
-                Intake.intakeMotor.setPercentOutput(Intake.INTAKE_CONE_SPIT)
-                midPose += Pose(Vector2(5.0, 0.0), 0.0.degrees, 0.0.degrees)
-                animateToPose(midPose)
-                delay(2.0)
-                midPose += Pose(Vector2(10.0, 4.0), 0.0.degrees, 0.0.degrees)
-                animateToPose(midPose, 4.0)
+        } else {
+            Intake.intakeMotor.setPercentOutput(Intake.CUBE_SPIT)
+            when (FieldManager.getSelectedNode()?.level) {
+                Level.MID -> animateToPose(Pose.current + Pose(Vector2(3.0, 0.0), 0.0.degrees, 0.0.degrees))
+                Level.HIGH -> animateToPose(Pose.current + Pose(Vector2(12.0, 0.0), 0.0.degrees, 0.0.degrees))
+                else -> println("Currently can't score there.")
             }
-            else -> println("Currently can't score there.")
         }
         toDrivePose()
         flip()
@@ -310,7 +333,7 @@ suspend fun intakeCurrentLogic() {
         Intake.wristOffset = 0.0.degrees
         Intake.pivotOffset = 0.0.degrees
         Intake.intakeMotor.setPercentOutput(0.0)
-        if (Arm.wristPosition.x < 0.0) animateToPose(Pose.BACK_DRIVE_POSE) else if (Arm.wristPosition.y > 0.0) animateToPose(Pose.FRONT_DRIVE_POSE)
+        if (Arm.wristPosition.x < -10.0 || Intake.wristAngle.asDegrees < -75.0) animateToPose(Pose.BACK_DRIVE_POSE) else if (Arm.wristPosition.x > 10.0 || Intake.wristAngle.asDegrees > 75.0) animateToPose(Pose.FRONT_DRIVE_POSE)
         Drive.maxTranslation = 1.0
     }
 
