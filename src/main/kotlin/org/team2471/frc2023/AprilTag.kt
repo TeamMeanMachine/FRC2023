@@ -24,6 +24,9 @@ object AprilTag {
     private val aprilTagFieldLayout : AprilTagFieldLayout = AprilTagFieldLayout.loadFromResource(AprilTagFields.kDefaultField.m_resourceFile)
     private val validTags : List<Int> = aprilTagFieldLayout.tags.map { it.ID }
 
+    private var detectedDepthYEntry = pvTable.getEntry("AprilTag Y")
+    private var singleTagMinYEntry = pvTable.getEntry("SingleTag Min Y in Feet")
+
     private var camFront: PhotonCamera? = null
     private var camBack: PhotonCamera? = null
 
@@ -47,6 +50,7 @@ object AprilTag {
         Rotation3d(0.0.degrees.asRadians, 11.0.degrees.asRadians, 180.0.degrees.asRadians)
     )
     init {
+        singleTagMinYEntry.setDouble((FieldManager.chargeFromCenterY + FieldManager.chargingStationDepth).asFeet)
         try {
             if (pvTable.containsSubTable("PVFront")) {
                 camFront = PhotonCamera("PVFront")
@@ -136,7 +140,9 @@ object AprilTag {
 //                println("newPose: $newPose")
         return if (newPose?.isPresent == true) {
             val result = newPose.get()
-            if (validTargets.count() < 2 && result.estimatedPose.y.absoluteValue < (FieldManager.chargeFromCenterY + FieldManager.chargingStationDepth).asMeters) {
+            detectedDepthYEntry.setDouble(result.estimatedPose.toPose2d().toTMMField().y)
+            if (validTargets.count() < 2 && result.estimatedPose.toPose2d().toTMMField().y < singleTagMinYEntry.getDouble((FieldManager.chargeFromCenterY + FieldManager.chargingStationDepth).asFeet)) {
+
               //  println("AprilTag: Single target too far away ${result.estimatedPose.y.absoluteValue} vs ${(FieldManager.chargeFromCenterY + FieldManager.chargingStationDepth).asMeters}")
                 return null
             }
