@@ -45,7 +45,7 @@ object FieldManager {
         get() = (charingStationXOffset - chargingStationWidth).asFeet
 
     val startingPosition: Vector2
-        get() = Vector2 ( if (NodeDeckHub.isStartingInside) insideStartingPosition.x else outsideStartingPosition.x, if (isRedAlliance) -insideStartingPosition.y else insideStartingPosition.y)
+        get() = Vector2 ( if (NodeDeckHub.startingPoint == StartingPoint.INSIDE) insideStartingPosition.x else outsideStartingPosition.x, if (isRedAlliance) -insideStartingPosition.y else insideStartingPosition.y)
     val insideStartingPosition = Vector2(3.0, scoringNodeYPosition)
     val outsideStartingPosition = Vector2(-11.5, scoringNodeYPosition)
 
@@ -167,6 +167,11 @@ enum class SafeSide {
     OUTSIDE,
     CHARGE,
     DYNAMIC
+}
+enum class StartingPoint {
+    INSIDE,
+    OUTSIDE,
+    MIDDLE
 }
 data class AvoidanceZone (
     val name : String,
