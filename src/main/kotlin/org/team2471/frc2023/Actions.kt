@@ -283,8 +283,19 @@ suspend fun intakeCurrentLogic() {
             Level.MID -> {
                 val midPose = Pose.current + Pose(Vector2(7.0, -2.0), 40.0.degrees, 0.0.degrees)
                 animateToPose(midPose, 1.0)
-                Intake.intakeMotor.setPercentOutput(0.6)
+                Intake.intakeMotor.setPercentOutput(Intake.INTAKE_CONE_SPIT)
                 animateToPose(midPose + Pose(Vector2(6.0, -2.0), 10.0.degrees, 0.0.degrees))
+                delay(2.0)
+            }
+            Level.HIGH -> {
+                var midPose = Pose.current + Pose(Vector2(2.0, -1.0), 40.0.degrees, 0.0.degrees)
+                animateToPose(midPose, 1.0)
+                Intake.intakeMotor.setPercentOutput(Intake.INTAKE_CONE_SPIT)
+                midPose += Pose(Vector2(5.0, 0.0), 0.0.degrees, 0.0.degrees)
+                animateToPose(midPose)
+                delay(2.0)
+                midPose += Pose(Vector2(10.0, 4.0), 0.0.degrees, 0.0.degrees)
+                animateToPose(midPose, 4.0)
             }
             else -> println("Currently can't score there.")
         }

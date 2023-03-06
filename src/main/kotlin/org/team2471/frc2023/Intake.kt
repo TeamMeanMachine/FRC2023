@@ -127,6 +127,7 @@ object Intake : Subsystem("Intake") {
     const val INTAKE_HOLD = 0.25
     const val INTAKE_HOLD_CONE = -0.25
     const val INTAKE_DETECT_CONE = 25
+    const val INTAKE_CONE_SPIT = 0.6
     const val INTAKE_CURR = 55.0
 
     init {
@@ -134,7 +135,7 @@ object Intake : Subsystem("Intake") {
         wristMotor.restoreFactoryDefaults()
         intakeMotor.restoreFactoryDefaults() //intake bad
         wristMotor.config(20) {
-            feedbackCoefficient = 261.0 / 1273.0 * 200.0 / 360.0
+            feedbackCoefficient = 261.0 / 1273.0 * 200.0 / 360.0 * 1.002  //last one is fudge factor
             coastMode()
             pid {
                 p(0.00001)
