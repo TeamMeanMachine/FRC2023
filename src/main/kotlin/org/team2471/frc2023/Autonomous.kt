@@ -5,11 +5,15 @@ import edu.wpi.first.networktables.NetworkTableInstance
 import edu.wpi.first.wpilibj.DriverStation
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard
+import org.team2471.frc.lib.coroutines.delay
 //import org.team2471.bunnybots2022.Drive
 import org.team2471.frc.lib.framework.use
+import org.team2471.frc.lib.math.Vector2
 import org.team2471.frc.lib.motion.following.driveAlongPath
 import org.team2471.frc.lib.motion_profiling.Autonomi
+import org.team2471.frc.lib.units.Angle
 import org.team2471.frc.lib.units.degrees
+import org.team2471.frc.lib.units.feet
 import org.team2471.frc.lib.util.measureTimeFPGA
 import java.io.File
 import java.util.*
@@ -180,14 +184,38 @@ object AutoChooser {
         Drive.position = FieldManager.startingPosition
         Drive.zeroGyro()
         PoseEstimator.zeroOffset()
-        Drive.dynamicGoToGamePieceOnFloor(FieldManager.getClosestGamePieceOnField(), 0.0.degrees)
-        val firstPiece = FieldManager.getNode(NodeDeckHub.firstAutoPiece)
-        if (firstPiece != null) {
-            Drive.dynamicGoToScore(firstPiece.alignPosition,SafeSide.INSIDE)
-            Drive.dynamicGoToGamePieceOnFloor(FieldManager.getClosestGamePieceOnField(), 30.0.degrees)
-            val secondPiece = FieldManager.getNode(NodeDeckHub.secondAutoPiece)
+        if (NodeDeckHub.amountOfAutoPieces > 0) {
+            nodeDeckPiece(0.0.degrees, NodeDeckHub.firstAutoPiece)
+            if (NodeDeckHub.amountOfAutoPieces > 1) {
+                nodeDeckPiece(30.0.degrees, NodeDeckHub.secondAutoPiece)
+                if (NodeDeckHub.amountOfAutoPieces > 2) {
+                    nodeDeckPiece(45.0.degrees, NodeDeckHub.thirdAutoPiece)
+                }
+            }
         }
+//        var nextGamePiece = FieldManager.getClosestGamePieceOnField()
+//        println("nodedeck auto path to game piece: $nextGamePiece")
+//        Drive.dynamicGoToGamePieceOnFloor(nextGamePiece, 0.0.degrees)
 
+    }
+    suspend fun nodeDeckPiece(pickupHeading: Angle, nodeID: Int) {
+        val nextGamePiece = FieldManager.getClosestGamePieceOnField()
+        println("nodedeck auto path to game piece: $nextGamePiece")
+        Drive.dynamicGoToGamePieceOnFloor(nextGamePiece, pickupHeading)
+        println("finished goToGamePiece")
+        delay(1.0)
+        val scoringNode = FieldManager.getNode(nodeID)
+        if (scoringNode == null) {
+            println("Scoring Node is Null")
+        } else {
+            println("Nodedeck auto path to node: ${scoringNode.alignPosition}")
+            val safeSide = when (NodeDeckHub.startingPoint) {
+                StartingPoint.INSIDE -> SafeSide.INSIDE
+                StartingPoint.MIDDLE -> SafeSide.CHARGE
+                StartingPoint.OUTSIDE -> SafeSide.OUTSIDE
+            }
+            Drive.dynamicGoToScore(scoringNode.alignPosition, safeSide)
+        }
     }
 
 

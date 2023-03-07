@@ -25,6 +25,8 @@ import org.team2471.frc.lib.motion_profiling.MotionCurve
 import org.team2471.frc.lib.motion_profiling.Path2D
 import org.team2471.frc.lib.motion_profiling.following.SwerveParameters
 import org.team2471.frc.lib.units.*
+import org.team2471.frc.lib.units.Angle.Companion.cos
+import org.team2471.frc.lib.units.Angle.Companion.sin
 import kotlin.math.absoluteValue
 import kotlin.math.sign
 
@@ -558,7 +560,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         Drive.driveAlongPath(newPath) { abortPath() }
     }
 
-    suspend fun dynamicGoToScoreCheck() {
+    suspend fun dynamicGoToScoreCheck() = use(Drive) {
         periodic {
             if (!isHumanDriving || !OI.driverController.leftBumper) {
                 stop()
@@ -570,11 +572,11 @@ object Drive : Subsystem("Drive"), SwerveDrive {
             }
         }
     }
-    suspend fun dynamicGoToScore(goalPosition: Vector2, safeSide: SafeSide = SafeSide.DYNAMIC) = use(Drive){
+    suspend fun dynamicGoToScore(goalPosition: Vector2, safeSide: SafeSide = SafeSide.DYNAMIC){
         println("GoalPosition: $goalPosition")
         println(PoseEstimator.currentPose.y)
         println(FieldManager.insideSafePointClose.y)
-        val newPath = Path2D("newPath")
+        val newPath = Path2D("GoToScore")
         newPath.addEasePoint(0.0, 0.0)
         var distance = 0.0
         val p1 = PoseEstimator.currentPose
@@ -600,7 +602,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
             distance += (p3 - p2).length
             println("InsideClose")
         }
-        val p4 = Vector2(goalPosition.x, goalPosition.y + if (FieldManager.isBlueAlliance) -0.1 else 0.1)
+        val p4 = Vector2(goalPosition.x, goalPosition.y + if (FieldManager.isBlueAlliance) -1.0 else 1.0)
         distance += (p4 - p3).length
         val p5 = Vector2(goalPosition.x, goalPosition.y)
         distance += (p5 - p4).length
@@ -625,37 +627,49 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         newPath.addHeadingPoint(time, finalHeading)
         Drive.driveAlongPath(newPath) { abortPath() }
     }
-    suspend fun dynamicGoToGamePieceOnFloor(goalPosition: Vector2, goalHeading: Angle) = use(Drive){
-
-        val newPath = Path2D("newPath")
+    suspend fun dynamicGoToGamePieceOnFloor(goalPosition: Vector2, goalHeading: Angle,  startingSide: StartingPoint = NodeDeckHub.startingPoint)  {
+        val newPath = Path2D("GoTo GamePiece")
         newPath.addEasePoint(0.0,0.0)
         var distance = 0.0
         val p1 = PoseEstimator.currentPose
         var p2 = PoseEstimator.currentPose
         var p3 = PoseEstimator.currentPose
-        if ((FieldManager.isRedAlliance && PoseEstimator.currentPose.y < FieldManager.insideSafePointClose.y) || (!FieldManager.isRedAlliance && PoseEstimator.currentPose.y > FieldManager.insideSafePointClose.y)) {
-            p2 = FieldManager.insideSafePointClose
+            p2 = when (startingSide) {
+                StartingPoint.INSIDE -> FieldManager.insideSafePointClose
+                StartingPoint.OUTSIDE -> FieldManager.outsideSafePointClose
+                StartingPoint.MIDDLE -> Vector2(FieldManager.centerOfChargeX, FieldManager.outsideSafePointClose.y)
+            }
             distance += (p2 - p1).length
-        }
-        if ((FieldManager.isRedAlliance && PoseEstimator.currentPose.y < FieldManager.insideSafePointFar.y) || (!FieldManager.isRedAlliance && PoseEstimator.currentPose.y > FieldManager.insideSafePointFar.y)) {
-            p3 = FieldManager.insideSafePointFar
+
+        var safeDistance: Double = 100000.0
+            p3 = when (startingSide) {
+                StartingPoint.INSIDE -> FieldManager.insideSafePointFar
+                StartingPoint.OUTSIDE -> FieldManager.outsideSafePointFar
+                StartingPoint.MIDDLE -> Vector2(FieldManager.centerOfChargeX, FieldManager.outsideSafePointFar.y)
+            }
             distance += (p3 - p2).length
-        }
-        val p4 = Vector2(goalPosition.x,goalPosition.y)
+            safeDistance = distance
+        val distFromObject = 40.0.inches.asFeet * if (FieldManager.isBlueAlliance) -1.0 else 1.0
+        val p4 = Vector2(goalPosition.x + (distFromObject * sin(goalHeading)),goalPosition.y - (distFromObject * cos(goalHeading)))
         distance += (p4 - p3).length
         val rateCurve = MotionCurve()
         rateCurve.setMarkBeginOrEndKeysToZeroSlope(false)
         rateCurve.storeValue(1.0, 2.0)  // distance, rate
         rateCurve.storeValue(8.0, 4.0)  // distance, rate
         val rate = rateCurve.getValue(distance) // ft per sec
-        val time = distance / rate
+        var time = distance / rate
+        val finalHeading = if (FieldManager.isBlueAlliance) 180.0 else 0.0
+        val minSpin = 4/180.0 * (heading - finalHeading.degrees).wrap().asDegrees.absoluteValue
+        println("printing minimum spin time: $minSpin")
+        time = maxOf(time,minSpin)
         newPath.addEasePoint(time, 1.0)
         newPath.addVector2(p1)
         newPath.addVector2(p2)
         newPath.addVector2(p3)
         newPath.addVector2(p4)
         newPath.addHeadingPoint(0.0, heading.asDegrees)
-        newPath.addHeadingPoint(0.25, heading.asDegrees + (180.0.degrees - heading).wrap().asDegrees)
+        newPath.addHeadingPoint(safeDistance / rate, heading.asDegrees)
+        newPath.addHeadingPoint(time, finalHeading)
         Drive.driveAlongPath(newPath){ abortPath() }
     }
     suspend fun gotoScoringPosition() = use(Drive) {
