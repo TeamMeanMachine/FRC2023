@@ -159,15 +159,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         kHeadingFeedForward = 0.001
     )
 
-    override val carpetFlow : Vector2
-        get() {
-            if (DriverStation.getAlliance() == DriverStation.Alliance.Red) {
-                return Vector2(0.0, 1.0)
-            }
-            else {
-                return Vector2(0.0, -1.0)
-            }
-        }
+    override val carpetFlow = Vector2(0.0, 1.0)
     override val kCarpet = 0.0256 //0.025 // how much downstream and upstream carpet directions affect the distance, for no effect, use  0.0 (2.5% more distance downstream)
     override val kTread = 0.0 //.04 // how much of an effect treadWear has on distance (fully worn tread goes 4% less than full tread)  0.0 for no effect
 

@@ -6,6 +6,7 @@ import org.team2471.frc.lib.math.Vector2
 import org.team2471.frc.lib.math.cube
 import org.team2471.frc.lib.math.deadband
 import org.team2471.frc.lib.math.squareWithSign
+import org.team2471.frc.lib.motion.following.xPose
 
 object OI : Subsystem("OI") {
     val driverController = XboxController(0)
@@ -59,6 +60,7 @@ object OI : Subsystem("OI") {
         driverController::start.whenTrue {Drive.calibrateRobotPosition() }
        // driverController::a.whenTrue { Drive.dynamicDriveThreeFeetY()}
 //        driverController::b.whenTrue { Drive.dynamicGoToFeeder()}
+        driverController::x.whenTrue { Drive.xPose() }
 
         driverController::leftBumper.whenTrue {
                 Drive.dynamicGoToScoreCheck()

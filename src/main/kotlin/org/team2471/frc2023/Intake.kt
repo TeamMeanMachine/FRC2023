@@ -123,20 +123,20 @@ object Intake : Subsystem("Intake") {
 
     const val INTAKE_POWER = 1.0
     const val INTAKE_CONE = -1.0
-    const val HOLD_CONE = -0.25
-    const val DETECT_CONE = 25
-    const val CONE_SPIT = 0.8
+    const val HOLD_CONE = -0.15
+    const val DETECT_CONE = 20
+    const val CONE_SPIT = 0.6
     const val INTAKE_CUBE = 0.5
     const val HOLD_CUBE = 0.05
-    const val DETECT_CUBE = 15
-    const val CUBE_SPIT = -0.3
+    const val DETECT_CUBE = 13
+    const val CUBE_SPIT = -0.25
 
     init {
         initializePixy()
         wristMotor.restoreFactoryDefaults()
         intakeMotor.restoreFactoryDefaults() //intake bad
         wristMotor.config(20) {
-            feedbackCoefficient = 261.0 / 1273.0 * 200.0 / 360.0 * 1.002  //last one is fudge factor
+            feedbackCoefficient = 261.0 / 1273.0 * 200.0 / 360.0 * 1.004  //last one is fudge factor
             coastMode()
             pid {
                 p(0.00001)
@@ -177,9 +177,6 @@ object Intake : Subsystem("Intake") {
             coneMaxBlockCount.setInteger(20)
             coneMinArea.setInteger(20)
             coneMinBlockY.setInteger(100)
-
-//            wristSetpoint = -90.0.degrees
-//            pivotSetpoint = -180.0.degrees
 
             periodic {
 

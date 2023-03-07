@@ -48,7 +48,6 @@ object Arm : Subsystem("Arm") {
     var shoulderGetZeroCount = 0
     var shoulderZeroForward = false
     var shoulderZeroBackward = false
-    var seesElbowSwitch = false
 
     val wristFrontOffsetEntry = table.getEntry("Front Wrist Offset")
     val wristBackOffsetEntry = table.getEntry("Back Wrist Offset")
@@ -58,7 +57,7 @@ object Arm : Subsystem("Arm") {
     val operatorInControlEntry = table.getEntry("Operator in Control")
 
     val shoulderAngle: Angle
-        get() = if (isCompBot) ((-shoulderEncoder.value.degrees + 1186.degrees) / if (-shoulderEncoder.value + 1186 < 0.0) 12.4 else 9.8) else ((-shoulderEncoder.value.degrees + 1175.degrees) / if (-shoulderEncoder.value + 1175 < 0.0) 11.2 else 11.2) //(-shoulderEncoder.value.degrees / (if (-shoulderEncoder.value + 113.0 < 0.0) 16.0 else 10.5) + 113.0.degrees)
+        get() = if (isCompBot) ((-shoulderEncoder.value.degrees + 1192.degrees) / if (-shoulderEncoder.value + 1186 < 0.0) 12.4 else 9.8) else ((-shoulderEncoder.value.degrees + 1175.degrees) / if (-shoulderEncoder.value + 1175 < 0.0) 11.2 else 11.2) //(-shoulderEncoder.value.degrees / (if (-shoulderEncoder.value + 113.0 < 0.0) 16.0 else 10.5) + 113.0.degrees)
     val shoulderAnalogAngle: Angle
         get() = shoulderEncoder.value.degrees
     var shoulderOffset = 0.0.degrees
@@ -84,7 +83,7 @@ object Arm : Subsystem("Arm") {
     val shoulderFollowerAngle: Angle
         get() = shoulderFollowerMotor.position.degrees + shoulderOffset
     val elbowAngle: Angle
-        get() = if (isCompBot) (-elbowEncoder.value.degrees + 2520.degrees) * 90.0 / 1054.0 else (-elbowEncoder.value.degrees + 1834.degrees) * 90.0 / 1054.0
+        get() = if (isCompBot) (-elbowEncoder.value.degrees + 2562.degrees) * 90.0 / 1054.0 else (-elbowEncoder.value.degrees + 1834.degrees) * 90.0 / 1054.0
     var elbowOffset = 0.0.degrees
     var elbowSetpoint: Angle = elbowAngle
         set(value) {
@@ -302,6 +301,7 @@ object Arm : Subsystem("Arm") {
                 )
                 move *= 10.0 * 0.02   // d = r * t  where rate is inches per second and time is 1/50 second
                 wristPosOffset += move
+//                println("wristPosOffset: $wristPosOffset")
                 wristPosition += Vector2(0.0, 0.0)
 
                 //zeroing

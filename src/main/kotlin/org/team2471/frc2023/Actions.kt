@@ -228,13 +228,8 @@ suspend fun intakeCurrentLogic() {
             } finally {
                 Drive.maxTranslation = 1.0
                 Intake.intakeMotor.setPercentOutput(if (Intake.holdingObject) (if (NodeDeckHub.isCone) Intake.HOLD_CONE else Intake.HOLD_CUBE) else 0.0) //intake bad
-                animateToPose(Pose.GROUND_INTAKE_FRONT_CONE)
+                animateToPose(if (NodeDeckHub.isCone) Pose.GROUND_INTAKE_FRONT_CONE else Pose.GROUND_INTAKE_FRONT_CUBE)
                 toDrivePose()
-                if (Intake.holdingObject) {
-                    animateToPose(Pose.FLIP_INTAKE_TO_BACK_POSE)
-                    animateToPose(Pose.FLIP_INTAKE_TO_BACK_WRIST)
-                    animateToPose(Pose.BACK_DRIVE_POSE)
-                }
             }
         } else {
             println("Wrong side--flip first!!")
@@ -244,18 +239,25 @@ suspend fun intakeCurrentLogic() {
     suspend fun backScoreAwayCone() = use(Arm, Intake) {
         if (Arm.wristPosition.x < -10.0 || Intake.wristAngle.asDegrees < -40.0) {
             Drive.maxTranslation = 0.3 //make this a constant
-            when (FieldManager.getSelectedNode()?.level) {
-                Level.HIGH -> {
-                    animateToPose(Pose.BACK_HIGH_SCORE_CONE_AWAY_MID)
-                    animateToPose(Pose.BACK_HIGH_SCORE_CONE_AWAY)
-                }
-                Level.MID -> {
-                    animateToPose(Pose.BACK_MIDDLE_SCORE_CONE_AWAY)
-                }
-                Level.LOW -> println("Low is not an option yet")
-                else -> { println("Error: Node level not given back") }
-            }
+            if (FieldManager.getSelectedNode()?.coneOrCube == GamePiece.CONE) {
+                when (FieldManager.getSelectedNode()?.level) {
+                    Level.HIGH -> {
+                        animateToPose(Pose.BACK_HIGH_SCORE_CONE_AWAY_MID)
+                        animateToPose(Pose.BACK_HIGH_SCORE_CONE_AWAY)
+                    }
 
+                    Level.MID -> {
+                        animateToPose(Pose.BACK_MIDDLE_SCORE_CONE_AWAY)
+                    }
+
+                    Level.LOW -> println("Low is not an option yet")
+                    else -> {
+                        println("Error: Node level not given back")
+                    }
+                }
+            } else {
+                backScoreTowardCone()
+            }
         } else {
             println("Wrong side--flip first!!")
         }
@@ -298,18 +300,18 @@ suspend fun intakeCurrentLogic() {
         if (NodeDeckHub.isCone) {
             when (FieldManager.getSelectedNode()?.level) {
                 Level.MID -> {
-                    val midPose = Pose.current + Pose(Vector2(7.0, -2.0), 40.0.degrees, 0.0.degrees)
+                    val midPose = Pose.current + Pose(Vector2(9.0, -2.0), 40.0.degrees, 0.0.degrees)
                     animateToPose(midPose, 1.0)
                     Intake.intakeMotor.setPercentOutput(Intake.CONE_SPIT)
                     animateToPose(midPose + Pose(Vector2(6.0, -2.0), 10.0.degrees, 0.0.degrees))
                     delay(1.0)
                 }
-
                 Level.HIGH -> {
-                    var midPose = Pose.current + Pose(Vector2(2.0, -1.0), 40.0.degrees, 0.0.degrees)
+                    var midPose = Pose.current + Pose(Vector2(6.0, -2.5), 40.0.degrees, 0.0.degrees)
                     animateToPose(midPose, 1.0)
+                    delay(1.0)
                     Intake.intakeMotor.setPercentOutput(Intake.CONE_SPIT)
-                    midPose += Pose(Vector2(6.5, 0.0), 0.0.degrees, 0.0.degrees)
+                    midPose += Pose(Vector2(6.5, 1.0), 0.0.degrees, 0.0.degrees)
                     animateToPose(midPose)
                     midPose += Pose(Vector2(10.0, 4.0), 0.0.degrees, 0.0.degrees)
                     animateToPose(midPose, 2.0)
@@ -325,13 +327,12 @@ suspend fun intakeCurrentLogic() {
             }
         }
         toDrivePose()
-        flip()
     }
 
     suspend fun toDrivePose() = use(Arm, Intake) {
         Intake.wristOffset = 0.0.degrees
         Intake.pivotOffset = 0.0.degrees
-        Intake.intakeMotor.setPercentOutput(0.0)
+        if (!Intake.holdingObject) Intake.intakeMotor.setPercentOutput(0.0)
         if (Arm.wristPosition.x < -10.0 || Intake.wristAngle.asDegrees < -75.0) animateToPose(Pose.BACK_DRIVE_POSE) else if (Arm.wristPosition.x > 10.0 || Intake.wristAngle.asDegrees > 75.0) animateToPose(Pose.FRONT_DRIVE_POSE)
         Drive.maxTranslation = 1.0
     }
