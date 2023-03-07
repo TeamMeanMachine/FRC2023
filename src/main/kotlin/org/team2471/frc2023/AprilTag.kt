@@ -47,7 +47,7 @@ object AprilTag {
 
     private var robotToCamBack = Transform3d(
         Translation3d(-5.25.inches.asMeters, -11.25.inches.asMeters, 7.5.inches.asMeters),
-        Rotation3d(0.0.degrees.asRadians, 11.0.degrees.asRadians, 180.0.degrees.asRadians)
+        Rotation3d(0.0.degrees.asRadians, -11.0.degrees.asRadians, 180.0.degrees.asRadians)
     )
     init {
         singleTagMinYEntry.setDouble((FieldManager.chargeFromCenterY + FieldManager.chargingStationDepth).asFeet)
@@ -138,18 +138,19 @@ object AprilTag {
         //println("at least 2 valid targets found ${poseList}")
         val newPose = estimator.update(cameraResult)
 //                println("newPose: $newPose")
-        return if (newPose?.isPresent == true) {
+         if (newPose?.isPresent == true) {
             val result = newPose.get()
             detectedDepthYEntry.setDouble(result.estimatedPose.toPose2d().toTMMField().y)
-            if (validTargets.count() < 2 && result.estimatedPose.toPose2d().toTMMField().y < singleTagMinYEntry.getDouble((FieldManager.chargeFromCenterY + FieldManager.chargingStationDepth).asFeet)) {
+            if (validTargets.count() < 2 && result.estimatedPose.toPose2d().toTMMField().y.absoluteValue < singleTagMinYEntry.getDouble((FieldManager.chargeFromCenterY + FieldManager.chargingStationDepth).asFeet)) {
 
-              //  println("AprilTag: Single target too far away ${result.estimatedPose.y.absoluteValue} vs ${(FieldManager.chargeFromCenterY + FieldManager.chargingStationDepth).asMeters}")
+//                println("AprilTag: Single target too far away ${result.estimatedPose.toPose2d().toTMMField().y.absoluteValue} vs ${(FieldManager.chargeFromCenterY + FieldManager.chargingStationDepth).asFeet}")
                 return null
             }
+//            println("Valid target found ${validTargets.count()}")
             lastDetectionTime = result.timestampSeconds
-            result.estimatedPose.toPose2d()
+            return result.estimatedPose.toPose2d()
         } else {
-            null
+            return null
         }
         } catch (ex: Exception) {
             return null

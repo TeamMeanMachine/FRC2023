@@ -39,7 +39,7 @@ object PoseEstimator {
             }
         }
     }
-    fun addVision(detection: AprilDetection, numTarget: Int) {
+    fun addVision(detection: AprilDetection, numTarget: Int, kApril: Double? = null) {
         //Ignoring Vision data if timestamp is before the last zero
         if (detection.timestamp < lastZeroTimestamp) {
 //            println("Stopping...")
@@ -47,12 +47,12 @@ object PoseEstimator {
         }
 
         try {
-            val kApril = kAprilEntry.getDouble(0.25) * if (numTarget < 2) 0.2 else 1.0
+            val kAprilFinal = (kApril ?: kAprilEntry.getDouble(0.5)) * if (numTarget < 2) 0.7 else 1.0
             val latencyPose = Drive.lookupPose(detection.timestamp)?.position
             if (latencyPose != null) {
                 val odomDiff = Drive.position - latencyPose
                 val apriltagPose = Vector2(detection.pose.x, detection.pose.y) + odomDiff
-                offset = offset * (1.0 - kApril) + (Drive.position - apriltagPose) * kApril
+                offset = offset * (1.0 - kAprilFinal) + (Drive.position - apriltagPose) * kAprilFinal
 //        println(offset)
             }
         } catch(ex:Exception) {
