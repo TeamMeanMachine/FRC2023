@@ -56,6 +56,8 @@ object NodeDeckHub {
     val fifthAutoPiece: Int //5 piece auto?
         get() = autoFiveEntry.getInteger(0).toInt()
 
+    val isCone: Boolean
+        get() = FieldManager.getSelectedNode()?.coneOrCube == GamePiece.CONE
 
     private var lastNode: Long = 0
     private var lastFloorState = false

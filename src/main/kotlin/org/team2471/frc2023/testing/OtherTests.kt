@@ -18,7 +18,7 @@ suspend fun Arm.feedForwardTest() = use(Arm) {
 
 suspend fun Arm.pidTest() = use(Arm) {
     periodic {
-        elbowSetpoint = (OI.operatorLeftY * 60).degrees
+        elbowSetpoint += (OI.operatorLeftY * 0.5).degrees
     }
 }
 

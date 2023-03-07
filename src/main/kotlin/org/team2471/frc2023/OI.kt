@@ -92,12 +92,12 @@ object OI : Subsystem("OI") {
             }
         }
         operatorController::b.whenTrue {
-            Intake.intakeMotor.setPercentOutput(1.0)
+            Intake.intakeMotor.setPercentOutput(if (NodeDeckHub.isCone) Intake.CONE_SPIT else Intake.CUBE_SPIT)
         }
         ({operatorController.leftTrigger > 0.1}).whenTrue {
             safeAnimationCheck(PERSONINCONTROL.OPERATOR) {
                 intakeFromGround()
-            } //testing time
+            }
         }
     }
 

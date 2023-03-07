@@ -115,26 +115,28 @@ object Intake : Subsystem("Intake") {
         get() = round(140.0 + Arm.elbowAngle.asDegrees, 4).degrees
     var linearFilter = LinearFilter.movingAverage(10)
     var holdingObject: Boolean = false
-        get() {
-            return linearFilter.calculate(intakeMotor.current) > INTAKE_DETECT_CONE
-        }   //intake bad
+        get() = linearFilter.calculate(intakeMotor.current) > if (NodeDeckHub.isCone) DETECT_CONE else DETECT_CUBE
+
     var holdDetectedTime = -5.0
 
     lateinit var pixy : Pixy2
 
     const val INTAKE_POWER = 1.0
     const val INTAKE_CONE = -1.0
-    const val INTAKE_HOLD = 0.25
-    const val INTAKE_HOLD_CONE = -0.25
-    const val INTAKE_DETECT_CONE = 25
-    const val INTAKE_CURR = 55.0
+    const val HOLD_CONE = -0.25
+    const val DETECT_CONE = 25
+    const val CONE_SPIT = 0.8
+    const val INTAKE_CUBE = 0.5
+    const val HOLD_CUBE = 0.05
+    const val DETECT_CUBE = 15
+    const val CUBE_SPIT = -0.3
 
     init {
         initializePixy()
         wristMotor.restoreFactoryDefaults()
         intakeMotor.restoreFactoryDefaults() //intake bad
         wristMotor.config(20) {
-            feedbackCoefficient = 261.0 / 1273.0 * 200.0 / 360.0
+            feedbackCoefficient = 261.0 / 1273.0 * 200.0 / 360.0 * 1.002  //last one is fudge factor
             coastMode()
             pid {
                 p(0.00001)
