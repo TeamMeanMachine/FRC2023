@@ -66,32 +66,6 @@ import org.team2471.frc.lib.util.Timer
 //    }
 //}
 
-suspend fun intakeCone() = use(Intake, Arm) {
-    Intake.pivotSetpoint = 90.0.degrees
-    Arm.shoulderSetpoint = -18.0.degrees
-    Arm.elbowSetpoint = -27.0.degrees
-    delay(2.0)
-    Intake.pivotSetpoint = 179.0.degrees
-}
-var isIntaking: Boolean = false
-suspend fun tippedConeIntake() = use(Intake, Arm) {
-
-    if (isIntaking == false) {
-        println("Tip Cone Intake: ON")
-        isIntaking = true
-        parallel(
-            { intakeCurrentLogic() },
-            { animateToPose(Pose.GROUND_INTAKE_CONE_FAR) }
-        )
-    } else {
-        println("Tip Cone Intake: OFF")
-        Intake.intakeMotor.setPercentOutput(0.0) //intake bad
-        animateToPose(Pose.FRONT_DRIVE_POSE)
-        isIntaking = false
-    }
-
-}
-
 suspend fun intakeCurrentLogic() {
     val t = Timer()
     var isTimerStarted = false
@@ -250,7 +224,7 @@ suspend fun intakeCurrentLogic() {
                         animateToPose(Pose.BACK_MIDDLE_SCORE_CONE_TOWARD_MID)
                         animateToPose(Pose.BACK_MIDDLE_SCORE_CONE_TOWARD)
                     }
-                    Level.LOW -> println("Low is not an option yet")
+                    Level.LOW -> animateToPose(Pose.BACK_LOW_SCORE_CONE_TOWARD)
                     else -> {
                         println("Error: Node level not given back")
                     }
@@ -277,7 +251,7 @@ suspend fun backScoreAwayCone() = use(Arm, Intake) {
                     animateToPose(Pose.BACK_MIDDLE_SCORE_CONE_AWAY_MID)
                     animateToPose(Pose.BACK_MIDDLE_SCORE_CONE_AWAY)
                 }
-                Level.LOW -> println("Low is not an option yet")
+                Level.LOW -> animateToPose(Pose.BACK_LOW_SCORE_CONE_AWAY)
                 else -> {
                     println("Error: Node level not given back")
                 }
@@ -301,7 +275,7 @@ suspend fun backScoreAwayCone() = use(Arm, Intake) {
                 Level.MID -> {
                     animateToPose(Pose.BACK_MIDDLE_SCORE_CUBE)
                 }
-                Level.LOW -> println("Low is not an option yet")
+                Level.LOW -> animateToPose(Pose.BACK_LOW_SCORE_CUBE)
                 else -> {
                     println("Error: Node level not given back")
                 }
@@ -329,12 +303,6 @@ suspend fun backScoreAwayCone() = use(Arm, Intake) {
         if (NodeDeckHub.isCone) {
             if (Intake.coneToward) {
                 when (FieldManager.getSelectedNode()?.level) {
-                    Level.MID -> {
-                        val midPose = Pose.current + Pose(Vector2(10.0, -2.0), 40.0.degrees, 0.0.degrees)
-                        animateToPose(midPose, 1.0)
-                        Intake.intakeMotor.setPercentOutput(Intake.CONE_TOWARD_SPIT)
-                        animateToPose(midPose + Pose(Vector2(6.0, -2.0), 10.0.degrees, 0.0.degrees))
-                    }
                     Level.HIGH -> {
                         var midPose = Pose.current + Pose(Vector2(6.0, -2.5), 40.0.degrees, 0.0.degrees)
                         animateToPose(midPose, 1.0)
@@ -344,16 +312,20 @@ suspend fun backScoreAwayCone() = use(Arm, Intake) {
                         midPose += Pose(Vector2(10.0, 6.0), 0.0.degrees, 0.0.degrees)
                         animateToPose(midPose, 1.5)
                     }
+                    Level.MID -> {
+                        val midPose = Pose.current + Pose(Vector2(10.0, -2.0), 40.0.degrees, 0.0.degrees)
+                        animateToPose(midPose, 1.0)
+                        Intake.intakeMotor.setPercentOutput(Intake.CONE_TOWARD_SPIT)
+                        animateToPose(midPose + Pose(Vector2(6.0, -2.0), 10.0.degrees, 0.0.degrees))
+                    }
+                    Level.LOW -> {
+                        Intake.intakeMotor.setPercentOutput(Intake.CONE_TOWARD_SPIT)
+                        delay(1.0)
+                    }
                     else -> println("Currently can't score there.")
                 }
             } else { // cone away
                 when (FieldManager.getSelectedNode()?.level) {
-                    Level.MID -> {
-                        val midPose = Pose.current + Pose(Vector2(7.0, -4.0), 40.0.degrees, 0.0.degrees)
-                        animateToPose(midPose, 1.0)
-                        Intake.intakeMotor.setPercentOutput(Intake.CONE_AWAY_SPIT)
-                        animateToPose(midPose + Pose(Vector2(6.0, -2.0), 10.0.degrees, 0.0.degrees))
-                    }
                     Level.HIGH -> {
                         var midPose = Pose.current + Pose(Vector2(3.0, -8.0), 40.0.degrees, 0.0.degrees)
                         animateToPose(midPose, 1.0)
@@ -363,12 +335,23 @@ suspend fun backScoreAwayCone() = use(Arm, Intake) {
                         midPose += Pose(Vector2(10.0, 6.0), 0.0.degrees, 0.0.degrees)
                         animateToPose(midPose, 1.5)
                     }
+                    Level.MID -> {
+                        val midPose = Pose.current + Pose(Vector2(7.0, -4.0), 40.0.degrees, 0.0.degrees)
+                        animateToPose(midPose, 1.0)
+                        Intake.intakeMotor.setPercentOutput(Intake.CONE_AWAY_SPIT)
+                        animateToPose(midPose + Pose(Vector2(6.0, -2.0), 10.0.degrees, 0.0.degrees))
+                    }
+                    Level.LOW -> {
+                        Intake.intakeMotor.setPercentOutput(Intake.CONE_AWAY_SPIT)
+                        delay(1.5)
+                    }
                     else -> println("Currently can't score there.")
                 }
             }
         } else {
             Intake.intakeMotor.setPercentOutput(Intake.CUBE_SPIT)
             when (FieldManager.getSelectedNode()?.level) {
+                Level.LOW -> delay(1.0)
                 Level.MID -> animateToPose(Pose.current + Pose(Vector2(3.0, 0.0), 0.0.degrees, 0.0.degrees))
                 Level.HIGH -> animateToPose(Pose.current + Pose(Vector2(12.0, 0.0), 0.0.degrees, 0.0.degrees))
                 else -> println("Currently can't score there.")
@@ -381,8 +364,9 @@ suspend fun backScoreAwayCone() = use(Arm, Intake) {
     suspend fun toDrivePose() = use(Arm, Intake) {
         Intake.wristOffset = 0.0.degrees
         Intake.pivotOffset = 0.0.degrees
+        Arm.wristCenterOffset = Vector2(0.0, 0.0)
         if (!Intake.holdingObject) Intake.intakeMotor.setPercentOutput(0.0)
-        if (Arm.wristPosition.x < -10.0 || Intake.wristAngle.asDegrees < -75.0) animateToPose(Pose.BACK_DRIVE_POSE) else if (Arm.wristPosition.x > 10.0 || Intake.wristAngle.asDegrees > 75.0) animateToPose(Pose.FRONT_DRIVE_POSE)
+        if (Arm.wristPosition.x < -10.0 || Intake.wristAngle.asDegrees < -55.0) animateToPose(Pose.BACK_DRIVE_POSE) else if (Arm.wristPosition.x > 10.0 || Intake.wristAngle.asDegrees > 55.0) animateToPose(Pose.FRONT_DRIVE_POSE)
         Drive.maxTranslation = 1.0
     }
 
