@@ -84,6 +84,8 @@ object NodeDeckHub {
                     // NodeDeck has updated! Call Things!
                     val color: GamePiece? = FieldManager.nodeList[selectedNode.toInt()]?.coneOrCube
 
+                    // println("NodeDeck updated, got position $selectedNode and piece ${color?.name}. Floor Color")
+
                     when (color) {
                         GamePiece.CONE -> SignalLights.flashYellow()        // YELLOW
                         GamePiece.CUBE -> SignalLights.flashPurple()        // PURPLE

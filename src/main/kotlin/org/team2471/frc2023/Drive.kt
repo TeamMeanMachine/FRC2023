@@ -448,6 +448,9 @@ object Drive : Subsystem("Drive"), SwerveDrive {
                     setPersistent()
                     setDefaultDouble(0.00075)
                 }
+                periodic {
+//                    println("position: $position")
+                }
             }
         }
 
@@ -476,24 +479,27 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         initializeSteeringMotors()
     }
     suspend fun rampTest() = use(Drive) {
-        var stage=0
-        val driveTimer = Timer()
-        driveTimer.start()
-        println("drive until not level")
-        periodic {
-            drive(Vector2(0.0, 0.3), 0.0, fieldCentric = false, true)
-            if (gyro.getPitch() > 3.0) {
-                stop()
-            }
-        }
-        driveDistance(Vector2(0.0, 0.25), 62.0.inches)
-        driveDistance(Vector2(0.0, -0.18), 2.5.inches)
+//        val driveTimer = Timer()
+//        driveTimer.start()
+//        println("drive until not level")
+//        periodic {
+//            drive(Vector2(0.0, FieldManager.reflectFieldByAlliance(-0.3)), 0.0, fieldCentric = false, true)
+//            println("pitch = ${gyro.getPitch()}")
+//            if (if (FieldManager.isRedAlliance) gyro.getPitch() > 3.0 else gyro.getPitch() < -3.0) {
+//                stop()
+//            }
+//        }
+        driveToPosition(Vector2(position.x, FieldManager.reflectFieldByAlliance(14.25)))
+//        println("Driving 50 inches.... supposedly")
+//        driveDistance(Vector2(0.0, 0.25), FieldManager.reflectFieldByAlliance(-50.0).inches)
+//        println("Hopefully driving 2.5 inches")
+//        driveDistance(Vector2(0.0, -0.18), FieldManager.reflectFieldByAlliance(-2.5).inches)
         delay(0.5.seconds)
         autoBalance()
         xPose()
     }
 
-    suspend fun driveDistance(speed: Vector2, distance: Length) = use(Drive) {
+    suspend fun driveDistance(speed: Vector2, distance: Length) {
         println("Drive to the center of ramp")
         var prevPosition = position
         periodic {
@@ -507,7 +513,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         drive(Vector2(0.0, 0.0), 0.0)
     }
 
-    suspend fun autoBalance() = use(Drive) {
+    suspend fun autoBalance() {
         val driveTimer = Timer()
         driveTimer.start()
         periodic {
@@ -515,7 +521,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
                 // constant part for a feed forward, so there's always enough power to move.
                 // plus a proportional part so that the power is higher when steep and less as it flattens.
                 drive(Vector2(0.0, gyro.getPitch().sign * 0.10 + gyro.getPitch() / 200.0), 0.0, fieldCentric = false)
-                println("pitch = ${gyro.getPitch()}")
+//                println("pitch = ${gyro.getPitch()}")
                 if (driveTimer.get() > 0.5) {
                     drive(Vector2(0.0, 0.0), 0.0)
                     if(driveTimer.get() > 1.0) {
@@ -529,6 +535,25 @@ object Drive : Subsystem("Drive"), SwerveDrive {
             }
             //  println("Pitch = ${gyro.getNavX().pitch}, Time = ${driveTimer.get()}")
         }
+    }
+
+    suspend fun driveToPosition(position: Vector2) {
+        val newPath = Path2D("newPath")
+        newPath.addEasePoint(0.0,0.0)
+        val p1 = Drive.position
+        val p2 = position
+        val distance = (p2 - p1).length
+        val rateCurve = MotionCurve()
+        rateCurve.setMarkBeginOrEndKeysToZeroSlope(false)
+        rateCurve.storeValue(1.0, 2.0)  // distance, rate
+        rateCurve.storeValue(8.0, 6.0)  // distance, rate
+        val rate = rateCurve.getValue(distance) // ft per sec
+        val time = distance / rate
+        newPath.addEasePoint(time, 1.0)
+        newPath.addVector2(p1)
+        newPath.addVector2(p2)
+        newPath.addHeadingPoint(0.0, heading.asDegrees)
+        Drive.driveAlongPath(newPath) { abortPath() }
     }
     suspend fun dynamicDriveThreeFeetY() = use(Drive){
         val newPath = Path2D("newPath")
@@ -633,17 +658,16 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         newPath.addEasePoint(0.0,0.0)
         var distance = 0.0
         val p1 = PoseEstimator.currentPose
-        var p2 = PoseEstimator.currentPose
-        var p3 = PoseEstimator.currentPose
-            p2 = when (startingSide) {
+        val p2 = when (startingSide) {
                 StartingPoint.INSIDE -> FieldManager.insideSafePointClose
                 StartingPoint.OUTSIDE -> FieldManager.outsideSafePointClose
                 StartingPoint.MIDDLE -> Vector2(FieldManager.centerOfChargeX, FieldManager.outsideSafePointClose.y)
             }
-            distance += (p2 - p1).length
+
+        distance += (p2 - p1).length
 
         var safeDistance: Double = 100000.0
-            p3 = when (startingSide) {
+        val p3 = when (startingSide) {
                 StartingPoint.INSIDE -> FieldManager.insideSafePointFar
                 StartingPoint.OUTSIDE -> FieldManager.outsideSafePointFar
                 StartingPoint.MIDDLE -> Vector2(FieldManager.centerOfChargeX, FieldManager.outsideSafePointFar.y)
@@ -659,7 +683,8 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         rateCurve.storeValue(8.0, 4.0)  // distance, rate
         val rate = rateCurve.getValue(distance) // ft per sec
         var time = distance / rate
-        val finalHeading = if (FieldManager.isBlueAlliance) 180.0 else 0.0
+        //val finalHeading = if (FieldManager.isBlueAlliance) 180.0 else 0.0
+        val finalHeading = if (FieldManager.isBlueAlliance) ((if (heading < 0.0.degrees) -180 else 180) - goalHeading.asDegrees) else goalHeading.asDegrees
         val minSpin = 4/180.0 * (heading - finalHeading.degrees).wrap().asDegrees.absoluteValue
         println("printing minimum spin time: $minSpin")
         time = maxOf(time,minSpin)
@@ -673,6 +698,42 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         newPath.addHeadingPoint(time, finalHeading)
         Drive.driveAlongPath(newPath){ abortPath() }
     }
+
+    suspend fun dynamicGoToChargeCenter() {
+        val chargePath = Path2D("Go To Charge Center")
+        chargePath.addEasePoint(0.0, 0.0)
+
+        val p1 = PoseEstimator.currentPose
+        val p2 = Vector2(FieldManager.outsideSafePointCharge.x - (robotHalfWidth * 2.0).asFeet, FieldManager.outsideSafePointCharge.y)
+        val p3 = Vector2(FieldManager.centerOfChargeX - (robotHalfWidth.asFeet * 2.0), FieldManager.chargeFromCenterY.asFeet)
+
+        chargePath.addVector2(p1)
+        chargePath.addVector2(p2)
+        chargePath.addVector2(p3)
+
+        var distance = chargePath.length
+
+        val rateCurve = MotionCurve()
+        rateCurve.setMarkBeginOrEndKeysToZeroSlope(false)
+
+        rateCurve.storeValue(1.0, 2.0)
+        rateCurve.storeValue(8.0, 4.0)
+
+        val rate = rateCurve.getValue(distance)
+        var time = distance / rate
+
+        chargePath.addEasePoint(time, 1.0)
+
+        var finalHeading = if (FieldManager.isRedAlliance) 0.0 else if (heading.asDegrees > 0) 180.0 else -180.0
+        val minSpin = 4/180.0 * (heading - finalHeading.degrees).wrap().asDegrees.absoluteValue
+        println("printing minimum spin time: $minSpin")
+        time = maxOf(time,minSpin)
+        chargePath.addHeadingPoint(0.0, heading.asDegrees)
+        chargePath.addHeadingPoint(time, finalHeading)
+
+        Drive.driveAlongPath(chargePath) { abortPath() }
+    }
+
     suspend fun gotoScoringPosition() = use(Drive) {
         val scoreNode = FieldManager.getSelectedNode()
         if (scoreNode == null) {

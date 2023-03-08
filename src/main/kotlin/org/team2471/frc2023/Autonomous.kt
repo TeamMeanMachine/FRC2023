@@ -180,16 +180,22 @@ object AutoChooser {
         }
     }
     suspend fun nodeDeckAuto() = use(Drive, Intake, Arm) {
+        var gamePieceAngles = when (NodeDeckHub.startingPoint) {
+            StartingPoint.INSIDE -> doubleArrayOf(0.0, -30.0, -45.0)
+            StartingPoint.MIDDLE -> doubleArrayOf(-30.0, -45.0, 30.0)
+            StartingPoint.OUTSIDE -> doubleArrayOf(0.0, 30.0, 45.0)
+        }
+
         FieldManager.resetClosestGamePieceOnField()
         Drive.position = FieldManager.startingPosition
         Drive.zeroGyro()
         PoseEstimator.zeroOffset()
         if (NodeDeckHub.amountOfAutoPieces > 0) {
-            nodeDeckPiece(0.0.degrees, NodeDeckHub.firstAutoPiece)
+            nodeDeckPiece(gamePieceAngles[0].degrees, NodeDeckHub.firstAutoPiece, NodeDeckHub.amountOfAutoPieces == 1 && NodeDeckHub.chargeInAuto)
             if (NodeDeckHub.amountOfAutoPieces > 1) {
-                nodeDeckPiece(30.0.degrees, NodeDeckHub.secondAutoPiece)
+                nodeDeckPiece(gamePieceAngles[1].degrees, NodeDeckHub.secondAutoPiece, NodeDeckHub.amountOfAutoPieces == 2 && NodeDeckHub.chargeInAuto)
                 if (NodeDeckHub.amountOfAutoPieces > 2) {
-                    nodeDeckPiece(45.0.degrees, NodeDeckHub.thirdAutoPiece)
+                    nodeDeckPiece(gamePieceAngles[2].degrees, NodeDeckHub.thirdAutoPiece, NodeDeckHub.amountOfAutoPieces == 3 && NodeDeckHub.chargeInAuto)
                 }
             }
         }
@@ -198,23 +204,28 @@ object AutoChooser {
 //        Drive.dynamicGoToGamePieceOnFloor(nextGamePiece, 0.0.degrees)
 
     }
-    suspend fun nodeDeckPiece(pickupHeading: Angle, nodeID: Int) {
+    suspend fun nodeDeckPiece(pickupHeading: Angle, nodeID: Int, goCharge: Boolean) {
         val nextGamePiece = FieldManager.getClosestGamePieceOnField()
         println("nodedeck auto path to game piece: $nextGamePiece")
         Drive.dynamicGoToGamePieceOnFloor(nextGamePiece, pickupHeading)
         println("finished goToGamePiece")
-        delay(1.0)
         val scoringNode = FieldManager.getNode(nodeID)
-        if (scoringNode == null) {
-            println("Scoring Node is Null")
-        } else {
-            println("Nodedeck auto path to node: ${scoringNode.alignPosition}")
-            val safeSide = when (NodeDeckHub.startingPoint) {
-                StartingPoint.INSIDE -> SafeSide.INSIDE
-                StartingPoint.MIDDLE -> SafeSide.CHARGE
-                StartingPoint.OUTSIDE -> SafeSide.OUTSIDE
+        if (!goCharge) {
+            if (scoringNode == null) {
+                println("Scoring Node is Null")
+            } else {
+                println("Nodedeck auto path to node: ${scoringNode.alignPosition}")
+                val safeSide = when (NodeDeckHub.startingPoint) {
+                    StartingPoint.INSIDE -> SafeSide.INSIDE
+                    StartingPoint.MIDDLE -> SafeSide.CHARGE
+                    StartingPoint.OUTSIDE -> SafeSide.OUTSIDE
+                }
+                Drive.dynamicGoToScore(scoringNode.alignPosition, safeSide)
             }
-            Drive.dynamicGoToScore(scoringNode.alignPosition, safeSide)
+        } else {
+            Drive.dynamicGoToChargeCenter()
+            Drive.rampTest()
+//            Drive.autoBalance()
         }
     }
 
