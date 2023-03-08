@@ -18,6 +18,7 @@ object NodeDeckHub {
     //auto entry's
     private val startingPointEntry = nodeDeckTable.getEntry("Starting Point")
     private val chargeInAutoEntry = nodeDeckTable.getEntry("ChargeInAuto")
+    private val finishWPieceEntry = nodeDeckTable.getEntry("finishWithPiece")
     private val amountOfAutoPiecesEntry = nodeDeckTable.getEntry("AmountOfAutoPieces")
     private val autoOneEntry = nodeDeckTable.getEntry("1")
     private val autoTwoEntry = nodeDeckTable.getEntry("2")
@@ -41,6 +42,8 @@ object NodeDeckHub {
     //auto variables
     val chargeInAuto: Boolean
         get() = chargeInAutoEntry.getBoolean(false)
+    val finishWithPiece: Boolean
+        get() = finishWPieceEntry.getBoolean(false)
     val startingPoint: StartingPoint
         get() = StartingPoint.valueOf(startingPointEntry.getString("INSIDE"))
     val amountOfAutoPieces: Int
@@ -80,6 +83,8 @@ object NodeDeckHub {
                 if (selectedNode != lastNode || lastFloorState != isFloorCone) {
                     // NodeDeck has updated! Call Things!
                     val color: GamePiece? = FieldManager.nodeList[selectedNode.toInt()]?.coneOrCube
+
+                    // println("NodeDeck updated, got position $selectedNode and piece ${color?.name}. Floor Color")
 
                     when (color) {
                         GamePiece.CONE -> SignalLights.flashYellow()        // YELLOW

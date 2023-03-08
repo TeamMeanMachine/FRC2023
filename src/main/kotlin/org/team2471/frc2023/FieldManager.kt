@@ -14,7 +14,7 @@ object FieldManager {
     val fieldCenterOffset = fieldDimensions/2.0
     val gridYOffset = 55.0.inches
     val chargingStationYOffset = gridYOffset + 60.0.inches
-    val charingStationXOffset = 0.0.feet
+    val chargingStationXOffset = 0.0.feet
     val chargingStationWidth = 8.0.feet
     val chargingStationDepth = 76.125.inches
     val nodeList: HashMap<Int, ScoringNode> = HashMap()
@@ -37,12 +37,16 @@ object FieldManager {
         get() = reflectFieldByAlliance( Vector2(barrierTip.x/2.0, (gridFromCenterY - 66.0.inches + Drive.robotHalfWidth).asFeet))
     val insideSafePointFar: Vector2
         get() = reflectFieldByAlliance( Vector2(insideSafePointClose.x, (chargeFromCenterY - 30.0.inches).asFeet))
+    val insideSafePointCharge: Vector2
+        get() = reflectFieldByAlliance( Vector2(centerOfChargeX, insideSafePointClose.y))
     val outsideSafePointClose: Vector2
-        get() = reflectFieldByAlliance( Vector2(-fieldCenterOffset.x + chargeFromWall.asFeet, insideSafePointClose.y))
+        get() = reflectFieldByAlliance( Vector2(-fieldCenterOffset.x.meters.asFeet + (chargeFromWall/2.0).asFeet, insideSafePointClose.y))
     val outsideSafePointFar: Vector2
         get() = reflectFieldByAlliance( Vector2(outsideSafePointClose.x, insideSafePointFar.y))
+    val outsideSafePointCharge: Vector2
+        get() = reflectFieldByAlliance( Vector2(centerOfChargeX, insideSafePointFar.y - 1.0))
     val centerOfChargeX: Double
-        get() = (charingStationXOffset - chargingStationWidth).asFeet
+        get() = (chargingStationXOffset - chargingStationWidth/2.0).asFeet
 
     val startingPosition: Vector2
         get() = Vector2 ( if (NodeDeckHub.startingPoint == StartingPoint.INSIDE) insideStartingPosition.x else outsideStartingPosition.x, if (isRedAlliance) -insideStartingPosition.y else insideStartingPosition.y)
