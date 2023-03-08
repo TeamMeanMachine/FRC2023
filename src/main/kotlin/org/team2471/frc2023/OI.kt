@@ -94,7 +94,11 @@ object OI : Subsystem("OI") {
             }
         }
         operatorController::b.whenTrue {
-            Intake.intakeMotor.setPercentOutput(if (NodeDeckHub.isCone) Intake.CONE_SPIT else Intake.CUBE_SPIT)
+            Intake.intakeMotor.setPercentOutput(if (NodeDeckHub.isCone) Intake.CONE_TOWARD_SPIT else Intake.CUBE_SPIT)
+        }
+        operatorController::x.whenTrue {
+            Arm.wristFrontOffset = Vector2(0.0, 0.0)
+            Arm.wristBackOffset = Vector2(0.0, 0.0)
         }
         ({operatorController.leftTrigger > 0.1}).whenTrue {
             safeAnimationCheck(PERSONINCONTROL.OPERATOR) {

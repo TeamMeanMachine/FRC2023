@@ -10,6 +10,7 @@ import org.photonvision.PhotonCamera
 import org.photonvision.PhotonPoseEstimator
 import org.photonvision.targeting.PhotonPipelineResult
 import org.team2471.frc.lib.coroutines.periodic
+import org.team2471.frc.lib.motion.following.SwerveDrive
 import org.team2471.frc.lib.units.*
 import kotlin.math.abs
 import kotlin.math.absoluteValue
@@ -110,9 +111,9 @@ object AprilTag {
     //true means front cam
     private fun useFrontCam(): Boolean {
 //        println("Angle: ${Drive.heading.asDegrees}")
-        return if (Drive.position.y > 0) {
+        return if (Drive.combinedPosition.y > 0) {
             abs(Drive.heading.asDegrees) < 90
-        } else{
+        } else {
             abs(Drive.heading.asDegrees) > 90
         }
     }
