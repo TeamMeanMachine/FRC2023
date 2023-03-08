@@ -597,19 +597,27 @@ object Drive : Subsystem("Drive"), SwerveDrive {
             }
         }
     }
+    fun safePointSelector():SafeSide{
+        val chargeZone = FieldManager.chargingStationWidth - robotHalfWidth * 2.0
+        val insideOfChargezone = FieldManager.chargingStationXOffset - robotHalfWidth
+        val outsideOfChargezone = insideOfChargezone - chargeZone
+        return if(PoseEstimator.currentPose.x > insideOfChargezone.asFeet) SafeSide.INSIDE else if(PoseEstimator.currentPose.x < outsideOfChargezone.asFeet) SafeSide.OUTSIDE else SafeSide.CHARGE
+    }
     suspend fun dynamicGoToScore(goalPosition: Vector2, safeSide: SafeSide = SafeSide.DYNAMIC){
         println("GoalPosition: $goalPosition")
         println(PoseEstimator.currentPose.y)
         println(FieldManager.insideSafePointClose.y)
         val newPath = Path2D("GoToScore")
         newPath.addEasePoint(0.0, 0.0)
+        val calcSafeSide = if (safeSide == SafeSide.DYNAMIC) safePointSelector() else safeSide
+        println("Safeside: ${calcSafeSide.name}")
         var distance = 0.0
         val p1 = PoseEstimator.currentPose
         var p2 = PoseEstimator.currentPose
         var p3 = PoseEstimator.currentPose
         if ((FieldManager.isRedAlliance && PoseEstimator.currentPose.y > FieldManager.insideSafePointFar.y) || (FieldManager.isBlueAlliance && PoseEstimator.currentPose.y < FieldManager.insideSafePointFar.y)) {
-            p2 = when (safeSide) {
-                SafeSide.DYNAMIC -> if (PoseEstimator.currentPose.x > FieldManager.centerOfChargeX) FieldManager.insideSafePointFar else FieldManager.outsideSafePointFar
+            p2 = when (calcSafeSide) {
+                SafeSide.DYNAMIC -> FieldManager.insideSafePointFar // Should never be called due to safePointSelector
                 SafeSide.INSIDE -> FieldManager.insideSafePointFar
                 SafeSide.OUTSIDE -> FieldManager.outsideSafePointFar
                 SafeSide.CHARGE -> FieldManager.chargeSafePointFar
@@ -618,14 +626,14 @@ object Drive : Subsystem("Drive"), SwerveDrive {
             println("InsideFar")
         }
         if ((FieldManager.isRedAlliance && PoseEstimator.currentPose.y > FieldManager.insideSafePointClose.y) || (FieldManager.isBlueAlliance && PoseEstimator.currentPose.y < FieldManager.insideSafePointClose.y)) {
-            p3 = when (safeSide) {
-                SafeSide.DYNAMIC -> if (PoseEstimator.currentPose.x > FieldManager.centerOfChargeX) FieldManager.insideSafePointClose else FieldManager.outsideSafePointClose
+            p3 = when (calcSafeSide) {
+                SafeSide.DYNAMIC -> FieldManager.insideSafePointClose
                 SafeSide.INSIDE -> FieldManager.insideSafePointClose
                 SafeSide.OUTSIDE -> FieldManager.outsideSafePointClose
-                SafeSide.CHARGE -> FieldManager.chargeSafePointNear;
+                SafeSide.CHARGE -> FieldManager.chargeSafePointClose
             }
             if(safeSide == SafeSide.CHARGE) {
-                distance += 2.5
+                distance += 4.0
             }
             distance += (p3 - p2).length
             println("InsideClose")
@@ -664,7 +672,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         val p2 = when (startingSide) {
                 StartingPoint.INSIDE -> FieldManager.insideSafePointClose
                 StartingPoint.OUTSIDE -> FieldManager.outsideSafePointClose
-                StartingPoint.MIDDLE -> FieldManager.chargeSafePointNear
+                StartingPoint.MIDDLE -> FieldManager.chargeSafePointClose
             }
 
         distance += (p2 - p1).length

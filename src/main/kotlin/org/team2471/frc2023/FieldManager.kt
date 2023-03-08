@@ -37,7 +37,7 @@ object FieldManager {
         get() = reflectFieldByAlliance( Vector2(barrierTip.x/2.0, (gridFromCenterY - 66.0.inches + Drive.robotHalfWidth).asFeet))
     val insideSafePointFar: Vector2
         get() = Vector2(insideSafePointClose.x, reflectFieldByAlliance((chargeFromCenterY - 30.0.inches).asFeet))
-    val chargeSafePointNear: Vector2
+    val chargeSafePointClose: Vector2
         get() = Vector2(centerOfChargeX, insideSafePointClose.y)// already reflected
     val outsideSafePointClose: Vector2
         get() = Vector2(-fieldCenterOffset.x.meters.asFeet + (chargeFromWall/2.0).asFeet, insideSafePointClose.y) // already reflected
