@@ -2,6 +2,7 @@ package org.team2471.frc2023
 
 import edu.wpi.first.math.filter.LinearFilter
 import edu.wpi.first.math.filter.SlewRateLimiter
+import edu.wpi.first.wpilibj.DriverStation
 import org.team2471.frc.lib.coroutines.delay
 import org.team2471.frc.lib.coroutines.parallel
 import org.team2471.frc.lib.coroutines.periodic
@@ -125,13 +126,13 @@ suspend fun intakeCurrentLogic() {
     }
 }
 
-    suspend fun intakeFromGround() = use(Arm, Intake) {
+    suspend fun intakeFromGround(isCone: Boolean = NodeDeckHub.isCone, trigger: Double = OI.operatorLeftTrigger) = use(Arm, Intake) {
         if (Intake.wristAngle.asDegrees > 80.0) {
             try {
                 println("in intakeFromGround")
                 val path = Path2D("newPath")
                 path.addVector2(Pose.current.wristPosition)
-                if (NodeDeckHub.isCone) {
+                if (isCone) {
                     path.addVector2(Pose.GROUND_INTAKE_FRONT_CONE.wristPosition)
                     path.addVector2(Pose.GROUND_INTAKE_CONE_NEAR.wristPosition)
                     path.addVector2(Pose.GROUND_INTAKE_CONE_FAR.wristPosition)
@@ -151,7 +152,7 @@ suspend fun intakeCurrentLogic() {
                 val wristCurve = MotionCurve()
                 wristCurve.storeValue(0.0, Pose.current.wristAngle.asDegrees)
                 wristCurve.storeValue(time * 0.35, Pose.GROUND_INTAKE_FRONT_CONE.wristAngle.asDegrees)
-                if (NodeDeckHub.isCone) {
+                if (isCone) {
                     wristCurve.storeValue(startOfExtend, Pose.GROUND_INTAKE_CONE_NEAR.wristAngle.asDegrees)
                     wristCurve.storeValue(time, Pose.GROUND_INTAKE_CONE_FAR.wristAngle.asDegrees)
                 } else {
@@ -161,7 +162,7 @@ suspend fun intakeCurrentLogic() {
 
                 val pivotCurve = MotionCurve()
                 pivotCurve.storeValue(0.0, Pose.current.pivotAngle.asDegrees)
-                if (NodeDeckHub.isCone) {
+                if (isCone) {
                     pivotCurve.storeValue(startOfExtend * 0.7, -90.0)
                     pivotCurve.storeValue(startOfExtend * 0.9, -70.0)
                     pivotCurve.storeValue(startOfExtend, Pose.GROUND_INTAKE_CONE_NEAR.pivotAngle.asDegrees)
@@ -181,35 +182,47 @@ suspend fun intakeCurrentLogic() {
                     Arm.wristPosition = path.getPosition(t)
                     Intake.wristSetpoint = wristCurve.getValue(t).degrees
                     Intake.pivotSetpoint = pivotCurve.getValue(t).degrees
-                    if (t > startOfExtend || OI.operatorController.leftTrigger < 0.05) {
+                    if (t > startOfExtend || trigger < 0.05) {
                         this.stop()
                     }
                 }
-                Intake.intakeMotor.setPercentOutput(if (NodeDeckHub.isCone) Intake.INTAKE_CONE else Intake.INTAKE_CUBE) //intake bad
-                if (OI.operatorController.leftTrigger > 0.05) {
+                Intake.intakeMotor.setPercentOutput(if (isCone) Intake.INTAKE_CONE else Intake.INTAKE_CUBE) //intake bad
+                if (trigger > 0.05) {
                     var tInitialHold = -1.0
-                    parallel({
+                    parallel ({
                         periodic {
                             val tHold = if (tInitialHold != -1.0) timer.get() - tInitialHold else -1.0
-                            val alpha =
-                                slewRateLimiter.calculate((OI.operatorController.leftTrigger - 0.1) * 10.0 / 9.0)
-                            val tPath = linearMap(0.0, 1.0, startOfExtend, time, alpha)
+                            val alpha2 =
+                                slewRateLimiter.calculate((trigger - 0.1) * 10.0 / 9.0)
+                            val tPath = linearMap(0.0, 1.0, startOfExtend, time, alpha2)
                             Arm.wristPosition =
                                 path.getPosition(tPath) + if (tHold > 1.0) Vector2(-4.0, 4.0) else Vector2(
                                     0.0,
                                     0.0)
                             Intake.wristSetpoint = wristCurve.getValue(tPath).degrees
                             Intake.pivotSetpoint = pivotCurve.getValue(tPath).degrees
-                            Intake.intakeMotor.setPercentOutput(if (NodeDeckHub.isCone) (if (tHold > 2.0) Intake.HOLD_CONE else Intake.INTAKE_CONE) else (if (tHold > 2.0) Intake.HOLD_CUBE else Intake.INTAKE_CUBE))
-                            if (OI.operatorController.leftTrigger < 0.1) {
+                            Intake.intakeMotor.setPercentOutput(if (isCone) (if (tHold > 2.0) Intake.HOLD_CONE else Intake.INTAKE_CONE) else (if (tHold > 2.0) Intake.HOLD_CUBE else Intake.INTAKE_CUBE))
+                            if (trigger < 0.1) {
                                 this.stop()
+                            }
+                            if (DriverStation.isAutonomous() && tPath >= time) {
+                                this.stop()
+                            }
+                        }
+                        if (DriverStation.isAutonomous()) {
+                            val timer = Timer()
+                            timer.start()
+                            periodic {
+                                if (timer.get() > 2.0 || Intake.holdingObject) {
+                                    this.stop()
+                                }
                             }
                         }
                     }, {
                         periodic {
                             if (Intake.holdingObject && tInitialHold == -1.0) tInitialHold = timer.get()
                             if (!Intake.holdingObject) tInitialHold = -1.0
-                            if (OI.operatorController.leftTrigger < 0.1) {
+                            if (trigger < 0.1 || DriverStation.isAutonomous()) {
                                 this.stop()
                             }
                         }
@@ -227,8 +240,9 @@ suspend fun intakeCurrentLogic() {
 //    }
             } finally {
                 Drive.maxTranslation = 1.0
-                Intake.intakeMotor.setPercentOutput(if (Intake.holdingObject) (if (NodeDeckHub.isCone) Intake.HOLD_CONE else Intake.HOLD_CUBE) else 0.0) //intake bad
-                animateToPose(if (NodeDeckHub.isCone) Pose.GROUND_INTAKE_FRONT_CONE else Pose.GROUND_INTAKE_FRONT_CUBE)
+                println("Holding = ${Intake.holdingObject}")
+                Intake.intakeMotor.setPercentOutput(if (Intake.holdingObject) (if (isCone) Intake.HOLD_CONE else Intake.HOLD_CUBE) else 0.0) //intake bad
+                animateToPose(if (isCone) Pose.GROUND_INTAKE_FRONT_CONE else Pose.GROUND_INTAKE_FRONT_CUBE)
                 toDrivePose()
             }
         } else {
@@ -290,10 +304,10 @@ suspend fun backScoreAwayCone() = use(Arm, Intake) {
     }
 }
 
-    suspend fun lineUpScoreCube() = use(Arm, Intake) {
+    suspend fun lineUpScoreCube(selectedNode: Int = FieldManager.getSelectedNode().hashCode()) = use(Arm, Intake) {
         if (Arm.wristPosition.x < -10.0 || Intake.wristAngle.asDegrees < -40.0) {
             Drive.maxTranslation = 0.3
-            when (FieldManager.getSelectedNode()?.level) {
+            when (FieldManager.nodeList[selectedNode]?.level) {
                 Level.HIGH -> {
                     animateToPose(Pose.BACK_HIGH_SCORE_CONE_TOWARD_MID)
                     animateToPose(Pose.BACK_HIGH_SCORE_CONE_TOWARD)
@@ -385,4 +399,85 @@ suspend fun backScoreAwayCone() = use(Arm, Intake) {
         if (Arm.wristPosition.x < -10.0 || Intake.wristAngle.asDegrees < -75.0) animateToPose(Pose.BACK_DRIVE_POSE) else if (Arm.wristPosition.x > 10.0 || Intake.wristAngle.asDegrees > 75.0) animateToPose(Pose.FRONT_DRIVE_POSE)
         Drive.maxTranslation = 1.0
     }
+suspend fun backScoreAuto(isCone: Boolean, pieceNumber: Int) = use(Arm, Intake) {
+    if (Arm.wristPosition.x < -10.0 || Intake.wristAngle.asDegrees < -40.0) {
+        Intake.coneToward = true
+        Drive.maxTranslation = 0.3
+        if (isCone) {
+            when (FieldManager.nodeList[pieceNumber]?.level) {
+                Level.HIGH -> {
+                    animateToPose(Pose.BACK_HIGH_SCORE_CONE_TOWARD_MID, 2.0)
+                    animateToPose(Pose.BACK_HIGH_SCORE_CONE_TOWARD, 1.0)
+                }
+                Level.MID -> {
+                    animateToPose(Pose.BACK_MIDDLE_SCORE_CONE_TOWARD_MID)
+                    animateToPose(Pose.BACK_MIDDLE_SCORE_CONE_TOWARD)
+                }
+                Level.LOW -> println("Low is not an option yet")
+                else -> {
+                    println("Error: Node level not given back")
+                }
+            }
+        } else {
+            lineUpScoreCube(pieceNumber)
+        }
+    } else {
+        println("Wrong side--flip first!!")
+    }
+    scoreObjectAuto(isCone, pieceNumber)
+}
+
+suspend fun scoreObjectAuto(isCone: Boolean, pieceNumber: Int) = use(Arm, Intake) {
+    println("in scoreObject")
+    if (isCone) {
+        if (Intake.coneToward) {
+            when (FieldManager.nodeList[pieceNumber]?.level) {
+                Level.MID -> {
+                    val midPose = Pose.current + Pose(Vector2(10.0, -2.0), 40.0.degrees, 0.0.degrees)
+                    animateToPose(midPose, 1.0)
+                    Intake.intakeMotor.setPercentOutput(Intake.CONE_TOWARD_SPIT)
+                    animateToPose(midPose + Pose(Vector2(6.0, -2.0), 10.0.degrees, 0.0.degrees))
+                }
+                Level.HIGH -> {
+                    var midPose = Pose.current + Pose(Vector2(6.0, -2.5), 40.0.degrees, 0.0.degrees)
+                    animateToPose(midPose, 1.0)
+                    Intake.intakeMotor.setPercentOutput(Intake.CONE_TOWARD_SPIT)
+                    midPose += Pose(Vector2(6.5, 4.0), 0.0.degrees, 0.0.degrees)
+                    animateToPose(midPose)
+                    midPose += Pose(Vector2(10.0, 6.0), 0.0.degrees, 0.0.degrees)
+                    animateToPose(midPose, 1.5)
+                }
+                else -> println("Currently can't score there.")
+            }
+        } else { // cone away
+            when (FieldManager.nodeList[pieceNumber]?.level) {
+                Level.MID -> {
+                    val midPose = Pose.current + Pose(Vector2(7.0, -4.0), 40.0.degrees, 0.0.degrees)
+                    animateToPose(midPose, 1.0)
+                    Intake.intakeMotor.setPercentOutput(Intake.CONE_AWAY_SPIT)
+                    animateToPose(midPose + Pose(Vector2(6.0, -2.0), 10.0.degrees, 0.0.degrees))
+                }
+                Level.HIGH -> {
+                    var midPose = Pose.current + Pose(Vector2(3.0, -8.0), 40.0.degrees, 0.0.degrees)
+                    animateToPose(midPose, 1.0)
+                    Intake.intakeMotor.setPercentOutput(Intake.CONE_AWAY_SPIT)
+                    midPose += Pose(Vector2(6.5, 1.0), 0.0.degrees, 0.0.degrees)
+                    animateToPose(midPose)
+                    midPose += Pose(Vector2(10.0, 6.0), 0.0.degrees, 0.0.degrees)
+                    animateToPose(midPose, 1.5)
+                }
+                else -> println("Currently can't score there.")
+            }
+        }
+    } else {
+        Intake.intakeMotor.setPercentOutput(Intake.CUBE_SPIT)
+        when (FieldManager.nodeList[pieceNumber]?.level) {
+            Level.MID -> animateToPose(Pose.current + Pose(Vector2(3.0, 0.0), 0.0.degrees, 0.0.degrees))
+            Level.HIGH -> animateToPose(Pose.current + Pose(Vector2(12.0, 0.0), 0.0.degrees, 0.0.degrees))
+            else -> println("Currently can't score there.")
+        }
+    }
+    Intake.intakeMotor.setPercentOutput(0.0)
+//    toDrivePose()
+}
 

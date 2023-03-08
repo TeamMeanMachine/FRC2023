@@ -5,13 +5,15 @@ import edu.wpi.first.networktables.NetworkTableInstance
 import edu.wpi.first.wpilibj.DriverStation
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard
-import org.team2471.frc.lib.coroutines.delay
+import org.team2471.frc.lib.coroutines.parallel
+import org.team2471.frc.lib.coroutines.periodic
 //import org.team2471.bunnybots2022.Drive
 import org.team2471.frc.lib.framework.use
 import org.team2471.frc.lib.math.Vector2
 import org.team2471.frc.lib.motion.following.driveAlongPath
 import org.team2471.frc.lib.motion_profiling.Autonomi
 import org.team2471.frc.lib.units.Angle
+import org.team2471.frc.lib.units.asFeet
 import org.team2471.frc.lib.units.degrees
 import org.team2471.frc.lib.units.feet
 import org.team2471.frc.lib.util.measureTimeFPGA
@@ -180,6 +182,7 @@ object AutoChooser {
         }
     }
     suspend fun nodeDeckAuto() = use(Drive, Intake, Arm) {
+        Intake.intakeMotor.setPercentOutput(Intake.HOLD_CONE)
         var gamePieceAngles = when (NodeDeckHub.startingPoint) {
             StartingPoint.INSIDE -> doubleArrayOf(0.0, -30.0, -45.0)
             StartingPoint.MIDDLE -> doubleArrayOf(-30.0, -45.0, 30.0)
@@ -191,11 +194,14 @@ object AutoChooser {
         Drive.zeroGyro()
         PoseEstimator.zeroOffset()
         if (NodeDeckHub.amountOfAutoPieces > 0) {
-            nodeDeckPiece(gamePieceAngles[0].degrees, NodeDeckHub.firstAutoPiece, NodeDeckHub.amountOfAutoPieces == 1 && NodeDeckHub.chargeInAuto)
+            backScoreAuto(true, NodeDeckHub.firstAutoPiece)
             if (NodeDeckHub.amountOfAutoPieces > 1) {
-                nodeDeckPiece(gamePieceAngles[1].degrees, NodeDeckHub.secondAutoPiece, NodeDeckHub.amountOfAutoPieces == 2 && NodeDeckHub.chargeInAuto)
+                nodeDeckPiece(gamePieceAngles[0].degrees, NodeDeckHub.secondAutoPiece, NodeDeckHub.amountOfAutoPieces == 2 && NodeDeckHub.chargeInAuto)
                 if (NodeDeckHub.amountOfAutoPieces > 2) {
-                    nodeDeckPiece(gamePieceAngles[2].degrees, NodeDeckHub.thirdAutoPiece, NodeDeckHub.amountOfAutoPieces == 3 && NodeDeckHub.chargeInAuto)
+                    nodeDeckPiece(gamePieceAngles[1].degrees, NodeDeckHub.thirdAutoPiece, NodeDeckHub.amountOfAutoPieces == 3 && NodeDeckHub.chargeInAuto)
+                    if (NodeDeckHub.amountOfAutoPieces > 3) {
+                        nodeDeckPiece(gamePieceAngles[2].degrees, NodeDeckHub.fourthAutoPiece, NodeDeckHub.amountOfAutoPieces == 4 && NodeDeckHub.chargeInAuto)
+                    }
                 }
             }
         }
@@ -204,10 +210,17 @@ object AutoChooser {
 //        Drive.dynamicGoToGamePieceOnFloor(nextGamePiece, 0.0.degrees)
 
     }
-    suspend fun nodeDeckPiece(pickupHeading: Angle, nodeID: Int, goCharge: Boolean) {
+    suspend fun nodeDeckPiece(pickupHeading: Angle, nodeID: Int, goCharge: Boolean) = use(Intake, Drive, Arm) {
         val nextGamePiece = FieldManager.getClosestGamePieceOnField()
         println("nodedeck auto path to game piece: $nextGamePiece")
-        Drive.dynamicGoToGamePieceOnFloor(nextGamePiece, pickupHeading)
+        parallel({
+            Drive.dynamicGoToGamePieceOnFloor(nextGamePiece, pickupHeading)
+        }, {
+            toDrivePose()
+            flip()
+            println("before intakeFromGround")
+            intakeFromGround(FieldManager.nodeList[nodeID]?.coneOrCube == GamePiece.CONE, 1.0)
+        })
         println("finished goToGamePiece")
         val scoringNode = FieldManager.getNode(nodeID)
         if (!goCharge) {
@@ -220,10 +233,17 @@ object AutoChooser {
                     StartingPoint.MIDDLE -> SafeSide.CHARGE
                     StartingPoint.OUTSIDE -> SafeSide.OUTSIDE
                 }
-                Drive.dynamicGoToScore(scoringNode.alignPosition, safeSide)
+                parallel({
+                    Drive.dynamicGoToScore(scoringNode.alignPosition, safeSide)
+                }, {
+                    flip()
+                    backScoreAuto(FieldManager.nodeList[nodeID]?.coneOrCube == GamePiece.CONE, nodeID)
+                })
             }
         } else {
             Drive.dynamicGoToChargeCenter()
+//            val destination = Vector2(FieldManager.centerOfChargeX - Drive.robotHalfWidth.asFeet * 2.0, FieldManager.reflectFieldByAlliance(14.25))
+//            Drive.driveToPoints(Drive.position, Vector2(destination.x, Drive.position.y), destination)
             Drive.rampTest()
 //            Drive.autoBalance()
         }

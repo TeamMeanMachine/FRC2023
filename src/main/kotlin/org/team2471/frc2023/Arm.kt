@@ -83,7 +83,7 @@ object Arm : Subsystem("Arm") {
     val shoulderFollowerAngle: Angle
         get() = shoulderFollowerMotor.position.degrees + shoulderOffset
     val elbowAngle: Angle
-        get() = if (isCompBot) (-elbowEncoder.value.degrees + 2562.degrees) * 90.0 / 1054.0 else (-elbowEncoder.value.degrees + 1834.degrees) * 90.0 / 1054.0
+        get() = if (isCompBot) (-elbowEncoder.value.degrees + 2562.degrees) * 90.0 / 1054.0 else (-elbowEncoder.value.degrees + 1423.degrees) * 90.0 / 1054.0
     var elbowOffset = 0.0.degrees
     var elbowSetpoint: Angle = elbowAngle
         set(value) {
