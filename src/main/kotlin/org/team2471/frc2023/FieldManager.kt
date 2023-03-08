@@ -20,7 +20,7 @@ object FieldManager {
     val nodeList: HashMap<Int, ScoringNode> = HashMap()
     val gamePieceStartingPos = ArrayList<Vector2>(8)
     var allianceSidePieces : MutableList<Vector2>? = null
-    val scoringNodeYPosition = (fieldCenterOffset.y.meters - gridYOffset - Drive.robotHalfWidth).asFeet
+    val scoringNodeYPosition = (fieldCenterOffset.y.meters - gridYOffset - Drive.robotHalfWidth + 1.0.feet).asFeet
     val avoidanceZones = ArrayList<AvoidanceZone>()
     val gamePieceOnFieldFromCenterY = 47.36.inches
     val gamePieceOnFieldFromCenterX = 22.39.inches
@@ -159,7 +159,7 @@ val ScoringNode.alliance
     get() = if (this.position.y < 0.0) Alliance.Red else Alliance.Blue
 
 val ScoringNode.alignPosition : Vector2
-    get() = Vector2(this.position.x, FieldManager.reflectFieldByAlliance(FieldManager.scoringNodeYPosition - if (this.level == Level.HIGH) 1.0 else 0.0))
+    get() = Vector2(this.position.x, FieldManager.reflectFieldByAlliance(FieldManager.scoringNodeYPosition))
 enum class GamePiece {
     CUBE,
     CONE,

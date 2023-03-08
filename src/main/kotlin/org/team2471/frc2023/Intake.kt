@@ -57,7 +57,6 @@ object Intake : Subsystem("Intake") {
 
     val wristAngle: Angle
         get() = wristMotor.position.degrees
-    var coneFacingUp = false
     var wristOffset = 0.0.degrees
     var wristSetpoint: Angle = wristAngle
         set(value) {
@@ -120,12 +119,15 @@ object Intake : Subsystem("Intake") {
     var holdDetectedTime = -5.0
 
     lateinit var pixy : Pixy2
+    var coneFacingUp = false
+    var coneToward = true //not supposed to be a get. We want to set it when pixy facing ground
 
     const val INTAKE_POWER = 1.0
     const val INTAKE_CONE = -1.0
     const val HOLD_CONE = -0.15
     const val DETECT_CONE = 20
-    const val CONE_SPIT = 0.6
+    const val CONE_TOWARD_SPIT = 0.6
+    const val CONE_AWAY_SPIT = 1.0
     const val INTAKE_CUBE = 0.5
     const val HOLD_CUBE = 0.05
     const val DETECT_CUBE = 13
