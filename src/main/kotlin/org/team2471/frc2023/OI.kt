@@ -107,6 +107,9 @@ object OI : Subsystem("OI") {
                 intakeFromGround()
             }
         }
+        ({operatorController.dPad == Controller.Direction.DOWN}).whenTrue {
+            AprilTag.resetCameras()
+        }
     }
 
     override fun preEnable() {

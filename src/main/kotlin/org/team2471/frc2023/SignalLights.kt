@@ -80,7 +80,7 @@ object SignalLights : Subsystem("SignalLights") {
         periodic {
             when (OI.operatorController.dPad) {
                 Controller.Direction.LEFT -> idle()
-                Controller.Direction.RIGHT -> green()
+//                Controller.Direction.RIGHT -> green()
                 else -> {}
             }
 

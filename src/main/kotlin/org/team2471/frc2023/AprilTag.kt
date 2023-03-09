@@ -52,22 +52,7 @@ object AprilTag {
     )
     init {
         singleTagMinYEntry.setDouble((FieldManager.chargeFromCenterY + FieldManager.chargingStationDepth).asFeet)
-        try {
-            if (pvTable.containsSubTable("PVFront")) {
-                camFront = PhotonCamera("PVFront")
-                frontPoseEstimator = PhotonPoseEstimator(aprilTagFieldLayout, PhotonPoseEstimator.PoseStrategy.MULTI_TAG_PNP, camFront, robotToCamFront)
-            }
-        } catch (ex:Exception) {
-            println("Front pose failed")
-        }
-        try {
-            if (pvTable.containsSubTable("PVBack")) {
-                camBack = PhotonCamera("PVBack")
-                backPoseEstimator = PhotonPoseEstimator(aprilTagFieldLayout, PhotonPoseEstimator.PoseStrategy.MULTI_TAG_PNP, camBack, robotToCamBack)
-            }
-        } catch (ex:Exception) {
-            println("Back pose failed")
-        }
+        resetCameras()
 //        frontPoseEstimator.setMultiTagFallbackStrategy(PhotonPoseEstimator.PoseStrategy.CLOSEST_TO_REFERENCE_POSE)
 //        backPoseEstimator.setMultiTagFallbackStrategy(PhotonPoseEstimator.PoseStrategy.CLOSEST_TO_REFERENCE_POSE)
         GlobalScope.launch {
@@ -155,6 +140,25 @@ object AprilTag {
         }
         } catch (ex: Exception) {
             return null
+        }
+    }
+
+    fun resetCameras() {
+        try {
+            if (pvTable.containsSubTable("PVFront")) {
+                camFront = PhotonCamera("PVFront")
+                frontPoseEstimator = PhotonPoseEstimator(aprilTagFieldLayout, PhotonPoseEstimator.PoseStrategy.MULTI_TAG_PNP, camFront, robotToCamFront)
+            }
+        } catch (ex:Exception) {
+            println("Front pose failed")
+        }
+        try {
+            if (pvTable.containsSubTable("PVBack")) {
+                camBack = PhotonCamera("PVBack")
+                backPoseEstimator = PhotonPoseEstimator(aprilTagFieldLayout, PhotonPoseEstimator.PoseStrategy.MULTI_TAG_PNP, camBack, robotToCamBack)
+            }
+        } catch (ex:Exception) {
+            println("Back pose failed")
         }
     }
 //
