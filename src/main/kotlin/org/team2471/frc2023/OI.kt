@@ -63,7 +63,9 @@ object OI : Subsystem("OI") {
         }
 //        driverController::b.whenTrue { Drive.dynamicGoToFeeder()}
         driverController::x.whenTrue { Drive.xPose() }
-
+        driverController::b.whenTrue {
+            Intake.intakeMotor.setPercentOutput(if (NodeDeckHub.isCone) Intake.CONE_TOWARD_SPIT else Intake.CUBE_SPIT)
+        }
         driverController::leftBumper.whenTrue {
                 Drive.dynamicGoToScoreCheck()
             }
@@ -94,9 +96,6 @@ object OI : Subsystem("OI") {
             safeAnimationCheck(PERSONINCONTROL.OPERATOR) {
                 backScoreAwayCone()
             }
-        }
-        operatorController::b.whenTrue {
-            Intake.intakeMotor.setPercentOutput(if (NodeDeckHub.isCone) Intake.CONE_TOWARD_SPIT else Intake.CUBE_SPIT)
         }
         operatorController::x.whenTrue {
             Arm.wristFrontOffset = Vector2(0.0, 0.0)

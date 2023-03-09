@@ -232,8 +232,8 @@ suspend fun intakeCurrentLogic() {
             if (NodeDeckHub.isCone) {
                 when (FieldManager.getSelectedNode()?.level) {
                     Level.HIGH -> {
-                        animateToPose(Pose.BACK_HIGH_SCORE_CONE_TOWARD_MID, 2.0)
-                        animateToPose(Pose.BACK_HIGH_SCORE_CONE_TOWARD, 1.0)
+                        animateToPose(Pose.BACK_HIGH_SCORE_CONE_TOWARD_MID, 1.0)
+                        animateToPose(Pose.BACK_HIGH_SCORE_CONE_TOWARD, 0.5)
                     }
                     Level.MID -> {
                         animateToPose(Pose.BACK_MIDDLE_SCORE_CONE_TOWARD_MID)
@@ -279,7 +279,7 @@ suspend fun backScoreAwayCone() = use(Arm, Intake) {
     }
 }
 
-    suspend fun lineUpScoreCube(selectedNode: Int = FieldManager.getSelectedNode().hashCode()) = use(Arm, Intake) {
+    suspend fun lineUpScoreCube(selectedNode: Int = NodeDeckHub.selectedNode.toInt()) = use(Arm, Intake) {
         if (Arm.wristPosition.x < -10.0 || Intake.wristAngle.asDegrees < -40.0) {
             Drive.maxTranslation = 0.3
             when (FieldManager.nodeList[selectedNode]?.level) {
@@ -320,12 +320,12 @@ suspend fun backScoreAwayCone() = use(Arm, Intake) {
                 when (FieldManager.getSelectedNode()?.level) {
                     Level.HIGH -> {
                         var midPose = Pose.current + Pose(Vector2(6.0, -2.5), 40.0.degrees, 0.0.degrees)
-                        animateToPose(midPose, 1.0)
+                        animateToPose(midPose, 0.5)
                         Intake.intakeMotor.setPercentOutput(Intake.CONE_TOWARD_SPIT)
-                        midPose += Pose(Vector2(6.5, 4.0), 0.0.degrees, 0.0.degrees)
+                        midPose += Pose(Vector2(6.5, 6.5), 0.0.degrees, 0.0.degrees)
                         animateToPose(midPose)
                         midPose += Pose(Vector2(10.0, 6.0), 0.0.degrees, 0.0.degrees)
-                        animateToPose(midPose, 1.5)
+                        animateToPose(midPose, 1.0)
                     }
                     Level.MID -> {
                         val midPose = Pose.current + Pose(Vector2(10.0, -2.0), 40.0.degrees, 0.0.degrees)
@@ -342,10 +342,10 @@ suspend fun backScoreAwayCone() = use(Arm, Intake) {
             } else { // cone away
                 when (FieldManager.getSelectedNode()?.level) {
                     Level.HIGH -> {
-                        var midPose = Pose.current + Pose(Vector2(3.0, -8.0), 40.0.degrees, 0.0.degrees)
+                        var midPose = Pose.current + Pose(Vector2(3.0, -6.0), 50.0.degrees, 0.0.degrees)
                         animateToPose(midPose, 1.0)
                         Intake.intakeMotor.setPercentOutput(Intake.CONE_AWAY_SPIT)
-                        midPose += Pose(Vector2(6.5, 1.0), 0.0.degrees, 0.0.degrees)
+                        midPose += Pose(Vector2(6.5, 5.0), 0.0.degrees, 0.0.degrees)
                         animateToPose(midPose)
                         midPose += Pose(Vector2(10.0, 6.0), 0.0.degrees, 0.0.degrees)
                         animateToPose(midPose, 1.5)

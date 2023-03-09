@@ -15,9 +15,7 @@ import org.team2471.frc.lib.math.Vector2
 import org.team2471.frc.lib.math.deadband
 import org.team2471.frc.lib.math.round
 import org.team2471.frc.lib.motion_profiling.MotionCurve
-import org.team2471.frc.lib.units.Angle
-import org.team2471.frc.lib.units.degrees
-import org.team2471.frc.lib.units.radians
+import org.team2471.frc.lib.units.*
 import org.team2471.frc2023.Robot.isCompBot
 import kotlin.math.*
 
@@ -45,6 +43,8 @@ object Arm : Subsystem("Arm") {
     val shoulderZeroedForwardEntry = table.getEntry("Shoulder Zero Forward")
     val shoulderZeroedBackwardEntry = table.getEntry("Shoulder Zero Backward")
     val shoulderIsZeroedEntry = table.getEntry("Shoulder Is Zeroed")
+    val shoulderTickEntry = table.getEntry("Shoulder Ticks")
+    val elbowTickEntry = table.getEntry("Elbow Ticks")
     var shoulderGetZeroCount = 0
     var shoulderZeroForward = false
     var shoulderZeroBackward = false
@@ -56,8 +56,10 @@ object Arm : Subsystem("Arm") {
     val driverInControlEntry = table.getEntry("Driver in Control")
     val operatorInControlEntry = table.getEntry("Operator in Control")
 
+    val shoulderTicks: Int
+        get() = shoulderEncoder.value
     val shoulderAngle: Angle
-        get() = if (isCompBot) ((-shoulderEncoder.value.degrees + 1192.degrees) / if (-shoulderEncoder.value + 1186 < 0.0) 12.4 else 9.8) else ((-shoulderEncoder.value.degrees + 1175.degrees) / if (-shoulderEncoder.value + 1175 < 0.0) 11.2 else 11.2) //(-shoulderEncoder.value.degrees / (if (-shoulderEncoder.value + 113.0 < 0.0) 16.0 else 10.5) + 113.0.degrees)
+        get() = if (isCompBot) ((-shoulderEncoder.value.degrees + 1183.degrees) / if (-shoulderEncoder.value + 1183 < 0.0) 12.4 else 9.8) else ((-shoulderEncoder.value.degrees + 1175.degrees) / if (-shoulderEncoder.value + 1175 < 0.0) 11.2 else 11.2) //(-shoulderEncoder.value.degrees / (if (-shoulderEncoder.value + 113.0 < 0.0) 16.0 else 10.5) + 113.0.degrees)
     val shoulderAnalogAngle: Angle
         get() = shoulderEncoder.value.degrees
     var shoulderOffset = 0.0.degrees
@@ -82,8 +84,10 @@ object Arm : Subsystem("Arm") {
     var prevShoulder = shoulderAngle
     val shoulderFollowerAngle: Angle
         get() = shoulderFollowerMotor.position.degrees + shoulderOffset
+    val elbowTicks: Int
+        get() = elbowEncoder.value
     val elbowAngle: Angle
-        get() = if (isCompBot) (-elbowEncoder.value.degrees + 2620.degrees) * 90.0 / 1054.0 else (-elbowEncoder.value.degrees + 1423.degrees) * 90.0 / 1054.0
+        get() = if (isCompBot) (-elbowEncoder.value.degrees + 2720.degrees) * 90.0 / 1054.0 else (-elbowEncoder.value.degrees + 1423.degrees) * 90.0 / 1054.0
     var elbowOffset = 0.0.degrees
     var elbowSetpoint: Angle = elbowAngle
         set(value) {
@@ -102,6 +106,11 @@ object Arm : Subsystem("Arm") {
     val elbowFilter = LinearFilter.movingAverage(5)
     val elbowDirection
         get() = elbowFilter.calculate(tempElbow.asDegrees - prevElbow.asDegrees)
+
+    val distanceToTarget: Length
+        get() = if (FieldManager.getSelectedNode()!=null) (FieldManager.getSelectedNode()!!.position - Drive.position).length.feet else 0.0.feet
+    val targetOffset: Length
+        get() = distanceToTarget - wristPosition.x.inches
 
     val SHOULDER_BOTTOM = -50.0
     val SHOULDER_TOP = 50.0
@@ -159,11 +168,11 @@ object Arm : Subsystem("Arm") {
         )
     }
 
-    const val REACH_LIMIT = 48.0
+    const val REACH_LIMIT = 47.0
     const val HEIGHT_LIMIT = 50.0
     const val FLOOR_HEIGHT = -5.0
     const val ROBOT_COVER_HEIGHT = 9.0
-    const val ROBOT_HALF_WIDTH = 34.0 / 2.0
+    const val ROBOT_HALF_WIDTH = 36.0 / 2.0
 
     var wristPosition = forwardKinematics(shoulderAngle, elbowAngle)
 //        get() = forwardKinematics(shoulderAngle, elbowAngle)
@@ -198,7 +207,7 @@ object Arm : Subsystem("Arm") {
     var wristPosOffset
         get() = if (wristPosition.x > 7.0) wristFrontOffset else if (wristPosition.x < -7.0) wristBackOffset else wristCenterOffset
         set(value) {
-            if (wristPosition.x > 0.0) wristFrontOffset = value else if (wristPosition.x < -7.0) wristBackOffset = value else wristCenterOffset = value
+            if (wristPosition.x > 7.0) wristFrontOffset = value else if (wristPosition.x < -7.0) wristBackOffset = value else wristCenterOffset = value
         }
     var wristFrontOffset = Vector2(0.0, 0.0)
     var wristBackOffset = Vector2(0.0, 0.0)
@@ -248,18 +257,22 @@ object Arm : Subsystem("Arm") {
 
         GlobalScope.launch(MeanlibDispatcher) {
 
+            shoulderCurve.storeValue(-70.0, 0.16)
             shoulderCurve.storeValue(-65.0, 0.13)
             shoulderCurve.storeValue(-30.0, 0.09)
             shoulderCurve.storeValue(-5.0, 0.05)
             shoulderCurve.storeValue(5.0, -0.05)
             shoulderCurve.storeValue(30.0, -0.09)
             shoulderCurve.storeValue(65.0, -0.13)
+            shoulderCurve.storeValue(70.0, -0.16)
 
+            elbowCurve.storeValue(-110.0, -0.21)
             elbowCurve.storeValue(-90.0, -0.18)
             elbowCurve.storeValue(-40.0, -0.13)
             elbowCurve.storeValue(0.0, 0.0)
             elbowCurve.storeValue(40.0, 0.18)
             elbowCurve.storeValue(90.0, 0.19)
+            elbowCurve.storeValue(110.0, 0.23)
 
             var shoulderDirection = LinearFilter.movingAverage(3)
             var previousShoulderSensor = false
@@ -295,6 +308,8 @@ object Arm : Subsystem("Arm") {
                 val (fkX, fkY) = forwardKinematics(shoulderAngle, elbowAngle)
                 xFKEntry.setDouble(fkX)
                 yFKENtry.setDouble(fkY)
+                shoulderTickEntry.setDouble(shoulderTicks.toDouble())
+                elbowTickEntry.setDouble(elbowTicks.toDouble())
 
                 var move = Vector2(
                     OI.operatorController.leftThumbstickX.deadband(0.2),
