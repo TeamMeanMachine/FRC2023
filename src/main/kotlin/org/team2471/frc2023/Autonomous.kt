@@ -194,6 +194,7 @@ object AutoChooser {
         println("position: ${Drive.position}")
         Drive.zeroGyro()
         PoseEstimator.zeroOffset()
+        println("position: ${Drive.position}, ${Drive.combinedPosition}")
         if (NodeDeckHub.amountOfAutoPieces > 0) {
             backScoreAuto(true, NodeDeckHub.firstAutoPiece)
             if (NodeDeckHub.amountOfAutoPieces > 1) {

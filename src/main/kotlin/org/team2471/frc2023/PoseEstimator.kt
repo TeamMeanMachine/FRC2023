@@ -41,7 +41,7 @@ object PoseEstimator {
     }
     fun addVision(detection: AprilDetection, numTarget: Int, kApril: Double? = null) {
         //Ignoring Vision data if timestamp is before the last zero
-        if (detection.timestamp < lastZeroTimestamp) {
+        if (detection.timestamp < (lastZeroTimestamp + 0.5)) {
 //            println("Stopping...")
             return
         }

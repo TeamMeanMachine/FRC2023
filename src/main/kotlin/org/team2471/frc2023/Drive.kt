@@ -668,6 +668,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         val newPath = Path2D("GoTo GamePiece")
         newPath.addEasePoint(0.0,0.0)
         var distance = 0.0
+        println("position: ${Drive.position}, ${Drive.combinedPosition}")
         val p1 = PoseEstimator.currentPose
         val p2 = when (startingSide) {
                 StartingPoint.INSIDE -> FieldManager.insideSafePointClose
@@ -707,6 +708,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         newPath.addVector2(p2)
         newPath.addVector2(p3)
         newPath.addVector2(p4)
+        println("$p1, $p2, $p3, $p4, finalH: $finalHeading")
         newPath.addHeadingPoint(0.0, heading.asDegrees)
         newPath.addHeadingPoint(safeDistance / rate, heading.asDegrees)
         newPath.addHeadingPoint(time, finalHeading)
