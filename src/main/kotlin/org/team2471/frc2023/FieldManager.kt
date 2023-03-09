@@ -10,8 +10,9 @@ import org.team2471.frc.lib.units.*
 
 object FieldManager {
 
-    val fieldDimensions = Vector2(26.29.feet.asMeters,54.27.feet.asMeters) // field diagram & json is 26.29, 54.27 but includes side walls and barriers
-    val fieldCenterOffset = fieldDimensions/2.0
+    val fieldDimensionsInMeters = Vector2(26.29.feet.asMeters,54.27.feet.asMeters) // field diagram & json is 26.29, 54.27 but includes side walls and barriers
+    val fieldCenterOffsetInMeters = fieldDimensionsInMeters/2.0
+    val fieldHalfInFeet = Vector2(fieldCenterOffsetInMeters.x.meters.asFeet, fieldCenterOffsetInMeters.y.meters.asFeet)
     val gridYOffset = 55.0.inches
     val chargingStationYOffset = gridYOffset + 60.0.inches
     val chargingStationXOffset = 0.0.feet
@@ -20,7 +21,7 @@ object FieldManager {
     val nodeList: HashMap<Int, ScoringNode> = HashMap()
     val gamePieceStartingPos = ArrayList<Vector2>(8)
     var allianceSidePieces : MutableList<Vector2>? = null
-    val scoringNodeYPosition = (fieldCenterOffset.y.meters - gridYOffset - Drive.robotHalfWidth + 1.0.feet).asFeet
+    val scoringNodeYPosition = (fieldCenterOffsetInMeters.y.meters - gridYOffset - Drive.robotHalfWidth + 1.0.feet).asFeet
     val avoidanceZones = ArrayList<AvoidanceZone>()
     val gamePieceOnFieldFromCenterY = 47.36.inches
     val gamePieceOnFieldFromCenterX = 22.39.inches
@@ -40,7 +41,7 @@ object FieldManager {
     val chargeSafePointClose: Vector2
         get() = Vector2(centerOfChargeX, insideSafePointClose.y)// already reflected
     val outsideSafePointClose: Vector2
-        get() = Vector2(-fieldCenterOffset.x.meters.asFeet + (chargeFromWall/2.0).asFeet, insideSafePointClose.y) // already reflected
+        get() = Vector2(-fieldCenterOffsetInMeters.x.meters.asFeet + (chargeFromWall/2.0).asFeet, insideSafePointClose.y) // already reflected
     val outsideSafePointFar: Vector2
         get() = Vector2(outsideSafePointClose.x, insideSafePointFar.y) // already reflected
     val chargeSafePointFar: Vector2
@@ -49,10 +50,18 @@ object FieldManager {
         get() = (chargingStationXOffset - chargingStationWidth/2.0).asFeet
 
     val startingPosition: Vector2
-        get() = Vector2(if (NodeDeckHub.firstAutoPiece != null) nodeList[NodeDeckHub.firstAutoPiece]!!.position.x else insideStartingPosition.x,
-            reflectFieldByAlliance(insideStartingPosition.y))
+        get() {
+            var x = when (NodeDeckHub.startingPoint) {
+                StartingPoint.OUTSIDE -> outsideStartingPosition.x
+                StartingPoint.MIDDLE -> middleStartingPosition.x
+                StartingPoint.INSIDE -> insideStartingPosition.x
+            }
+            x = nodeList[NodeDeckHub.firstAutoPiece]?.position?.x ?: x
+            return Vector2(x, reflectFieldByAlliance(insideStartingPosition.y))
+        }
     val insideStartingPosition = Vector2(3.0, scoringNodeYPosition)
     val outsideStartingPosition = Vector2(-11.5, scoringNodeYPosition)
+    val middleStartingPosition = Vector2(centerOfChargeX, scoringNodeYPosition)
 
     val closeDoubleSubstationOffsetX = 67.64.inches
     val farDoubleSubstationOffsetX = 149.inches
@@ -105,14 +114,14 @@ object FieldManager {
         return Vector2(p.x,  if (isRedAlliance) -p.y else p.y)
     }
     fun convertTMMtoWPI(x:Length, y:Length, heading: Angle):Pose2d{
-        val modX = -y.asMeters + fieldCenterOffset.y
-        val modY = x.asMeters + fieldCenterOffset.x
+        val modX = -y.asMeters + fieldCenterOffsetInMeters.y
+        val modY = x.asMeters + fieldCenterOffsetInMeters.x
         return Pose2d(modX,modY, Rotation2d((-heading+180.0.degrees).wrap().asRadians))
     }
 
     fun convertWPIToTMM(wpiDimens: Translation2d): Vector2{
-        val modX = wpiDimens.y - fieldCenterOffset.x
-        val modY = -(wpiDimens.x - fieldCenterOffset.y)
+        val modX = wpiDimens.y - fieldCenterOffsetInMeters.x
+        val modY = -(wpiDimens.x - fieldCenterOffsetInMeters.y)
         return Vector2(modX.meters.asFeet, modY.meters.asFeet)
     }
 

@@ -235,9 +235,9 @@ object Intake : Subsystem("Intake") {
 
     override suspend fun default() {
         periodic {
-            if (Arm.shoulderAngle.asDegrees.absoluteValue < 3.0 && Arm.elbowAngle.asDegrees.absoluteValue < 3.0) {
-                if (wristAngle < -70.0.degrees) wristSetpoint = -90.0.degrees
-                if (wristAngle > 70.0.degrees) wristSetpoint = 90.0.degrees
+            if (Arm.shoulderAngle.asDegrees.absoluteValue < 3.0 && Arm.elbowAngle.asDegrees.absoluteValue < 5.0) {
+                if (wristAngle < -65.0.degrees) wristSetpoint = -90.0.degrees
+                if (wristAngle > 65.0.degrees) wristSetpoint = 90.0.degrees
             }
         }
     }

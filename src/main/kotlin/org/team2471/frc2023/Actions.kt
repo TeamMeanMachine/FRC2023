@@ -392,7 +392,7 @@ suspend fun backScoreAuto(isCone: Boolean, pieceNumber: Int) = use(Arm, Intake) 
             when (FieldManager.nodeList[pieceNumber]?.level) {
                 Level.HIGH -> {
                     animateToPose(Pose.BACK_HIGH_SCORE_CONE_TOWARD_MID, 1.0)
-                    animateToPose(Pose.BACK_HIGH_SCORE_CONE_TOWARD, 0.5)
+                    animateToPose(Pose.BACK_HIGH_SCORE_CONE_TOWARD + Pose(Vector2(0.0, 1.0), 0.0.degrees, 0.0.degrees), 0.5) //adding 1 up because in auto no drivers to save it
                 }
                 Level.MID -> {
                     animateToPose(Pose.BACK_MIDDLE_SCORE_CONE_TOWARD_MID)
@@ -419,7 +419,7 @@ suspend fun scoreObjectAuto(isCone: Boolean, pieceNumber: Int) = use(Arm, Intake
             when (FieldManager.nodeList[pieceNumber]?.level) {
                 Level.HIGH -> {
                     var midPose = Pose.current + Pose(Vector2(6.0, -2.5), 40.0.degrees, 0.0.degrees)//6.0, -2.5
-                    animateToPose(midPose, 0.3)
+                    animateToPose(midPose, 0.5)
                     Intake.intakeMotor.setPercentOutput(Intake.CONE_TOWARD_SPIT)
                     midPose += Pose(Vector2(6.5, 6.5), 0.0.degrees, 0.0.degrees) // 6.5, 6.0
                     animateToPose(midPose, 0.3)

@@ -288,7 +288,8 @@ object Drive : Subsystem("Drive"), SwerveDrive {
 
     fun zeroGyro() {
         heading = if (FieldManager.isBlueAlliance) 180.0.degrees else 0.0.degrees
-        PoseEstimator.zeroOffset()
+        println("zeroed heading to $heading  alliance blue? ${FieldManager.isBlueAlliance}")
+        //PoseEstimator.zeroOffset()
        // MAPoseEstimator.resetPose(FieldManager.convertTMMtoWPI(pose.position.x.feet, pose.position.y.feet, pose.heading))
         //gyro.reset()
     }
@@ -689,8 +690,8 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         }
         distance += (p3 - p2).length
         safeDistance = distance
-        val distFromObject = 40.0.inches.asFeet * if (FieldManager.isBlueAlliance) -1.0 else 1.0
-        val p4 = Vector2(goalPosition.x + (distFromObject * sin(goalHeading)) - 4.0.inches.asFeet,goalPosition.y - (distFromObject * cos(goalHeading)))
+        val distFromObject = 50.0.inches.asFeet * if (FieldManager.isBlueAlliance) -1.0 else 1.0
+        val p4 = Vector2(goalPosition.x + (distFromObject * sin(goalHeading)) - 4.0.inches.asFeet,goalPosition.y - distFromObject * cos(goalHeading))
         distance += (p4 - p3).length
 //        val rateCurve = MotionCurve()
 //        rateCurve.setMarkBeginOrEndKeysToZeroSlope(false)

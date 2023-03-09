@@ -1,6 +1,7 @@
 package org.team2471.frc2023
 
 import edu.wpi.first.networktables.NetworkTableInstance
+import edu.wpi.first.wpilibj.DriverStation
 import edu.wpi.first.wpilibj.Timer
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -19,10 +20,11 @@ object PoseEstimator {
     private val kAprilEntry = poseTable.getEntry("kApril")
 
     private val offsetEntry = poseTable.getEntry("Offset")
+    private val lastResetEntry = poseTable.getEntry("LastResetTime")
 
     private var offset = Vector2(0.0, 0.0)
     private var lastZeroTimestamp = 0.0
-    var currentPose = Vector2(0.0, 0.0)
+    val currentPose
         get() = Drive.position - offset
 
     init {
@@ -41,26 +43,37 @@ object PoseEstimator {
     }
     fun addVision(detection: AprilDetection, numTarget: Int, kApril: Double? = null) {
         //Ignoring Vision data if timestamp is before the last zero
-        if (detection.timestamp < (lastZeroTimestamp + 0.5)) {
-//            println("Stopping...")
+        if (detection.timestamp < (lastZeroTimestamp + 0.5)) { // || Drive.position == Vector2(0.0,0.0)) {
+            println("Ignoring update during reset") // and initialization ...")
             return
-        }
+        } else {
+            try {
+                val kAprilFinal = (kApril ?: kAprilEntry.getDouble(0.5)) * if (numTarget < 2) 0.7 else 1.0
+                val latencyPose = Drive.lookupPose(detection.timestamp)?.position
+                if (latencyPose != null) {
+                    val odomDiff = Drive.position - latencyPose
+                    val apriltagPose = Vector2(detection.pose.x, detection.pose.y) + odomDiff
+                    offset = offset * (1.0 - kAprilFinal) + (Drive.position - apriltagPose) * kAprilFinal
+                    val coercedOffsetX = offset.x.coerceIn(-FieldManager.fieldHalfInFeet.x + Drive.position.x, FieldManager.fieldHalfInFeet.x + Drive.position.x)
+                    val coercedOffsetY = offset.y.coerceIn(-FieldManager.fieldHalfInFeet.y + Drive.position.y, FieldManager.fieldHalfInFeet.y + Drive.position.y)
+                    val coercedOffset = Vector2(coercedOffsetX, coercedOffsetY)
+                    if (coercedOffset.distance(offset) > 0.0) {
+                        offset = coercedOffset
+                        DriverStation.reportWarning("PoseEstimator: Offset coerced onto field",false)
+                        println("PoseEstimator: Offset coerced onto field")
+                    }
 
-        try {
-            val kAprilFinal = (kApril ?: kAprilEntry.getDouble(0.5)) * if (numTarget < 2) 0.7 else 1.0
-            val latencyPose = Drive.lookupPose(detection.timestamp)?.position
-            if (latencyPose != null) {
-                val odomDiff = Drive.position - latencyPose
-                val apriltagPose = Vector2(detection.pose.x, detection.pose.y) + odomDiff
-                offset = offset * (1.0 - kAprilFinal) + (Drive.position - apriltagPose) * kAprilFinal
-//        println(offset)
+                //        println(offset)
+                }
+            } catch (ex: Exception) {
+                println("error in vision")
             }
-        } catch(ex:Exception) {
-            println("error in vision")
         }
     }
     fun zeroOffset() {
-        offset = Vector2(0.0, 0.0)
         lastZeroTimestamp = Timer.getFPGATimestamp()
+        offset = Vector2(0.0, 0.0)
+        lastResetEntry.setDouble(lastZeroTimestamp)
+
     }
 }

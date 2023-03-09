@@ -5,6 +5,7 @@ import edu.wpi.first.networktables.NetworkTableInstance
 import edu.wpi.first.wpilibj.DriverStation
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard
+import org.team2471.frc.lib.coroutines.delay
 import org.team2471.frc.lib.coroutines.parallel
 import org.team2471.frc.lib.coroutines.periodic
 //import org.team2471.bunnybots2022.Drive
@@ -209,16 +210,22 @@ object AutoChooser {
         }
         println("charge: ${NodeDeckHub.chargeInAuto}")
         if (NodeDeckHub.chargeInAuto) {
+            if (NodeDeckHub.amountOfAutoPieces == 0) {
+                Drive.driveToPoints(Drive.position, Drive.position + Vector2(0.0, FieldManager.reflectFieldByAlliance(-0.25))) //combinedPosition is a little more sketchy right now. Change later
+                delay(2.0)
+            }
             parallel({
 //                Drive.dynamicGoToChargeCenter()
-                val destination = Vector2(FieldManager.centerOfChargeX - Drive.robotHalfWidth.asFeet * 2.0, FieldManager.reflectFieldByAlliance(14.25))
+                val destination = Vector2(FieldManager.centerOfChargeX + (Drive.robotHalfWidth.asFeet * 1.7 * if (NodeDeckHub.startingPoint == StartingPoint.OUTSIDE) -1 else 1), FieldManager.reflectFieldByAlliance(14.25))
                 Drive.driveToPoints(Drive.combinedPosition, Vector2(destination.x, Drive.combinedPosition.y + FieldManager.reflectFieldByAlliance(-1.0)), destination)
                 Drive.rampTest()
 //            Drive.autoBalance()
             }, {
                 toDrivePose()
-                flip()
             })
+        } else {
+            toDrivePose()
+            flip()
         }
 //        var nextGamePiece = FieldManager.getClosestGamePieceOnField()
 //        println("nodedeck auto path to game piece: $nextGamePiece")
@@ -257,7 +264,10 @@ object AutoChooser {
                 })
             }
         } else {
+
+            ///Never runs right now!!
 //            Drive.dynamicGoToChargeCenter()
+            println("Right before charge. pos: ${Drive.combinedPosition}   8888888888888")
             val destination = Vector2(FieldManager.centerOfChargeX + if (Drive.combinedPosition.x < FieldManager.centerOfChargeX) - Drive.robotHalfWidth.asFeet else + Drive.robotHalfWidth.asFeet * 2.0,
                 FieldManager.reflectFieldByAlliance((FieldManager.chargeFromCenterY + FieldManager.chargingStationDepth / 2.00).asFeet))
             Drive.driveToPoints(Drive.combinedPosition, Vector2(destination.x, Drive.combinedPosition.y), destination)
