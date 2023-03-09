@@ -257,7 +257,7 @@ object AutoChooser {
             }
         } else {
 //            Drive.dynamicGoToChargeCenter()
-            val destination = Vector2(FieldManager.centerOfChargeX - Drive.robotHalfWidth.asFeet * 2.0,
+            val destination = Vector2(FieldManager.centerOfChargeX + if (Drive.combinedPosition.x < FieldManager.centerOfChargeX) - Drive.robotHalfWidth.asFeet else + Drive.robotHalfWidth.asFeet * 2.0,
                 FieldManager.reflectFieldByAlliance((FieldManager.chargeFromCenterY + FieldManager.chargingStationDepth / 2.00).asFeet))
             Drive.driveToPoints(Drive.combinedPosition, Vector2(destination.x, Drive.combinedPosition.y), destination)
             Drive.rampTest()

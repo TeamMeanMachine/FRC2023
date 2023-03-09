@@ -146,7 +146,7 @@ suspend fun intakeCurrentLogic() {
                     pivotCurve.storeValue(startOfExtend, Pose.GROUND_INTAKE_CUBE_FAR.pivotAngle.asDegrees)
                 }
 
-                val slewRateLimiter = SlewRateLimiter(2.0, -2.0, 0.0)
+                val slewRateLimiter = SlewRateLimiter(1.0, -1.0, 0.0)
 
                 val timer = Timer()
                 timer.start()
@@ -417,39 +417,40 @@ suspend fun scoreObjectAuto(isCone: Boolean, pieceNumber: Int) = use(Arm, Intake
     if (isCone) {
         if (Intake.coneToward) {
             when (FieldManager.nodeList[pieceNumber]?.level) {
-                Level.MID -> {
-                    val midPose = Pose.current + Pose(Vector2(10.0, -2.0), 40.0.degrees, 0.0.degrees)
-                    animateToPose(midPose, 1.0)
-                    Intake.intakeMotor.setPercentOutput(Intake.CONE_TOWARD_SPIT)
-                    animateToPose(midPose + Pose(Vector2(6.0, -2.0), 10.0.degrees, 0.0.degrees))
-                }
                 Level.HIGH -> {
-                    var midPose = Pose.current + Pose(Vector2(6.0, -2.5), 40.0.degrees, 0.0.degrees)
+                    var midPose = Pose.current + Pose(Vector2(6.0, -2.5), 40.0.degrees, 0.0.degrees)//6.0, -2.5
                     animateToPose(midPose, 0.3)
                     Intake.intakeMotor.setPercentOutput(Intake.CONE_TOWARD_SPIT)
-                    midPose += Pose(Vector2(6.5, 6.0), 0.0.degrees, 0.0.degrees)
+                    midPose += Pose(Vector2(6.5, 6.5), 0.0.degrees, 0.0.degrees) // 6.5, 6.0
                     animateToPose(midPose, 0.3)
-                    midPose += Pose(Vector2(10.0, 8.0), 0.0.degrees, 0.0.degrees)
+                    midPose += Pose(Vector2(10.0, 6.0), 0.0.degrees, 0.0.degrees)//10.0, 8.0
                     animateToPose(midPose, 0.3)
                 }
+                Level.MID -> {
+                    val midPose = Pose.current + Pose(Vector2(10.0, -2.0), 40.0.degrees, 0.0.degrees) //10.0, -2.0
+                    animateToPose(midPose, 0.5) //1.0
+                    Intake.intakeMotor.setPercentOutput(Intake.CONE_TOWARD_SPIT)
+                    animateToPose(midPose + Pose(Vector2(6.0, -2.0), 10.0.degrees, 0.0.degrees))//6.0, -2.0
+                }
+
                 else -> println("Currently can't score there.")
             }
         } else { // cone away
             when (FieldManager.nodeList[pieceNumber]?.level) {
-                Level.MID -> {
-                    val midPose = Pose.current + Pose(Vector2(7.0, -4.0), 40.0.degrees, 0.0.degrees)
-                    animateToPose(midPose, 1.0)
-                    Intake.intakeMotor.setPercentOutput(Intake.CONE_AWAY_SPIT)
-                    animateToPose(midPose + Pose(Vector2(6.0, -2.0), 10.0.degrees, 0.0.degrees))
-                }
                 Level.HIGH -> {
-                    var midPose = Pose.current + Pose(Vector2(3.0, -8.0), 40.0.degrees, 0.0.degrees)
+                    var midPose = Pose.current + Pose(Vector2(3.0, -8.0), 40.0.degrees, 0.0.degrees)//3.0, -8.0
                     animateToPose(midPose, 1.0)
                     Intake.intakeMotor.setPercentOutput(Intake.CONE_AWAY_SPIT)
-                    midPose += Pose(Vector2(6.5, 1.0), 0.0.degrees, 0.0.degrees)
+                    midPose += Pose(Vector2(6.5, 1.0), 0.0.degrees, 0.0.degrees)//6.5, 1.0
                     animateToPose(midPose)
-                    midPose += Pose(Vector2(10.0, 6.0), 0.0.degrees, 0.0.degrees)
+                    midPose += Pose(Vector2(10.0, 6.0), 0.0.degrees, 0.0.degrees)//10.0, 6.0
                     animateToPose(midPose, 1.5)
+                }
+                Level.MID -> {
+                    val midPose = Pose.current + Pose(Vector2(7.0, -4.0), 40.0.degrees, 0.0.degrees)//7.0, -4.0
+                    animateToPose(midPose, 1.0)
+                    Intake.intakeMotor.setPercentOutput(Intake.CONE_AWAY_SPIT)
+                    animateToPose(midPose + Pose(Vector2(6.0, -2.0), 10.0.degrees, 0.0.degrees))//6.0, -2.0
                 }
                 else -> println("Currently can't score there.")
             }
