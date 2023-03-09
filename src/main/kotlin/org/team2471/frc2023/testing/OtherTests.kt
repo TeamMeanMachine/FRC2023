@@ -5,6 +5,7 @@ import org.team2471.frc.lib.framework.use
 import org.team2471.frc.lib.math.Vector2
 import org.team2471.frc.lib.units.degrees
 import org.team2471.frc2023.Arm
+import org.team2471.frc2023.Drive
 import org.team2471.frc2023.Intake
 import org.team2471.frc2023.OI
 
@@ -53,4 +54,8 @@ suspend fun Intake.intakeTest() = use(Intake) {
         intakeMotor.setPercentOutput(OI.operatorRightY)
         println("intake power: ${OI.operatorRightY}")
     }
+}
+
+suspend fun driveToPointsTest() = use(Drive) {
+    Drive.rampTest()
 }

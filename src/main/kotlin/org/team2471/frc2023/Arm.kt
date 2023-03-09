@@ -163,7 +163,7 @@ object Arm : Subsystem("Arm") {
     const val HEIGHT_LIMIT = 50.0
     const val FLOOR_HEIGHT = -5.0
     const val ROBOT_COVER_HEIGHT = 9.0
-    const val ROBOT_HALF_WIDTH = 36.0 / 2.0
+    const val ROBOT_HALF_WIDTH = 34.0 / 2.0
 
     var wristPosition = forwardKinematics(shoulderAngle, elbowAngle)
 //        get() = forwardKinematics(shoulderAngle, elbowAngle)
@@ -196,12 +196,13 @@ object Arm : Subsystem("Arm") {
 //    val actualWristPosition
 //        get() = forwardKinematics(shoulderAngle, elbowAngle)
     var wristPosOffset
-        get() = if (wristPosition.x > 0.0) wristFrontOffset else wristBackOffset
+        get() = if (wristPosition.x > 7.0) wristFrontOffset else if (wristPosition.x < -7.0) wristBackOffset else wristCenterOffset
         set(value) {
-            if (wristPosition.x > 0.0) wristFrontOffset = value else wristBackOffset = value
+            if (wristPosition.x > 0.0) wristFrontOffset = value else if (wristPosition.x < -7.0) wristBackOffset = value else wristCenterOffset = value
         }
     var wristFrontOffset = Vector2(0.0, 0.0)
     var wristBackOffset = Vector2(0.0, 0.0)
+    var wristCenterOffset = Vector2(0.0, 0.0)
 
 
     init {

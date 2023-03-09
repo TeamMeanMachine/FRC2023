@@ -49,7 +49,8 @@ object FieldManager {
         get() = (chargingStationXOffset - chargingStationWidth/2.0).asFeet
 
     val startingPosition: Vector2
-        get() = Vector2 ( if (NodeDeckHub.startingPoint == StartingPoint.INSIDE) insideStartingPosition.x else outsideStartingPosition.x, if (isRedAlliance) -insideStartingPosition.y else insideStartingPosition.y)
+        get() = Vector2(if (NodeDeckHub.firstAutoPiece != null) nodeList[NodeDeckHub.firstAutoPiece]!!.position.x else insideStartingPosition.x,
+            reflectFieldByAlliance(insideStartingPosition.y))
     val insideStartingPosition = Vector2(3.0, scoringNodeYPosition)
     val outsideStartingPosition = Vector2(-11.5, scoringNodeYPosition)
 

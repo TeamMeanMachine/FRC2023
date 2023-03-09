@@ -489,7 +489,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
 //                stop()
 //            }
 //        }
-        driveToPosition(Vector2(position.x, FieldManager.reflectFieldByAlliance(14.25)))
+        driveToPoints(combinedPosition, Vector2(combinedPosition.x, FieldManager.reflectFieldByAlliance(14.25)))
 //        println("Driving 50 inches.... supposedly")
 //        driveDistance(Vector2(0.0, 0.25), FieldManager.reflectFieldByAlliance(-50.0).inches)
 //        println("Hopefully driving 2.5 inches")
@@ -515,43 +515,47 @@ object Drive : Subsystem("Drive"), SwerveDrive {
 
     suspend fun autoBalance() {
         val driveTimer = Timer()
+        val holdTimer = Timer()
         driveTimer.start()
+        holdTimer.start()
+        var prevTilted = true
         periodic {
             if (gyro.getPitch().absoluteValue > 2.5) {
+                println("pitched")
                 // constant part for a feed forward, so there's always enough power to move.
                 // plus a proportional part so that the power is higher when steep and less as it flattens.
-                drive(Vector2(0.0, gyro.getPitch().sign * 0.10 + gyro.getPitch() / 200.0), 0.0, fieldCentric = false)
+                drive(Vector2(0.0, gyro.getPitch().sign * 0.10 + gyro.getPitch() / 300.0), 0.0, fieldCentric = false)
 //                println("pitch = ${gyro.getPitch()}")
-                if (driveTimer.get() > 0.5) {
+                if (driveTimer.get() > 0.7) {
                     drive(Vector2(0.0, 0.0), 0.0)
-                    if(driveTimer.get() > 1.0) {
+                    if(driveTimer.get() > 1.3) {
                         driveTimer.reset()
                     }
                 }
-            }
-            else {
+                prevTilted = true
+            } else if (prevTilted) {
+                println("not pitched but just was")
+                holdTimer.reset()
                 drive(Vector2(0.0, 0.0), 0.0)
+                prevTilted = false
+            } else if (holdTimer.get() > 1.0) {
+                println("done")
                 stop()
             }
             //  println("Pitch = ${gyro.getNavX().pitch}, Time = ${driveTimer.get()}")
         }
     }
 
-    suspend fun driveToPosition(position: Vector2) {
+    suspend fun driveToPoints(vararg positions: Vector2) {
         val newPath = Path2D("newPath")
-        newPath.addEasePoint(0.0,0.0)
-        val p1 = Drive.position
-        val p2 = position
-        val distance = (p2 - p1).length
-        val rateCurve = MotionCurve()
-        rateCurve.setMarkBeginOrEndKeysToZeroSlope(false)
-        rateCurve.storeValue(1.0, 2.0)  // distance, rate
-        rateCurve.storeValue(8.0, 6.0)  // distance, rate
+        for (position in positions) {
+            newPath.addVector2(position)
+        }
+        val distance = newPath.length
         val rate = rateCurve.getValue(distance) // ft per sec
         val time = distance / rate
+        newPath.addEasePoint(0.0,0.0)
         newPath.addEasePoint(time, 1.0)
-        newPath.addVector2(p1)
-        newPath.addVector2(p2)
         newPath.addHeadingPoint(0.0, heading.asDegrees)
         Drive.driveAlongPath(newPath) { abortPath() }
     }
@@ -685,12 +689,12 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         distance += (p3 - p2).length
         safeDistance = distance
         val distFromObject = 40.0.inches.asFeet * if (FieldManager.isBlueAlliance) -1.0 else 1.0
-        val p4 = Vector2(goalPosition.x + (distFromObject * sin(goalHeading)),goalPosition.y - (distFromObject * cos(goalHeading)))
+        val p4 = Vector2(goalPosition.x + (distFromObject * sin(goalHeading)) - 4.0.inches.asFeet,goalPosition.y - (distFromObject * cos(goalHeading)))
         distance += (p4 - p3).length
-        val rateCurve = MotionCurve()
-        rateCurve.setMarkBeginOrEndKeysToZeroSlope(false)
-        rateCurve.storeValue(1.0, 2.0)  // distance, rate
-        rateCurve.storeValue(8.0, 4.0)  // distance, rate
+//        val rateCurve = MotionCurve()
+//        rateCurve.setMarkBeginOrEndKeysToZeroSlope(false)
+//        rateCurve.storeValue(1.0, 2.0)  // distance, rate
+//        rateCurve.storeValue(8.0, 4.0)  // distance, rate
         val rate = rateCurve.getValue(distance) // ft per sec
         var time = distance / rate
         //val finalHeading = if (FieldManager.isBlueAlliance) 180.0 else 0.0
@@ -714,8 +718,10 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         chargePath.addEasePoint(0.0, 0.0)
 
         val p1 = PoseEstimator.currentPose
-        val p2 = Vector2(FieldManager.chargeSafePointFar.x - (robotHalfWidth * 2.0).asFeet, FieldManager.chargeSafePointFar.y - FieldManager.reflectFieldByAlliance(1.0))
-        val p3 = Vector2(FieldManager.centerOfChargeX - (robotHalfWidth.asFeet * 2.0), FieldManager.chargeFromCenterY.asFeet)
+        val p2 = Vector2(FieldManager.outsideSafePointFar.x - (robotHalfWidth * 2.0).asFeet, FieldManager.outsideSafePointFar.y)
+        val p3 = Vector2(FieldManager.chargeSafePointFar.x - (robotHalfWidth * 2.0).asFeet, FieldManager.chargeSafePointFar.y)
+//        val p2 = Vector2(FieldManager.chargeSafePointFar.x - (robotHalfWidth * 2.0).asFeet, FieldManager.chargeSafePointFar.y)
+//        val p3 = Vector2(FieldManager.centerOfChargeX - (robotHalfWidth.asFeet * 2.0), FieldManager.chargeFromCenterY.asFeet)
 
         chargePath.addVector2(p1)
         chargePath.addVector2(p2)

@@ -191,19 +191,33 @@ object AutoChooser {
 
         FieldManager.resetClosestGamePieceOnField()
         Drive.position = FieldManager.startingPosition
+        println("position: ${Drive.position}")
         Drive.zeroGyro()
         PoseEstimator.zeroOffset()
         if (NodeDeckHub.amountOfAutoPieces > 0) {
             backScoreAuto(true, NodeDeckHub.firstAutoPiece)
             if (NodeDeckHub.amountOfAutoPieces > 1) {
-                nodeDeckPiece(gamePieceAngles[0].degrees, NodeDeckHub.secondAutoPiece, NodeDeckHub.amountOfAutoPieces == 2 && NodeDeckHub.chargeInAuto)
+                nodeDeckPiece(gamePieceAngles[0].degrees, NodeDeckHub.secondAutoPiece, false) //NodeDeckHub.amountOfAutoPieces == 2 && NodeDeckHub.chargeInAuto)
                 if (NodeDeckHub.amountOfAutoPieces > 2) {
-                    nodeDeckPiece(gamePieceAngles[1].degrees, NodeDeckHub.thirdAutoPiece, NodeDeckHub.amountOfAutoPieces == 3 && NodeDeckHub.chargeInAuto)
+                    nodeDeckPiece(gamePieceAngles[1].degrees, NodeDeckHub.thirdAutoPiece, false) //NodeDeckHub.amountOfAutoPieces == 3 && NodeDeckHub.chargeInAuto)
                     if (NodeDeckHub.amountOfAutoPieces > 3) {
-                        nodeDeckPiece(gamePieceAngles[2].degrees, NodeDeckHub.fourthAutoPiece, NodeDeckHub.amountOfAutoPieces == 4 && NodeDeckHub.chargeInAuto)
+                        nodeDeckPiece(gamePieceAngles[2].degrees, NodeDeckHub.fourthAutoPiece, false) //NodeDeckHub.amountOfAutoPieces == 4 && NodeDeckHub.chargeInAuto)
                     }
                 }
             }
+        }
+        println("charge: ${NodeDeckHub.chargeInAuto}")
+        if (NodeDeckHub.chargeInAuto) {
+            parallel({
+//                Drive.dynamicGoToChargeCenter()
+                val destination = Vector2(FieldManager.centerOfChargeX - Drive.robotHalfWidth.asFeet * 2.0, FieldManager.reflectFieldByAlliance(14.25))
+                Drive.driveToPoints(Drive.combinedPosition, Vector2(destination.x, Drive.combinedPosition.y + FieldManager.reflectFieldByAlliance(-1.0)), destination)
+                Drive.rampTest()
+//            Drive.autoBalance()
+            }, {
+                toDrivePose()
+                flip()
+            })
         }
 //        var nextGamePiece = FieldManager.getClosestGamePieceOnField()
 //        println("nodedeck auto path to game piece: $nextGamePiece")
@@ -219,10 +233,11 @@ object AutoChooser {
             toDrivePose()
             flip()
             println("before intakeFromGround")
-            intakeFromGround(FieldManager.nodeList[nodeID]?.coneOrCube == GamePiece.CONE, 1.0)
+            intakeFromGround(FieldManager.nodeList[nodeID]?.coneOrCube == GamePiece.CONE)
         })
         println("finished goToGamePiece")
         val scoringNode = FieldManager.getNode(nodeID)
+        println("goCharge: $goCharge")
         if (!goCharge) {
             if (scoringNode == null) {
                 println("Scoring Node is Null")
@@ -241,9 +256,10 @@ object AutoChooser {
                 })
             }
         } else {
-            Drive.dynamicGoToChargeCenter()
-//            val destination = Vector2(FieldManager.centerOfChargeX - Drive.robotHalfWidth.asFeet * 2.0, FieldManager.reflectFieldByAlliance(14.25))
-//            Drive.driveToPoints(Drive.position, Vector2(destination.x, Drive.position.y), destination)
+//            Drive.dynamicGoToChargeCenter()
+            val destination = Vector2(FieldManager.centerOfChargeX - Drive.robotHalfWidth.asFeet * 2.0,
+                FieldManager.reflectFieldByAlliance((FieldManager.chargeFromCenterY + FieldManager.chargingStationDepth / 2.00).asFeet))
+            Drive.driveToPoints(Drive.combinedPosition, Vector2(destination.x, Drive.combinedPosition.y), destination)
             Drive.rampTest()
 //            Drive.autoBalance()
         }

@@ -123,7 +123,7 @@ object Intake : Subsystem("Intake") {
     var coneToward = true //not supposed to be a get. We want to set it when pixy facing ground
 
     const val INTAKE_POWER = 1.0
-    const val INTAKE_CONE = 1.0
+    const val INTAKE_CONE = -1.0
     const val HOLD_CONE = -0.15
     const val DETECT_CONE = 20
     const val CONE_TOWARD_SPIT = 0.6

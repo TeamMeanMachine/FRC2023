@@ -100,7 +100,7 @@ suspend fun intakeCurrentLogic() {
     }
 }
 
-    suspend fun intakeFromGround(isCone: Boolean = NodeDeckHub.isCone, trigger: Double = OI.operatorLeftTrigger) = use(Arm, Intake) {
+    suspend fun intakeFromGround(isCone: Boolean = NodeDeckHub.isCone) = use(Arm, Intake) {
         if (Intake.wristAngle.asDegrees > 80.0) {
             try {
                 println("in intakeFromGround")
@@ -156,27 +156,24 @@ suspend fun intakeCurrentLogic() {
                     Arm.wristPosition = path.getPosition(t)
                     Intake.wristSetpoint = wristCurve.getValue(t).degrees
                     Intake.pivotSetpoint = pivotCurve.getValue(t).degrees
-                    if (t > startOfExtend || trigger < 0.05) {
+                    if (t > startOfExtend || (OI.operatorLeftTrigger < 0.05 && DriverStation.isTeleop())) {
                         this.stop()
                     }
                 }
                 Intake.intakeMotor.setPercentOutput(if (isCone) Intake.INTAKE_CONE else Intake.INTAKE_CUBE) //intake bad
-                if (trigger > 0.05) {
+                if (OI.operatorLeftTrigger > 0.05 || DriverStation.isAutonomous()) {
                     var tInitialHold = -1.0
                     parallel ({
                         periodic {
                             val tHold = if (tInitialHold != -1.0) timer.get() - tInitialHold else -1.0
-                            val alpha2 =
-                                slewRateLimiter.calculate((trigger - 0.1) * 10.0 / 9.0)
+                            val alpha2 = if (DriverStation.isTeleop()) slewRateLimiter.calculate((OI.operatorLeftTrigger - 0.1) * 10.0 / 9.0) else slewRateLimiter.calculate(1.0)
                             val tPath = linearMap(0.0, 1.0, startOfExtend, time, alpha2)
                             Arm.wristPosition =
-                                path.getPosition(tPath) + if (tHold > 1.0) Vector2(-4.0, 4.0) else Vector2(
-                                    0.0,
-                                    0.0)
+                                path.getPosition(tPath) + if (tHold > 1.0) Vector2(-4.0, 4.0) else Vector2(0.0, 0.0)
                             Intake.wristSetpoint = wristCurve.getValue(tPath).degrees
                             Intake.pivotSetpoint = pivotCurve.getValue(tPath).degrees
                             Intake.intakeMotor.setPercentOutput(if (isCone) (if (tHold > 2.0) Intake.HOLD_CONE else Intake.INTAKE_CONE) else (if (tHold > 2.0) Intake.HOLD_CUBE else Intake.INTAKE_CUBE))
-                            if (trigger < 0.1) {
+                            if (DriverStation.isTeleop() && OI.operatorLeftTrigger < 0.1) {
                                 this.stop()
                             }
                             if (DriverStation.isAutonomous() && tPath >= time) {
@@ -184,11 +181,15 @@ suspend fun intakeCurrentLogic() {
                             }
                         }
                         if (DriverStation.isAutonomous()) {
-                            val timer = Timer()
-                            timer.start()
+                            val timer2 = Timer()
+                            timer2.start()
+                            var holdingTime = 50.0
                             periodic {
-                                if (timer.get() > 2.0 || Intake.holdingObject) {
+                                if (timer2.get() > 2.0 || timer2.get() - holdingTime > 0.3) {
                                     this.stop()
+                                }
+                                if (Intake.holdingObject && holdingTime == 50.0) {
+                                    holdingTime = timer2.get()
                                 }
                             }
                         }
@@ -196,7 +197,7 @@ suspend fun intakeCurrentLogic() {
                         periodic {
                             if (Intake.holdingObject && tInitialHold == -1.0) tInitialHold = timer.get()
                             if (!Intake.holdingObject) tInitialHold = -1.0
-                            if (trigger < 0.1 || DriverStation.isAutonomous()) {
+                            if (OI.operatorLeftTrigger < 0.1 || DriverStation.isAutonomous()) {
                                 this.stop()
                             }
                         }
@@ -390,8 +391,8 @@ suspend fun backScoreAuto(isCone: Boolean, pieceNumber: Int) = use(Arm, Intake) 
         if (isCone) {
             when (FieldManager.nodeList[pieceNumber]?.level) {
                 Level.HIGH -> {
-                    animateToPose(Pose.BACK_HIGH_SCORE_CONE_TOWARD_MID, 2.0)
-                    animateToPose(Pose.BACK_HIGH_SCORE_CONE_TOWARD, 1.0)
+                    animateToPose(Pose.BACK_HIGH_SCORE_CONE_TOWARD_MID, 1.0)
+                    animateToPose(Pose.BACK_HIGH_SCORE_CONE_TOWARD, 0.5)
                 }
                 Level.MID -> {
                     animateToPose(Pose.BACK_MIDDLE_SCORE_CONE_TOWARD_MID)
@@ -424,12 +425,12 @@ suspend fun scoreObjectAuto(isCone: Boolean, pieceNumber: Int) = use(Arm, Intake
                 }
                 Level.HIGH -> {
                     var midPose = Pose.current + Pose(Vector2(6.0, -2.5), 40.0.degrees, 0.0.degrees)
-                    animateToPose(midPose, 1.0)
+                    animateToPose(midPose, 0.3)
                     Intake.intakeMotor.setPercentOutput(Intake.CONE_TOWARD_SPIT)
-                    midPose += Pose(Vector2(6.5, 4.0), 0.0.degrees, 0.0.degrees)
-                    animateToPose(midPose)
-                    midPose += Pose(Vector2(10.0, 6.0), 0.0.degrees, 0.0.degrees)
-                    animateToPose(midPose, 1.5)
+                    midPose += Pose(Vector2(6.5, 6.0), 0.0.degrees, 0.0.degrees)
+                    animateToPose(midPose, 0.3)
+                    midPose += Pose(Vector2(10.0, 8.0), 0.0.degrees, 0.0.degrees)
+                    animateToPose(midPose, 0.3)
                 }
                 else -> println("Currently can't score there.")
             }
@@ -458,7 +459,7 @@ suspend fun scoreObjectAuto(isCone: Boolean, pieceNumber: Int) = use(Arm, Intake
         when (FieldManager.nodeList[pieceNumber]?.level) {
             Level.MID -> animateToPose(Pose.current + Pose(Vector2(3.0, 0.0), 0.0.degrees, 0.0.degrees))
             Level.HIGH -> animateToPose(Pose.current + Pose(Vector2(12.0, 0.0), 0.0.degrees, 0.0.degrees))
-            else -> println("Currently can't score there.")
+            else -> println("No pose change necessary to score here.")
         }
     }
     Intake.intakeMotor.setPercentOutput(0.0)
