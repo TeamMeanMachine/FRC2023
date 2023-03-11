@@ -183,13 +183,13 @@ object AutoChooser {
         }
     }
     suspend fun nodeDeckAuto() = use(Drive, Intake, Arm) {
+        AprilTag.resetCameras()
         Intake.intakeMotor.setPercentOutput(Intake.HOLD_CONE)
         var gamePieceAngles = when (NodeDeckHub.startingPoint) {
             StartingPoint.INSIDE -> doubleArrayOf(0.0, -30.0, -45.0)
             StartingPoint.MIDDLE -> doubleArrayOf(-30.0, -45.0, 30.0)
             StartingPoint.OUTSIDE -> doubleArrayOf(0.0, 30.0, 45.0)
         }
-
         FieldManager.resetClosestGamePieceOnField()
         Drive.position = FieldManager.startingPosition
         println("position: ${Drive.position}")
