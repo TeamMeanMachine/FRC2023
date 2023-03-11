@@ -137,7 +137,14 @@ object FieldManager {
         if (allianceSidePieces.isNullOrEmpty()) {
             allianceSidePieces = gamePieceStartingPos.filter { (isBlueAlliance && it.y > 0.0 || isRedAlliance && it.y < 0.0) }.sortedBy { it.distance(currPose) }.toMutableList()
         }
-        return allianceSidePieces!!.removeFirst()
+        var xOffset: Length = 0.0.inches
+        if (isRedAlliance) {
+            when (NodeDeckHub.startingPoint) {
+                StartingPoint.OUTSIDE -> xOffset = 10.0.inches
+                else -> xOffset = 0.0.inches
+            }
+        }
+        return allianceSidePieces!!.removeFirst() + Vector2(xOffset.asFeet, 0.0)
     }
     fun resetClosestGamePieceOnField() {
         allianceSidePieces = null

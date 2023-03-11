@@ -9,6 +9,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import org.jetbrains.kotlin.gradle.utils.`is`
 import org.team2471.frc.lib.actuators.FalconID
 import org.team2471.frc.lib.actuators.MotorController
 import org.team2471.frc.lib.control.PDConstantFController
@@ -480,6 +481,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         initializeSteeringMotors()
     }
     suspend fun rampTest() = use(Drive) {
+        println("Got into rampTest")
 //        val driveTimer = Timer()
 //        driveTimer.start()
 //        println("drive until not level")
@@ -490,7 +492,9 @@ object Drive : Subsystem("Drive"), SwerveDrive {
 //                stop()
 //            }
 //        }
+
         driveToPoints(combinedPosition, Vector2(combinedPosition.x, FieldManager.reflectFieldByAlliance(14.25)))
+//
 //        println("Driving 50 inches.... supposedly")
 //        driveDistance(Vector2(0.0, 0.25), FieldManager.reflectFieldByAlliance(-50.0).inches)
 //        println("Hopefully driving 2.5 inches")
@@ -527,9 +531,9 @@ object Drive : Subsystem("Drive"), SwerveDrive {
                 // plus a proportional part so that the power is higher when steep and less as it flattens.
                 drive(Vector2(0.0, gyro.getPitch().sign * 0.10 + gyro.getPitch() / 300.0), 0.0, fieldCentric = false)
 //                println("pitch = ${gyro.getPitch()}")
-                if (driveTimer.get() > 0.7) {
+                if (driveTimer.get() > 0.65) {
                     drive(Vector2(0.0, 0.0), 0.0)
-                    if(driveTimer.get() > 1.3) {
+                    if(driveTimer.get() > 1.25) {
                         driveTimer.reset()
                     }
                 }
@@ -690,8 +694,8 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         }
         distance += (p3 - p2).length
         safeDistance = distance
-        val distFromObject = 50.0.inches.asFeet * if (FieldManager.isBlueAlliance) -1.0 else 1.0
-        val p4 = Vector2(goalPosition.x + (distFromObject * sin(goalHeading)) - 4.0.inches.asFeet,goalPosition.y - distFromObject * cos(goalHeading))
+        val distFromObject = 55.0.inches.asFeet * if (FieldManager.isBlueAlliance) -1.0 else 1.0
+        val p4 = Vector2(goalPosition.x + (distFromObject * sin(goalHeading)) - 4.0.inches.asFeet,goalPosition.y - distFromObject * cos(goalHeading)) + if (FieldManager.isRedAlliance && NodeDeckHub.startingPoint == StartingPoint.INSIDE) Vector2(1.5, 0.0) else Vector2(0.0, 0.0)
         distance += (p4 - p3).length
 //        val rateCurve = MotionCurve()
 //        rateCurve.setMarkBeginOrEndKeysToZeroSlope(false)
