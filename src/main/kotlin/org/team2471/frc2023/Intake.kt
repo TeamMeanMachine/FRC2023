@@ -128,7 +128,7 @@ object Intake : Subsystem("Intake") {
     const val DETECT_CONE = 20
     const val CONE_TOWARD_SPIT = 0.6
     const val CONE_AWAY_SPIT = 1.0
-    const val INTAKE_CUBE = 0.5
+    const val INTAKE_CUBE = 0.55
     const val HOLD_CUBE = 0.05
     const val DETECT_CUBE = 13
     const val CUBE_SPIT = -0.25

@@ -140,7 +140,7 @@ object FieldManager {
         var xOffset: Length = 0.0.inches
         if (isRedAlliance) {
             when (NodeDeckHub.startingPoint) {
-                StartingPoint.OUTSIDE -> xOffset = 10.0.inches
+                StartingPoint.OUTSIDE -> xOffset = 0.0.inches
                 else -> xOffset = 0.0.inches
             }
         }

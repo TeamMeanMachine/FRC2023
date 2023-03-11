@@ -28,6 +28,7 @@ import org.team2471.frc.lib.motion_profiling.following.SwerveParameters
 import org.team2471.frc.lib.units.*
 import org.team2471.frc.lib.units.Angle.Companion.cos
 import org.team2471.frc.lib.units.Angle.Companion.sin
+import org.team2471.frc2023.FieldManager.isBlueAlliance
 import kotlin.math.absoluteValue
 import kotlin.math.sign
 
@@ -221,6 +222,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
 
             println("in init just before periodic")
             periodic {
+                println("${gyro.getPitch()}")
                 val (x, y) = position
 //                if (x.absoluteValue > reducedField.x || y.absoluteValue > reducedField.y ){
 //                    println("Coercing x inside field dimensions")
@@ -695,7 +697,14 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         distance += (p3 - p2).length
         safeDistance = distance
         val distFromObject = 55.0.inches.asFeet * if (FieldManager.isBlueAlliance) -1.0 else 1.0
-        val p4 = Vector2(goalPosition.x + (distFromObject * sin(goalHeading)) - 4.0.inches.asFeet,goalPosition.y - distFromObject * cos(goalHeading)) + if (FieldManager.isRedAlliance && NodeDeckHub.startingPoint == StartingPoint.INSIDE) Vector2(1.5, 0.0) else Vector2(0.0, 0.0)
+        var offset = Vector2(0.0, 0.0)
+        if (isBlueAlliance) {
+            offset = when (NodeDeckHub.startingPoint) {
+                StartingPoint.INSIDE -> Vector2(8.inches.asFeet, 0.0)
+                else -> Vector2(0.0, 0.0)
+            }
+        }
+        val p4 = Vector2(goalPosition.x + (distFromObject * sin(goalHeading)) - 4.0.inches.asFeet,goalPosition.y - distFromObject * cos(goalHeading)) + offset
         distance += (p4 - p3).length
 //        val rateCurve = MotionCurve()
 //        rateCurve.setMarkBeginOrEndKeysToZeroSlope(false)
