@@ -47,7 +47,7 @@ object Robot : MeanlibRobot() {
 
         FieldManager
         OI
-
+        println("Field Manager Active! Is Red ${FieldManager.isRedAlliance}")
         Drive.zeroGyro()
         Drive.heading = 0.0.degrees
 
