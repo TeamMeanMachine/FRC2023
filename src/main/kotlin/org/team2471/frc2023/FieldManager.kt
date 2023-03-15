@@ -84,7 +84,7 @@ object FieldManager {
     init {
         for (n in 0 until 54) {
             //relying on Int uses Floor
-            val column = n / 3
+            var column = n / 3
             val row = n.mod(3)
             val isCubeColumn = column.mod(3) == 1
             val isBoth = row == 2
@@ -93,19 +93,22 @@ object FieldManager {
             val pos = if (n > 26) {
                 //x cord of node 54 + the space between each node * column #, y cord of blue top node - space between each node * row #
                 val newRow = (53 - n).mod(3)
-                Vector2((-140.0 + 22.0 * (column - 9))/12.0, (308.5 - 17 * newRow + if (newRow == 2) 4.0 else 0.0)/12.0)
+                column -= 9
+                Vector2((-140.0 + 22.0 * column )/12.0, (308.5 - 17 * newRow + if (newRow == 2) 4.0 else 0.0)/12.0)
             } else {
                 //x cord of node 0 - the space between each node * column #, y cord of red top node + space between each node * row #
                 Vector2((36.0 - 22.0 * column)/12.0, (-308.5 + 17 * row - if (row == 2) 4.0 else 0.0)/12.0)
             }
-            nodeList[n] = ScoringNode(scoringType, level, pos)
+            nodeList[n] = ScoringNode(scoringType, level, pos, column)
 //            nodeList[n]?.position?.let { println(it.x) }
+            //println("node:$n column:$column")
         }
 //        avoidanceZones.add(AvoidanceZone("RedChargeStation", Vector2(-10.5, -6.0), Vector2(0.0, -12.0)))
         for (p in 0 until 8) {
             gamePieceStartingPos.add(Vector2((gamePieceOnFieldFromCenterX - gamePieceOnFieldOffsetX * p.toDouble().mod(4.0)).asFeet, if (p > 3) -gamePieceOnFieldFromCenterY.asFeet else gamePieceOnFieldFromCenterY.asFeet))
             println(gamePieceStartingPos[p])
         }
+
     }
     fun reflectFieldByAlliance(y: Double): Double {
         return if (isRedAlliance) -y else y
@@ -170,7 +173,8 @@ fun Pose2d.toTMMField():Pose2d {
 data class ScoringNode (
     var coneOrCube: GamePiece,
     var level: Level,
-    var position: Vector2
+    var position: Vector2,
+    var column: Int
 )
 val ScoringNode.alliance
     get() = if (this.position.y < 0.0) Alliance.Red else Alliance.Blue
