@@ -48,6 +48,8 @@ object Arm : Subsystem("Arm") {
     var shoulderGetZeroCount = 0
     var shoulderZeroForward = false
     var shoulderZeroBackward = false
+    val elbowAngleCheck = table.getEntry("Elbow Angle Check")
+    val shoulderAngleCheck = table.getEntry("Shoulder Angle Check")
 
     val wristFrontOffsetEntry = table.getEntry("Front Wrist Offset")
     val wristBackOffsetEntry = table.getEntry("Back Wrist Offset")
@@ -282,6 +284,8 @@ object Arm : Subsystem("Arm") {
             println("shoulderFollower: ${shoulderFollowerEntry.getDouble(0.0)}")
             periodic {
 
+                elbowAngleCheck.setBoolean(elbowAngle.asDegrees.absoluteValue < 10)
+                shoulderAngleCheck.setBoolean(shoulderAngle.asDegrees.absoluteValue < 10)
                 wristFrontOffsetEntry.setDoubleArray(arrayOf(wristFrontOffset.x, wristFrontOffset.y))
                 wristBackOffsetEntry.setDoubleArray(arrayOf(wristBackOffset.x, wristBackOffset.y))
 

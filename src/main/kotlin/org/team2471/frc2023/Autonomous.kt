@@ -35,7 +35,8 @@ enum class Side {
 }
 
 private var startingSide = Side.RIGHT
-
+val selAuto
+    get() = SmartDashboard.getString("Autos/selected", "no auto selected")
 
 object AutoChooser {
     private val isRedAllianceEntry = NetworkTableInstance.getDefault().getTable("FMSInfo").getEntry("isRedAlliance")
@@ -133,7 +134,6 @@ object AutoChooser {
 
     suspend fun autonomous() = use(Drive, name = "Autonomous") {
         println("Got into Auto fun autonomous. Hi. 888888888888888 ${Robot.recentTimeTaken()}")
-        val selAuto = SmartDashboard.getString("Autos/selected", "no auto selected")
         SmartDashboard.putString("autoStatus", "init")
         println("Selected Auto = *****************   $selAuto ****************************  ${Robot.recentTimeTaken()}")
         when (selAuto) {

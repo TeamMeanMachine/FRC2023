@@ -25,6 +25,8 @@ object NodeDeckHub {
     private val autoThreeEntry = nodeDeckTable.getEntry("3")
     private val autoFourEntry = nodeDeckTable.getEntry("4")
     private val autoFiveEntry = nodeDeckTable.getEntry("5")
+    private val autoCheckEntry = nodeDeckTable.getEntry("Auto Check")
+    private val autoPieceCheckEntry = nodeDeckTable.getEntry("Pieces Check")
 
 
     private val armPoseEntry = nodeDeckTable.getEntry("armPose") //why is this in the NodeDeck table?
@@ -69,6 +71,8 @@ object NodeDeckHub {
         GlobalScope.launch {
             armPoseEntry.setDoubleArray(doubleArrayOf(0.0, 0.0, 7.0.inches.asMeters, 0.0))
             periodic {
+                autoCheckEntry.setBoolean(selAuto == "NodeDeck")
+                autoPieceCheckEntry.setBoolean(amountOfAutoPieces > 0)
                 if (shoulderCoastMode) {
                     Arm.shoulderCoastMode()
                     shoulderCoastModeEntry.setBoolean(false)
