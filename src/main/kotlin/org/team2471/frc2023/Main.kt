@@ -52,9 +52,13 @@ object Robot : MeanlibRobot() {
         Drive.heading = 0.0.degrees
 
         AutoChooser
+        println("Activating AutoChooser! Is Red ${AutoChooser.redSide}")
         NodeDeckHub
+        println("Activating NodeDeckHub! startingPoint ${NodeDeckHub.startingPoint.name}")
         AprilTag
+        println("Activating AprilTags! Last Detection: ${AprilTag.lastDetection}")
         PoseEstimator
+        println("Activating PoseEstimator! currentPose ${PoseEstimator.currentPose}")
         SignalLights
 //        MAPoseEstimator
         Arm
