@@ -131,7 +131,7 @@ object Intake : Subsystem("Intake") {
     const val INTAKE_CUBE = 0.55
     const val HOLD_CUBE = 0.05
     const val DETECT_CUBE = 13
-    const val CUBE_SPIT = -0.25
+    const val CUBE_SPIT = -0.20 // was at -0.25
 
     init {
         initializePixy()
@@ -316,7 +316,6 @@ suspend fun Intake.pivotTest() = use(this) {
             upPressed = true
         } else if (OI.driverController.dPad == Controller.Direction.DOWN) {
             downPressed = true
-
         }
         if (OI.driverController.dPad != Controller.Direction.UP && upPressed) {
             upPressed = false

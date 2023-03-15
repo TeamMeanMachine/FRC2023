@@ -177,7 +177,7 @@ object Arm : Subsystem("Arm") {
     const val ROBOT_HALF_WIDTH = 36.0 / 2.0
 
     var wristPosition = forwardKinematics(shoulderAngle, elbowAngle)
-        set(position) {
+        set (position) {
             field = position
             var clampedPosition = position + if (position.x.absoluteValue < 10.0) Vector2(0.0, 0.0) else wristPosOffset
 

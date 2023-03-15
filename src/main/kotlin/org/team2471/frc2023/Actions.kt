@@ -232,12 +232,10 @@ suspend fun intakeCurrentLogic() {
             if (NodeDeckHub.isCone) {
                 when (FieldManager.getSelectedNode()?.level) {
                     Level.HIGH -> {
-                        animateToPose(Pose.BACK_HIGH_SCORE_CONE_TOWARD_MID, 1.0)
-                        animateToPose(Pose.BACK_HIGH_SCORE_CONE_TOWARD, 0.5)
+                        animateThroughPoses(Pair(1.0, Pose.BACK_HIGH_SCORE_CONE_TOWARD_MID), Pair(0.5, Pose.BACK_HIGH_SCORE_CONE_TOWARD))
                     }
                     Level.MID -> {
-                        animateToPose(Pose.BACK_MIDDLE_SCORE_CONE_TOWARD_MID)
-                        animateToPose(Pose.BACK_MIDDLE_SCORE_CONE_TOWARD)
+                        animateThroughPoses(Pair(0.0, Pose.BACK_MIDDLE_SCORE_CONE_TOWARD_MID), Pair(0.0, Pose.BACK_MIDDLE_SCORE_CONE_TOWARD))
                     }
                     Level.LOW -> animateToPose(Pose.BACK_LOW_SCORE_CONE_TOWARD)
                     else -> {
@@ -259,12 +257,10 @@ suspend fun backScoreAwayCone() = use(Arm, Intake) {
         if (NodeDeckHub.isCone) {
             when (FieldManager.getSelectedNode()?.level) {
                 Level.HIGH -> {
-                    animateToPose(Pose.BACK_HIGH_SCORE_CONE_AWAY_MID, 1.0)
-                    animateToPose(Pose.BACK_HIGH_SCORE_CONE_AWAY, 0.5)
+                    animateThroughPoses(Pair(1.0, Pose.BACK_HIGH_SCORE_CONE_AWAY_MID), Pair(0.5, Pose.BACK_HIGH_SCORE_CONE_AWAY))
                 }
                 Level.MID -> {
-                    animateToPose(Pose.BACK_MIDDLE_SCORE_CONE_AWAY_MID)
-                    animateToPose(Pose.BACK_MIDDLE_SCORE_CONE_AWAY)
+                    animateThroughPoses(Pair(0.0, Pose.BACK_MIDDLE_SCORE_CONE_AWAY_MID), Pair(0.0, Pose.BACK_MIDDLE_SCORE_CONE_AWAY))
                 }
                 Level.LOW -> animateToPose(Pose.BACK_LOW_SCORE_CONE_AWAY)
                 else -> {
@@ -284,8 +280,7 @@ suspend fun backScoreAwayCone() = use(Arm, Intake) {
             Drive.maxTranslation = 0.3
             when (FieldManager.nodeList[selectedNode]?.level) {
                 Level.HIGH -> {
-                    animateToPose(Pose.BACK_HIGH_SCORE_CONE_TOWARD_MID)
-                    animateToPose(Pose.BACK_HIGH_SCORE_CONE_TOWARD)
+                    animateThroughPoses(Pair(0.0, Pose.BACK_HIGH_SCORE_CONE_TOWARD_MID), Pair(0.0, Pose.BACK_HIGH_SCORE_CONE_TOWARD))
                 }
                 Level.MID -> {
                     animateToPose(Pose.BACK_MIDDLE_SCORE_CUBE)

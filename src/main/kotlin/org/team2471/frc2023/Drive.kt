@@ -222,7 +222,6 @@ object Drive : Subsystem("Drive"), SwerveDrive {
 
             println("in init just before periodic")
             periodic {
-                //println("${gyro.getPitch()}")
                 val (x, y) = position
 //                if (x.absoluteValue > reducedField.x || y.absoluteValue > reducedField.y ){
 //                    println("Coercing x inside field dimensions")

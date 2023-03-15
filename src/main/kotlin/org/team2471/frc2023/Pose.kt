@@ -93,3 +93,83 @@ suspend fun animateToPose(pose: Pose, minTime: Double = 0.0) = use(Arm, Intake) 
         }
     }
 }
+
+suspend fun animateThroughPoses(vararg poses: Pair<Double, Pose>) = use(Arm, Intake) {
+    println("Starting animation through $poses")
+    val path = Path2D("Path")
+    path.addVector2(Pose.current.wristPosition)
+    var distance = ArrayList<Double>(poses.size)
+    for (pose in poses) {
+        var prevLength = path.length
+        path.addVector2(pose.second.wristPosition)
+        distance.add(path.length - prevLength)
+    }
+    var rate = 55.0  //  inches per second
+    var wristPosTime = ArrayList<Double>(poses.size)
+    for (i in poses.indices) {
+        wristPosTime.add(distance[i] / rate)
+    }
+
+    distance.clear()
+    distance.add((poses[0].second.wristAngle.asDegrees - Intake.wristAngle.asDegrees).absoluteValue)
+    for (i in 1..poses.indices.last) {
+        distance.add((poses[i].second.wristAngle.asDegrees - poses[i-1].second.wristAngle.asDegrees).absoluteValue)
+    }
+    rate = 200.0 // deg per second
+    var wristTime = ArrayList<Double>(poses.size)
+    for (i in poses.indices) {
+        wristTime.add(distance[i] / rate)
+    }
+
+    distance.clear()
+    distance.add((poses[0].second.pivotAngle.asDegrees - Intake.pivotAngle.asDegrees).absoluteValue)
+    for (i in 1..poses.indices.last) {
+        distance.add((poses[i].second.pivotAngle.asDegrees - poses[i-1].second.pivotAngle.asDegrees).absoluteValue)
+    }
+    rate = 200.0 // deg per second
+    var pivotTime = ArrayList<Double>(poses.size)
+    for (i in poses.indices) {
+        pivotTime.add(distance[i] / rate)
+    }
+
+    val times = ArrayList<Double>(poses.size)
+    println("poses: ${poses[0].first}")
+    println("wristPos: ${wristPosTime[0]}")
+    println("wrist: ${wristTime[0]}")
+    println("pivot: ${pivotTime[0]}")
+    for (i in poses.indices) {
+        times.add(maxOf(wristPosTime[i], wristTime[i], pivotTime[i], poses[i].first))
+    }
+    println("times: $times")
+    val totalT = times.sum()
+
+    path.addEasePoint(0.0,0.0)
+    path.addEasePoint(totalT, 1.0)
+
+    val wristCurve = MotionCurve()
+    var time = 0.0
+    wristCurve.storeValue(time, Pose.current.wristAngle.asDegrees)
+    for (i in poses.indices) {
+        time += times[i]
+        wristCurve.storeValue(time, poses[i].second.wristAngle.asDegrees)
+    }
+
+    val pivotCurve = MotionCurve()
+    pivotCurve.storeValue(0.0, Pose.current.pivotAngle.asDegrees)
+    for (i in poses.indices) {
+        time += times[i]
+        pivotCurve.storeValue(time, poses[i].second.pivotAngle.asDegrees)
+    }
+
+    val timer = Timer()
+    timer.start()
+    periodic {
+        val t = timer.get()
+        Arm.wristPosition = path.getPosition(t)
+        Intake.wristSetpoint = wristCurve.getValue(t).degrees
+        Intake.pivotSetpoint = pivotCurve.getValue(t).degrees
+        if (t > totalT) {
+            this.stop()
+        }
+    }
+}
