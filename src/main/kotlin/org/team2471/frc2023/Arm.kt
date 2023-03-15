@@ -87,7 +87,7 @@ object Arm : Subsystem("Arm") {
     val elbowTicks: Int
         get() = elbowEncoder.value
     val elbowAngle: Angle
-        get() = if (isCompBot) (-elbowEncoder.value.degrees + 2720.degrees) * 90.0 / 1054.0 else (-elbowEncoder.value.degrees + 1423.degrees) * 90.0 / 1054.0
+        get() = if (isCompBot) (-elbowEncoder.value.degrees + 2720.degrees) * 90.0 / 1054.0 else (-elbowEncoder.value.degrees + 1980.degrees) * 90.0 / 1054.0
     var elbowOffset = 0.0.degrees
     var elbowSetpoint: Angle = elbowAngle
         set(value) {
@@ -175,7 +175,6 @@ object Arm : Subsystem("Arm") {
     const val ROBOT_HALF_WIDTH = 36.0 / 2.0
 
     var wristPosition = forwardKinematics(shoulderAngle, elbowAngle)
-//        get() = forwardKinematics(shoulderAngle, elbowAngle)
         set(position) {
             field = position
             var clampedPosition = position + if (position.x.absoluteValue < 10.0) Vector2(0.0, 0.0) else wristPosOffset
