@@ -29,11 +29,14 @@ object FieldManager {
     val singleSubstationOffsetX = 157.75.inches
     val singleSubstationOffsetY = 238.inches
     val chargeFromCenterY = 85.inches + gamePieceOnFieldFromCenterY
-    val gridFromCenterY = 224.0.inches + gamePieceOnFieldFromCenterY
+    private val gridFromCenterY = 224.0.inches + gamePieceOnFieldFromCenterY
     val chargeFromWall = 59.39.inches
 
     val barrierTip = Vector2(58.0.inches.asFeet, 16.0)
 
+
+    val mirroredGridFromCenterY: Length
+        get() = reflectFieldByAlliance(gridFromCenterY.asFeet).feet
     val insideSafePointClose: Vector2
         get() = reflectFieldByAlliance( Vector2(barrierTip.x/2.0, (gridFromCenterY - 66.0.inches + Drive.robotHalfWidth).asFeet))
     val insideSafePointFar: Vector2

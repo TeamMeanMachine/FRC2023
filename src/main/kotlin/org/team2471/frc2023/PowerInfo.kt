@@ -22,7 +22,7 @@ object PowerInfo : Subsystem("PowerDistribution") {
             println("setting power distribution info")
             PDH.clearStickyFaults()
             periodic {
-                batteryCheckEntry.setBoolean(PDH.voltage>12.3)
+               // batteryCheckEntry.setBoolean(PDH.voltage>12.3)
                 if (enableDashboardOutput) {
                     try {
                         totalCurrent.setDouble(PDH.totalCurrent)

@@ -11,8 +11,12 @@ import org.team2471.frc.lib.math.Vector2
 import org.team2471.frc.lib.math.linearMap
 import org.team2471.frc.lib.motion_profiling.MotionCurve
 import org.team2471.frc.lib.motion_profiling.Path2D
+import org.team2471.frc.lib.units.asFeet
 import org.team2471.frc.lib.units.degrees
+import org.team2471.frc.lib.units.feet
 import org.team2471.frc.lib.util.Timer
+import org.team2471.frc2023.Intake.pivotCurve
+import kotlin.math.absoluteValue
 
 //suspend fun scoreIfReady() {
 //    var startGoScore = false
@@ -237,7 +241,7 @@ suspend fun intakeCurrentLogic() {
                     Level.MID -> {
                         animateThroughPoses(Pair(0.0, Pose.BACK_MIDDLE_SCORE_CONE_TOWARD_MID), Pair(0.0, Pose.BACK_MIDDLE_SCORE_CONE_TOWARD))
                     }
-                    Level.LOW -> animateToPose(Pose.BACK_LOW_SCORE_CONE_TOWARD)
+                    Level.LOW -> autoArmToPose(Pose.BACK_LOW_SCORE_CONE_TOWARD)
                     else -> {
                         println("Error: Node level not given back")
                     }
@@ -262,7 +266,7 @@ suspend fun backScoreAwayCone() = use(Arm, Intake) {
                 Level.MID -> {
                     animateThroughPoses(Pair(0.0, Pose.BACK_MIDDLE_SCORE_CONE_AWAY_MID), Pair(0.0, Pose.BACK_MIDDLE_SCORE_CONE_AWAY))
                 }
-                Level.LOW -> animateToPose(Pose.BACK_LOW_SCORE_CONE_AWAY)
+                Level.LOW -> autoArmToPose(Pose.BACK_LOW_SCORE_CONE_AWAY)
                 else -> {
                     println("Error: Node level not given back")
                 }
@@ -283,9 +287,9 @@ suspend fun backScoreAwayCone() = use(Arm, Intake) {
                     animateThroughPoses(Pair(0.0, Pose.BACK_HIGH_SCORE_CONE_TOWARD_MID), Pair(0.0, Pose.BACK_HIGH_SCORE_CONE_TOWARD))
                 }
                 Level.MID -> {
-                    animateToPose(Pose.BACK_MIDDLE_SCORE_CUBE)
+                    autoArmToPose(Pose.BACK_MIDDLE_SCORE_CUBE)
                 }
-                Level.LOW -> animateToPose(Pose.BACK_LOW_SCORE_CUBE)
+                Level.LOW -> autoArmToPose(Pose.BACK_LOW_SCORE_CUBE)
                 else -> {
                     println("Error: Node level not given back")
                 }
@@ -295,7 +299,42 @@ suspend fun backScoreAwayCone() = use(Arm, Intake) {
         }
     }
 
-    suspend fun flip() = use(Arm) {
+private suspend fun autoArmToPose(pose: Pose, minTime: Double = 0.0) {
+    animateToPose(pose, minTime)
+    if (Arm.autoArmEnabled && FieldManager.getSelectedNode()!=null) {
+        periodic {
+            val delta = Arm.distanceToTarget.asInches - 16.0 - (FieldManager.getSelectedNode()!!.position.y - FieldManager.mirroredGridFromCenterY.asFeet).absoluteValue.feet.asInches
+            Arm.wristPosition.x = pose.wristPosition.x - delta
+//            println("delta2=$delta wristpos=${Arm.wristPosition.x}")
+            if (!OI.operatorController.leftBumper && !OI.operatorController.rightBumper) {
+                this.stop()
+            }
+        }
+    }
+}
+
+private suspend fun autoArmThroughPoses(vararg poses: Pair<Double, Pose>) {
+    var poses2 = poses
+    var pose2 = poses2[poses2.size - 1].second
+    if (Arm.autoArmEnabled && FieldManager.getSelectedNode()!=null) {
+        val delta = Arm.distanceToTarget.asInches - 16.0 - (FieldManager.getSelectedNode()!!.position.y - FieldManager.mirroredGridFromCenterY.asFeet).absoluteValue.feet.asInches
+        pose2.wristPosition.x -= delta
+        println("Wrist Pos Offset: $delta")
+    }
+    animateThroughPoses(*poses2)
+    if (Arm.autoArmEnabled && FieldManager.getSelectedNode()!=null) {
+        periodic {
+            val delta = Arm.distanceToTarget.asInches - 16.0 - (FieldManager.getSelectedNode()!!.position.y - FieldManager.mirroredGridFromCenterY.asFeet).absoluteValue.feet.asInches
+            Arm.wristPosition.x = poses[poses.size - 1].second.wristPosition.x - delta
+            println("Wrist Pos Offset: $delta")
+            if (!OI.operatorController.leftBumper && !OI.operatorController.rightBumper) {
+                this.stop()
+            }
+        }
+    }
+}
+
+suspend fun flip() = use(Arm) {
         Drive.maxTranslation = 1.0
         if (Intake.wristAngle < -75.degrees || Arm.wristPosition.x < -10.0) {
             animateToPose(Pose.FLIP_INTAKE_TO_FRONT_POSE)

@@ -45,6 +45,7 @@ object Arm : Subsystem("Arm") {
     val shoulderIsZeroedEntry = table.getEntry("Shoulder Is Zeroed")
     val shoulderTickEntry = table.getEntry("Shoulder Ticks")
     val elbowTickEntry = table.getEntry("Elbow Ticks")
+    val autoArmEntry = table.getEntry("Auto Arm")
     var shoulderGetZeroCount = 0
     var shoulderZeroForward = false
     var shoulderZeroBackward = false
@@ -61,7 +62,7 @@ object Arm : Subsystem("Arm") {
     val shoulderTicks: Int
         get() = shoulderEncoder.value
     val shoulderAngle: Angle
-        get() = if (isCompBot) ((-shoulderEncoder.value.degrees + 1183.degrees) / if (-shoulderEncoder.value + 1183 < 0.0) 12.4 else 9.8) else ((-shoulderEncoder.value.degrees + 1175.degrees) / if (-shoulderEncoder.value + 1175 < 0.0) 11.2 else 11.2) //(-shoulderEncoder.value.degrees / (if (-shoulderEncoder.value + 113.0 < 0.0) 16.0 else 10.5) + 113.0.degrees)
+        get() = if (isCompBot) ((-shoulderEncoder.value.degrees + 1183.degrees) / if (-shoulderEncoder.value + 1183 < 0.0) 12.4 else 9.8) else ((-shoulderEncoder.value.degrees + 1120.degrees) / if (-shoulderEncoder.value + 1175 < 0.0) 11.2 else 11.2) //(-shoulderEncoder.value.degrees / (if (-shoulderEncoder.value + 113.0 < 0.0) 16.0 else 10.5) + 113.0.degrees)
     val shoulderAnalogAngle: Angle
         get() = shoulderEncoder.value.degrees
     var shoulderOffset = 0.0.degrees
@@ -89,7 +90,7 @@ object Arm : Subsystem("Arm") {
     val elbowTicks: Int
         get() = elbowEncoder.value
     val elbowAngle: Angle
-        get() = if (isCompBot) (-elbowEncoder.value.degrees + 2720.degrees) * 90.0 / 1054.0 else (-elbowEncoder.value.degrees + 1980.degrees) * 90.0 / 1054.0
+        get() = if (isCompBot) (-elbowEncoder.value.degrees + 2720.degrees) * 90.0 / 1054.0 else (-elbowEncoder.value.degrees + 1968.degrees) * 90.0 / 1054.0
     var elbowOffset = 0.0.degrees
     var elbowSetpoint: Angle = elbowAngle
         set(value) {
@@ -110,7 +111,7 @@ object Arm : Subsystem("Arm") {
         get() = elbowFilter.calculate(tempElbow.asDegrees - prevElbow.asDegrees)
 
     val distanceToTarget: Length
-        get() = if (FieldManager.getSelectedNode()!=null) (FieldManager.getSelectedNode()!!.position - Drive.position).length.feet else 0.0.feet
+        get() = if (FieldManager.getSelectedNode()!=null) (FieldManager.getSelectedNode()!!.position - PoseEstimator.currentPose).length.feet else 0.0.feet
     val targetOffset: Length
         get() = distanceToTarget - wristPosition.x.inches
 
@@ -214,8 +215,11 @@ object Arm : Subsystem("Arm") {
     var wristBackOffset = Vector2(0.0, 0.0)
     var wristCenterOffset = Vector2(0.0, 0.0)
 
+    val autoArmEnabled: Boolean
+        get() = autoArmEntry.getBoolean(true)
 
     init {
+        autoArmEntry.setBoolean(true)
         println("Arm init")
         shoulderMotor.restoreFactoryDefaults()
         shoulderFollowerMotor.restoreFactoryDefaults()
@@ -225,7 +229,7 @@ object Arm : Subsystem("Arm") {
             coastMode()
             inverted(false)
             pid {
-                p(0.0000017)
+                p(0.0000020)
                 d(0.000001)
             }
             currentLimit(0, 60, 0)
@@ -236,7 +240,7 @@ object Arm : Subsystem("Arm") {
             coastMode()
             inverted(false)
             pid {
-                p(0.0000017)
+                p(0.0000020)
                 d(0.000001)
             }
             currentLimit(0, 60, 0)
@@ -246,8 +250,8 @@ object Arm : Subsystem("Arm") {
             feedbackCoefficient = 360.0 / 42.0 / 75.0
             coastMode()
             pid {
-                p(0.0000055)
-                d(0.000004)
+                p(0.0000180)
+                d(0.000005)
             }
             currentLimit(0, 60, 0)
             burnSettings()
