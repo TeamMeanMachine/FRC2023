@@ -29,6 +29,8 @@ object DigitalSensors {
     const val INTAKE_PIVOT_PRACTICE = 3
     const val INTAKE_PIVOT = 9
     const val FEEDER_BUTTON = 4
+
+    const val LIMIT_SWITCH = 6
 }
 
 object Falcons {

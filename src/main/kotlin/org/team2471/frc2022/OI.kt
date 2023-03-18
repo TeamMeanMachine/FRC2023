@@ -5,6 +5,10 @@ import org.team2471.frc.lib.math.Vector2
 import org.team2471.frc.lib.math.cube
 import org.team2471.frc.lib.math.deadband
 import org.team2471.frc.lib.math.squareWithSign
+import org.team2471.frc.lib.units.asFeet
+import org.team2471.frc.lib.units.asMeters
+import org.team2471.frc.lib.units.inches
+import org.team2471.frc.lib.units.meters
 
 object OI {
     val driverController = XboxController(0)
@@ -51,14 +55,14 @@ object OI {
         get() = operatorController.rightThumbstickY.deadband(0.25)
 
     init {
-        driverController::back.whenTrue { Drive.zeroGyro(); Drive.initializeSteeringMotors() }
+        driverController::back.whenTrue { Drive.zeroGyro(); Drive.initializeSteeringMotors(); Drive.position = Vector2(0.0, 0.0) }
         driverController::leftBumper.whenTrue { shootMode() }
-        driverController::x.whenTrue { Drive.position = Vector2(0.0, -12.0) }
+        driverController::x.whenTrue { Drive.position = Vector2(Drive.fieldCenterOffset.x.meters.asFeet - 17.5.inches.asFeet, -Drive.fieldCenterOffset.y.meters.asFeet + 17.5.inches.asFeet + 54.0.inches.asFeet) ; Drive.zeroGyro()}
 
         operatorController::start.whenTrue { climbPrep() }
         operatorController::b.whenTrue { intake() }
         operatorController::a.whenTrue { catch() }
-        operatorController::y.whenTrue { armUp() }
+//        driverController::y.whileTrue { Drive.autoSteer() }
         operatorController::x.whenTrue { powerSave() }
         operatorController::back.whenTrue { Climb.zeroClimb() }
         operatorController::rightBumper.whenTrue { clearFeeder() }

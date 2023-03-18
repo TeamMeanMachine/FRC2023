@@ -1,8 +1,12 @@
 package org.team2471.frc2022
 
+import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator
 import edu.wpi.first.math.filter.LinearFilter
 import edu.wpi.first.math.geometry.Pose2d
 import edu.wpi.first.math.geometry.Rotation2d
+import edu.wpi.first.math.geometry.Transform2d
+import edu.wpi.first.math.geometry.Translation2d
+import edu.wpi.first.math.kinematics.SwerveDriveKinematics
 import edu.wpi.first.networktables.NetworkTableEntry
 import edu.wpi.first.networktables.NetworkTableInstance
 import edu.wpi.first.wpilibj.*
@@ -24,9 +28,7 @@ import org.team2471.frc.lib.motion.following.*
 import org.team2471.frc.lib.motion_profiling.MotionCurve
 import org.team2471.frc.lib.motion_profiling.following.SwerveParameters
 import org.team2471.frc.lib.units.*
-import kotlin.math.absoluteValue
-import kotlin.math.cos
-import kotlin.math.sin
+import kotlin.math.*
 
 @OptIn(DelicateCoroutinesApi::class)
 object Drive : Subsystem("Drive"), SwerveDrive {
@@ -118,7 +120,9 @@ object Drive : Subsystem("Drive"), SwerveDrive {
 
     override var velocity = Vector2(0.0, 0.0)
 
-    override var position = Vector2(0.0, -12.0)
+    override var position = Vector2(0.0, 0.0)
+    override val combinedPosition: Vector2
+        get() = position
 
     override var robotPivot = Vector2(0.0, 0.0)
 
@@ -210,6 +214,8 @@ object Drive : Subsystem("Drive"), SwerveDrive {
             val headingEntry = table.getEntry("Heading")
             val xEntry = table.getEntry("X")
             val yEntry = table.getEntry("Y")
+            val poseEntry = table.getEntry("advantageScopePose")
+
 
 //            val aimPEntry = table.getEntry("p")
 //            val aimDEntry = table.getEntry("d")
@@ -256,6 +262,11 @@ object Drive : Subsystem("Drive"), SwerveDrive {
                 xEntry.setDouble(x)
                 yEntry.setDouble(y)
                 headingEntry.setDouble(heading.asDegrees)
+                val modX = y.feet.asMeters + fieldCenterOffset.y
+                val modY = -x.feet.asMeters + fieldCenterOffset.x
+                Limelight.photonPoseEstimator.setReferencePose(Pose2d(Translation2d(modX, modY), Rotation2d(-heading.asDegrees)))
+                //println("modX: $modX modY $modY")
+                poseEntry.setDoubleArray(doubleArrayOf(modX, modY, -heading.asDegrees))
                 aimErrorEntry.setDouble(Limelight.aimError)
                 angleZeroEntry.setDouble((modules[0] as Module).analogAngle.asDegrees)
                 angleOneEntry.setDouble((modules[1] as Module).analogAngle.asDegrees)
@@ -302,7 +313,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
                 blueFieldCargoEntry.setDoubleArray(blueCargoOnField.toDoubleArray())
                 robotsFieldEntry.setDoubleArray(robotOnField.toDoubleArray())
 
-                autoAim = Shooter.shootMode && Shooter.isKnownShot == Shooter.knownShotType.NOTSET
+//                autoAim = Shooter.shootMode && Shooter.isKnownShot == Shooter.knownShotType.NOTSET
                 // println(gyro.getNavX().pitch.degrees)
 
 //                for (moduleCount in 0..3) {
@@ -388,10 +399,14 @@ object Drive : Subsystem("Drive"), SwerveDrive {
     }
 
     fun autoSteer() {
-        var turn = 0.0
-        if (Limelight.hasValidTarget && (!Feeder.isAuto || !Shooter.useAutoOdomEntry.getBoolean(false))) {
-            turn = aimPDController.update(Limelight.aimError)
-        }
+        var angleToZero = atan2(-position.x, -position.y).radians.asDegrees
+
+        val turn = angleToZero - heading.asDegrees
+
+
+
+        println("angleToZero${angleToZero} turn ${turn} x ${position.x} y ${position.y} heading ${heading}")
+
         Drive.drive(
             Vector2(0.0,0.0),
             turn,
@@ -556,7 +571,6 @@ object Drive : Subsystem("Drive"), SwerveDrive {
                     setPersistent()
                     setDefaultDouble(0.00075)
                 }
-
             }
 
         }

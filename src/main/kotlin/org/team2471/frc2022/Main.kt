@@ -62,6 +62,8 @@ object Robot : MeanlibRobot() {
         Shooter.enable()
         Climb.enable()
 //        zeroIntakePivot()
+        Test.enable()
+
         println("ending enable")
         PowerInfo.enable()
     }
@@ -98,6 +100,8 @@ object Robot : MeanlibRobot() {
         Shooter.disable()
         Feeder.disable()
         Climb.disable()
+        Test.disable()
+
         PowerInfo.disable()
         OI.operatorController.rumble = 0.0
 //        PowerDistribution.disable()

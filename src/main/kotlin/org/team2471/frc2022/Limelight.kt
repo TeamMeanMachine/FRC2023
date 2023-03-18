@@ -1,5 +1,6 @@
 package org.team2471.frc2022
 
+import edu.wpi.first.apriltag.AprilTag
 import edu.wpi.first.apriltag.AprilTagFieldLayout
 import edu.wpi.first.apriltag.AprilTagFields
 import edu.wpi.first.math.Pair
@@ -7,14 +8,15 @@ import edu.wpi.first.math.filter.LinearFilter
 import edu.wpi.first.math.geometry.*
 import edu.wpi.first.networktables.NetworkTableInstance
 import edu.wpi.first.wpilibj.DriverStation
-import edu.wpi.first.wpilibj.Timer.getFPGATimestamp
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import org.photonvision.EstimatedRobotPose
 import org.photonvision.PhotonCamera
-import org.photonvision.RobotPoseEstimator
+import org.photonvision.PhotonPoseEstimator
+import org.photonvision.targeting.PhotonPipelineResult
 import org.team2471.frc.lib.coroutines.MeanlibDispatcher
 import org.team2471.frc.lib.coroutines.halt
 import org.team2471.frc.lib.coroutines.periodic
@@ -27,6 +29,7 @@ import org.team2471.frc2022.Drive.heading
 import java.util.*
 import kotlin.math.*
 
+
 @OptIn(DelicateCoroutinesApi::class)
 object Limelight : Subsystem("Front Limelight") {
     private val frontTable = NetworkTableInstance.getDefault().getTable("limelight-front")
@@ -35,6 +38,7 @@ object Limelight : Subsystem("Front Limelight") {
     private val backTable = NetworkTableInstance.getDefault().getTable("limelight-back")
 //    private val thresholdTable = frontTable.getSubTable("thresholds")
     private val frontXEntry = frontTable.getEntry("tx")
+    private val tagPose = pvTable.getEntry("tagPose")
     private val pvX = pvTable.getEntry("xpos")
     private val pvY = pvTable.getEntry("ypos")
     private val backXEntry = backTable.getEntry("tx")
@@ -58,29 +62,49 @@ object Limelight : Subsystem("Front Limelight") {
     private var positionXEntry = combinedTable.getEntry("PositionX")
     private var positionYEntry = combinedTable.getEntry("PositionY")
     private var aimErrorEntry = combinedTable.getEntry("Aim Error")
+    val aprilTagFieldLayout : AprilTagFieldLayout = AprilTagFieldLayout.loadFromResource(AprilTagFields.kDefaultField.m_resourceFile)
     val cam = PhotonCamera("camFront")
-
+    const val maxAmbiguity = 0.1
 
     var robotToCam: Transform3d = Transform3d(
-        Translation3d(0.0, 0.0, 0.0),
-        Rotation3d(0.0, 0.0, 0.0)
+        Translation3d(6.5.inches.asMeters, -16.0.inches.asMeters, 2.0.inches.asMeters),
+        Rotation3d(0.0, 18.0.degrees.asRadians, 0.0)
     ) //Cam mounted facing forward, half a meter forward of center, half a meter up from center.
     var camList = MutableList<Pair<PhotonCamera, Transform3d>>(1) {
-        edu.wpi.first.math.Pair(cam, robotToCam )
+        Pair(cam, robotToCam )
     }
-    val aprilField = AprilTagFieldLayout.loadFromResource(AprilTagFields.kDefaultField.m_resourceFile)
+    val fieldDimensions = Vector2(8.0137, 16.54175)
+    val photonPoseEstimator: PhotonPoseEstimator = PhotonPoseEstimator(aprilTagFieldLayout, PhotonPoseEstimator.PoseStrategy.CLOSEST_TO_REFERENCE_POSE, cam, robotToCam)
 
-    val robotPoseEstimator = RobotPoseEstimator(aprilField, RobotPoseEstimator.PoseStrategy.LOWEST_AMBIGUITY, camList)
     //REMEMBER: THIS IS IN METRES FROM THE BOTTOM LEFT CORNER OF THE FIELD
-    fun getEstimatedGlobalPose(): Pair<Pose2d?, Double>? {
-        //robotPoseEstimator.setReferencePose(prevEstimatedRobotPose)
-        val result: Optional<Pair<Pose3d, Double>> = robotPoseEstimator.update()
-        return if (result.isPresent) {
-            //println("Has Result")
-            Pair<Pose2d?, Double>(result.get().first.toPose2d(), result.get().second)
-        } else {
-            Pair(null, 0.0)
+    private fun getEstimatedGlobalPose(): Optional<EstimatedRobotPose?>? {
+        return photonPoseEstimator.update()
+    }
+
+    private fun customEstimatedPose(): EstimatedRobotPose?{
+
+        val cameraResult: PhotonPipelineResult =cam.latestResult
+        if (!cameraResult.hasTargets()) {
+            return null
         }
+        val bestResult = cameraResult.bestTarget
+        if (bestResult.poseAmbiguity >= maxAmbiguity) {
+            return null
+        }
+        val targetPosition: Optional<Pose3d> = aprilTagFieldLayout.getTagPose(bestResult.fiducialId)
+
+        if (targetPosition.isEmpty) {
+            return null
+        }
+
+        return EstimatedRobotPose(
+                targetPosition
+                    .get()
+                    .transformBy(bestResult.bestCameraToTarget.inverse())
+                    .transformBy(robotToCam.inverse()),
+                cameraResult.timestampSeconds
+            )
+        //val filterResults = cameraResult.getTargets().filter { it -> it.poseAmbiguity < maxAmbiguity }
     }
 
     private var angleOffsetEntry = Limelight.frontTable.getEntry("Angle Offset Entry")
@@ -251,6 +275,11 @@ object Limelight : Subsystem("Front Limelight") {
 
 
     init {
+
+//        aprilTagFieldLayout.setOrigin(Pose3d(Pose2d(Translation2d(fieldDimensions.y / 2, fieldDimensions.x / 2), Rotation2d(90.degrees.asRadians))))
+
+        photonPoseEstimator.setReferencePose(Pose2d(Translation2d(0.0, 0.0), Rotation2d(0.0)))
+
         backLedEnabled = false
         frontLedEnabled = false
         backLedModeEntry.setDouble(1.0)
@@ -291,12 +320,32 @@ object Limelight : Subsystem("Front Limelight") {
 //                    println("ids = ${results.targets[0].fiducialId}")
 //                }
                 //REMEMBER: THIS IS IN METRES FROM THE BOTTOM LEFT CORNER OF THE FIELD
-                val curepos = getEstimatedGlobalPose()?.first ?: Pose2d(0.0,0.0, Rotation2d(0.0))
-                println("${curepos.x.meters.asInches} ${curepos.y.meters.asInches}")
-                pvX.setDouble(curepos.x)
-                pvY.setDouble(curepos.y)
+                //val maybePose = getEstimatedGlobalPose()
 
+                val maybePose = customEstimatedPose()
+                if (maybePose != null) {
+                    val currentPose = maybePose.estimatedPose  //maybePose.get().estimatedPose
+                    val tagX = currentPose.x
+                    val tagY = currentPose.y
+                    val tagRot = currentPose.rotation
+                    photonPoseEstimator.setLastPose(currentPose)
+                   // println("X: $tagX Y: $tagY")
+                    pvX.setDouble(tagX)
+                    pvY.setDouble(tagY)
+                    tagPose.setDoubleArray(doubleArrayOf(tagX, tagY, tagRot.angle))
+//                    Drive.position = Vector2(curepos.get().estimatedPose.x.meters.asFeet - (13 + 3.5/12), curepos.get().estimatedPose.y.meters.asFeet - (26 + 0.5/12))
+//                    println(Vector2((26 + 0.5/12) - curepos.get().estimatedPose.x.meters.asFeet , curepos.get().estimatedPose.y.meters.asFeet - (13 + 3.5/12)))
+                }
+                Drive.position
+                Drive.heading
 
+//                println("${curepos.x.meters.asInches} ${curepos.y.meters.asInches}")
+//                pvX.setDouble(curepos.)
+//                pvY.setDouble(curepos.y.meters.asFeet)
+//                if (pvX.getDouble(0.0) != 0.0 && pvY.getDouble(0.0) != 0.0) {
+//                    Drive.position = Vector2(pvX.getDouble(0.0) - (13 + 3.5/12), pvY.getDouble(0.0) - (26 + 0.5/12))
+//                    println(Drive.position)
+//                }
 //                var leftPressed = false
 //                var rightPressed = false
 //
