@@ -37,6 +37,7 @@ object FieldManager {
 
     val mirroredGridFromCenterY: Length
         get() = reflectFieldByAlliance(gridFromCenterY.asFeet).feet
+
     val insideSafePointClose: Vector2
         get() = reflectFieldByAlliance( Vector2(barrierTip.x/2.0, (gridFromCenterY - 66.0.inches + Drive.robotHalfWidth).asFeet))
     val insideSafePointFar: Vector2

@@ -11,12 +11,10 @@ import org.team2471.frc.lib.math.Vector2
 import org.team2471.frc.lib.math.linearMap
 import org.team2471.frc.lib.motion_profiling.MotionCurve
 import org.team2471.frc.lib.motion_profiling.Path2D
-import org.team2471.frc.lib.units.asFeet
-import org.team2471.frc.lib.units.degrees
-import org.team2471.frc.lib.units.feet
+import org.team2471.frc.lib.units.*
 import org.team2471.frc.lib.util.Timer
-import org.team2471.frc2023.Intake.pivotCurve
 import kotlin.math.absoluteValue
+import kotlin.math.atan2
 
 //suspend fun scoreIfReady() {
 //    var startGoScore = false
@@ -285,8 +283,10 @@ suspend fun backScoreAwayCone() = use(Arm, Intake) {
             when (FieldManager.nodeList[selectedNode]?.level) {
                 Level.HIGH -> {
                     animateThroughPoses(Pair(0.0, Pose.BACK_HIGH_SCORE_CONE_TOWARD_MID), Pair(0.0, Pose.BACK_HIGH_SCORE_CONE_TOWARD))
+                    autoArmToPose(Pose.BACK_HIGH_SCORE_CONE_TOWARD)
                 }
                 Level.MID -> {
+                    animateToPose(Pose.BACK_MIDDLE_SCORE_CUBE)
                     autoArmToPose(Pose.BACK_MIDDLE_SCORE_CUBE)
                 }
                 Level.LOW -> autoArmToPose(Pose.BACK_LOW_SCORE_CUBE)
@@ -299,37 +299,21 @@ suspend fun backScoreAwayCone() = use(Arm, Intake) {
         }
     }
 
-private suspend fun autoArmToPose(pose: Pose, minTime: Double = 0.0) {
-    animateToPose(pose, minTime)
-    if (Arm.autoArmEnabled && FieldManager.getSelectedNode()!=null) {
+private suspend fun autoArmToPose(pose: Pose) {
+    val selectedNode = FieldManager.getSelectedNode()
+    if (Arm.autoArmEnabled && selectedNode!=null) {
         periodic {
-            val delta = Arm.distanceToTarget.asInches - 16.0 - (FieldManager.getSelectedNode()!!.position.y - FieldManager.mirroredGridFromCenterY.asFeet).absoluteValue.feet.asInches
-            Arm.wristPosition.x = pose.wristPosition.x - delta
-//            println("delta2=$delta wristpos=${Arm.wristPosition.x}")
             if (!OI.operatorController.leftBumper && !OI.operatorController.rightBumper) {
                 this.stop()
             }
-        }
-    }
-}
-
-private suspend fun autoArmThroughPoses(vararg poses: Pair<Double, Pose>) {
-    var poses2 = poses
-    var pose2 = poses2[poses2.size - 1].second
-    if (Arm.autoArmEnabled && FieldManager.getSelectedNode()!=null) {
-        val delta = Arm.distanceToTarget.asInches - 16.0 - (FieldManager.getSelectedNode()!!.position.y - FieldManager.mirroredGridFromCenterY.asFeet).absoluteValue.feet.asInches
-        pose2.wristPosition.x -= delta
-        println("Wrist Pos Offset: $delta")
-    }
-    animateThroughPoses(*poses2)
-    if (Arm.autoArmEnabled && FieldManager.getSelectedNode()!=null) {
-        periodic {
-            val delta = Arm.distanceToTarget.asInches - 16.0 - (FieldManager.getSelectedNode()!!.position.y - FieldManager.mirroredGridFromCenterY.asFeet).absoluteValue.feet.asInches
-            Arm.wristPosition.x = poses[poses.size - 1].second.wristPosition.x - delta
-            println("Wrist Pos Offset: $delta")
-            if (!OI.operatorController.leftBumper && !OI.operatorController.rightBumper) {
-                this.stop()
-            }
+            val deltaBumper =
+                Arm.distanceToTarget.asInches - 16.0 - (FieldManager.getSelectedNode()!!.position.y - FieldManager.mirroredGridFromCenterY.asFeet).absoluteValue.feet.asInches
+            val directionToNode = selectedNode.position - PoseEstimator.currentPose
+            val angleToNode = directionToNode.angle // atan2().degrees.asRadians
+            Arm.wristPosition.x = -deltaBumper
+            //            println("delta2=$delta wristpos=${Arm.wristPosition.x}")
+            Arm.deltaValueEntry.setDouble(deltaBumper)
+            Arm.nodeAngleEntry.setDouble(angleToNode)
         }
     }
 }

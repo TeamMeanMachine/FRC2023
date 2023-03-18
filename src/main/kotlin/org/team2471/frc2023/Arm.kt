@@ -51,6 +51,10 @@ object Arm : Subsystem("Arm") {
     var shoulderZeroBackward = false
     val elbowAngleCheck = table.getEntry("Elbow Angle Check")
     val shoulderAngleCheck = table.getEntry("Shoulder Angle Check")
+    val deltaValueEntry = table.getEntry("Delta Value")
+    val elbowMotorCurrentEntry = table.getEntry("Elbow Motor Current")
+    val nodeAngleEntry = table.getEntry("Robot Angle")
+
 
     val wristFrontOffsetEntry = table.getEntry("Front Wrist Offset")
     val wristBackOffsetEntry = table.getEntry("Back Wrist Offset")
@@ -111,7 +115,7 @@ object Arm : Subsystem("Arm") {
         get() = elbowFilter.calculate(tempElbow.asDegrees - prevElbow.asDegrees)
 
     val distanceToTarget: Length
-        get() = if (FieldManager.getSelectedNode()!=null) (FieldManager.getSelectedNode()!!.position - PoseEstimator.currentPose).length.feet else 0.0.feet
+        get() = ((FieldManager.getSelectedNode()?.position ?: PoseEstimator.currentPose) - PoseEstimator.currentPose).length.feet
     val targetOffset: Length
         get() = distanceToTarget - wristPosition.x.inches
 
@@ -292,6 +296,7 @@ object Arm : Subsystem("Arm") {
                 shoulderAngleCheck.setBoolean(shoulderAngle.asDegrees.absoluteValue < 10)
                 wristFrontOffsetEntry.setDoubleArray(arrayOf(wristFrontOffset.x, wristFrontOffset.y))
                 wristBackOffsetEntry.setDoubleArray(arrayOf(wristBackOffset.x, wristBackOffset.y))
+                elbowMotorCurrentEntry.setDouble(elbowMotor.current)
 
                 driverInControlEntry.setBoolean(OI.controlledBy == OI.PERSONINCONTROL.DRIVER)
                 operatorInControlEntry.setBoolean(OI.controlledBy == OI.PERSONINCONTROL.OPERATOR)
