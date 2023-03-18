@@ -153,7 +153,7 @@ suspend fun animateThroughPoses(vararg poses: Pair<Double, Pose>) = use(Arm, Int
         time += times[i]
         wristCurve.storeValue(time, poses[i].second.wristAngle.asDegrees)
     }
-
+    time = 0.0
     val pivotCurve = MotionCurve()
     pivotCurve.storeValue(0.0, Pose.current.pivotAngle.asDegrees)
     for (i in poses.indices) {
