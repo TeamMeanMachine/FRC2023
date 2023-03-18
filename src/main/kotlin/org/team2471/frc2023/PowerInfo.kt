@@ -3,6 +3,7 @@ package org.team2471.frc2023
 import edu.wpi.first.networktables.NetworkTableInstance
 import edu.wpi.first.wpilibj.DriverStation
 import edu.wpi.first.wpilibj.PowerDistribution
+import edu.wpi.first.wpilibj.RobotController
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.team2471.frc.lib.coroutines.periodic
@@ -22,7 +23,7 @@ object PowerInfo : Subsystem("PowerDistribution") {
             println("setting power distribution info")
             PDH.clearStickyFaults()
             periodic {
-               // batteryCheckEntry.setBoolean(PDH.voltage>12.3)
+                batteryCheckEntry.setBoolean(RobotController.getBatteryVoltage()>12.6)
                 if (enableDashboardOutput) {
                     try {
                         totalCurrent.setDouble(PDH.totalCurrent)
