@@ -21,6 +21,10 @@ object AprilTag {
 
     private val frontCamSelectedEntry = pvTable.getEntry("Front Camera Selected")
     private val advantagePoseEntry = pvTable.getEntry("April Advantage Pose")
+    private val aprilTagStartupCheck = pvTable.getEntry("April Tag Start Up Check")
+    //private val camBackEntry = pvTable.getEntry("Cam Back")
+    //private val frontPoseEstimatorEntry = pvTable.getEntry("Front Pose Estimator")
+    //private val backPoseEstimatorEntry = pvTable.getEntry("Back Pose Estimator")
 
     private val tag1Trajectory = pvTable.getEntry("Tag 1 Trajectory")
     private val tag2Trajectory = pvTable.getEntry("Tag 2 Trajectory")
@@ -68,7 +72,7 @@ object AprilTag {
 //        backPoseEstimator.setMultiTagFallbackStrategy(PhotonPoseEstimator.PoseStrategy.CLOSEST_TO_REFERENCE_POSE)
         GlobalScope.launch {
             periodic {
-
+                aprilTagStartupCheck.setBoolean(camFront != null && camBack != null && frontPoseEstimator != null && backPoseEstimator != null)
 //                frontPoseEstimator.referencePose = Pose3d(Pose2d(PoseEstimator.currentPose.toWPIField(), Rotation2d(Drive.heading.asRadians)))
 //                backPoseEstimator.referencePose = Pose3d(Pose2d(PoseEstimator.currentPose.toWPIField(), Rotation2d(Drive.heading.asRadians)))
                 try {
@@ -158,21 +162,35 @@ object AprilTag {
     }
 
     fun resetCameras() {
-        try {
-            if (pvTable.containsSubTable("PVFront")) {
-                camFront = PhotonCamera("PVFront")
-                frontPoseEstimator = PhotonPoseEstimator(aprilTagFieldLayout, PhotonPoseEstimator.PoseStrategy.MULTI_TAG_PNP, camFront, robotToCamFront)
+        if (camFront == null && frontPoseEstimator == null) {
+            try {
+                if (pvTable.containsSubTable("PVFront")) {
+                    camFront = PhotonCamera("PVFront")
+                    frontPoseEstimator = PhotonPoseEstimator(
+                        aprilTagFieldLayout,
+                        PhotonPoseEstimator.PoseStrategy.MULTI_TAG_PNP,
+                        camFront,
+                        robotToCamFront
+                    )
+                }
+            } catch (ex: Exception) {
+                println("Front pose failed")
             }
-        } catch (ex:Exception) {
-            println("Front pose failed")
         }
-        try {
-            if (pvTable.containsSubTable("PVBack")) {
-                camBack = PhotonCamera("PVBack")
-                backPoseEstimator = PhotonPoseEstimator(aprilTagFieldLayout, PhotonPoseEstimator.PoseStrategy.MULTI_TAG_PNP, camBack, robotToCamBack)
+        if (camBack == null && backPoseEstimator == null){
+            try {
+                if (pvTable.containsSubTable("PVBack")) {
+                    camBack = PhotonCamera("PVBack")
+                    backPoseEstimator = PhotonPoseEstimator(
+                        aprilTagFieldLayout,
+                        PhotonPoseEstimator.PoseStrategy.MULTI_TAG_PNP,
+                        camBack,
+                        robotToCamBack
+                    )
+                }
+            } catch (ex: Exception) {
+                println("Back pose failed")
             }
-        } catch (ex:Exception) {
-            println("Back pose failed")
         }
     }
 
