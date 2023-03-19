@@ -19,9 +19,9 @@ data class Pose(val wristPosition: Vector2, val wristAngle: Angle, val pivotAngl
         val GROUND_INTAKE_FRONT_CONE = Pose(Vector2(18.0, 14.5), 90.0.degrees, -90.0.degrees)
         val GROUND_INTAKE_FRONT_CUBE = Pose(Vector2(18.0, 14.0), 90.0.degrees, -180.0.degrees)
         val GROUND_INTAKE_CONE_NEAR = Pose(Vector2(18.0, 10.5), 90.0.degrees, 0.0.degrees)
-        val GROUND_INTAKE_CONE_FAR = Pose(Vector2(40.0, 10.0), 90.0.degrees, 0.0.degrees)
-        val GROUND_INTAKE_CUBE_NEAR = Pose(Vector2(18.0, -8.0), 75.0.degrees, -180.0.degrees)
-        val GROUND_INTAKE_CUBE_FAR = Pose(Vector2(40.0, -8.0), 75.0.degrees, -180.0.degrees)
+        val GROUND_INTAKE_CONE_FAR = Pose(Vector2(40.0, 12.0), 90.0.degrees, 0.0.degrees) //y: 10
+        val GROUND_INTAKE_CUBE_NEAR = Pose(Vector2(18.0, -6.0), 75.0.degrees, -180.0.degrees)//y: -8
+        val GROUND_INTAKE_CUBE_FAR = Pose(Vector2(40.0, -6.0), 75.0.degrees, -180.0.degrees) // y: -8
 
         val BACK_LOW_SCORE_CONE_TOWARD = Pose(Vector2(-10.0, 9.0), -60.0.degrees, 0.0.degrees)
         val BACK_LOW_SCORE_CONE_AWAY = Pose(Vector2(-10.0, 9.0), -80.0.degrees, 0.0.degrees)

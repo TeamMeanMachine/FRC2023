@@ -9,6 +9,7 @@ import org.team2471.frc.lib.coroutines.MeanlibDispatcher
 import org.team2471.frc.lib.coroutines.periodic
 import org.team2471.frc.lib.math.Vector2
 import org.team2471.frc.lib.motion.following.lookupPose
+import org.team2471.frc.lib.units.degrees
 import org.team2471.frc.lib.units.feet
 
 object PoseEstimator {

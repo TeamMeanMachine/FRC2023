@@ -67,7 +67,7 @@ object Intake : Subsystem("Intake") {
         }
 
     val pivotAnalogAngle: Angle
-        get() = ((pivotSensor.value - if (isCompBot) 3595.0 else 39.8).degrees / 4096.0 * 360.0).wrap()
+        get() = ((pivotSensor.value - if (isCompBot) 913.0 else 39.8).degrees / 4096.0 * 360.0).wrap()
     var pivotOffset: Angle = 0.0.degrees
 
     val pivotAngle: Angle
@@ -124,7 +124,7 @@ object Intake : Subsystem("Intake") {
 
     const val INTAKE_POWER = 1.0
     const val INTAKE_CONE = -1.0
-    const val HOLD_CONE = -0.25
+    const val HOLD_CONE = -0.30
     const val DETECT_CONE = 20
     const val CONE_TOWARD_SPIT = 0.6
     const val CONE_AWAY_SPIT = 1.0

@@ -66,7 +66,13 @@ object Arm : Subsystem("Arm") {
     val shoulderTicks: Int
         get() = shoulderEncoder.value
     val shoulderAngle: Angle
-        get() = if (isCompBot) ((-shoulderEncoder.value.degrees + 1183.degrees) / if (-shoulderEncoder.value + 1183 < 0.0) 12.4 else 9.8) else ((-shoulderEncoder.value.degrees + 1120.degrees) / if (-shoulderEncoder.value + 1175 < 0.0) 11.2 else 11.2) //(-shoulderEncoder.value.degrees / (if (-shoulderEncoder.value + 113.0 < 0.0) 16.0 else 10.5) + 113.0.degrees)
+        get() =
+            if (isCompBot) {
+                ((-shoulderEncoder.value.degrees + 3120.degrees) / if (-shoulderEncoder.value + 1183 < 0.0) 12.4 else 9.8)
+            } else {
+                ((-shoulderEncoder.value.degrees + 1120.degrees) / if (-shoulderEncoder.value + 1175 < 0.0) 11.2 else 11.2)
+            }
+
     val shoulderAnalogAngle: Angle
         get() = shoulderEncoder.value.degrees
     var shoulderOffset = 0.0.degrees
@@ -94,7 +100,12 @@ object Arm : Subsystem("Arm") {
     val elbowTicks: Int
         get() = elbowEncoder.value
     val elbowAngle: Angle
-        get() = if (isCompBot) (-elbowEncoder.value.degrees + 2720.degrees) * 90.0 / 1054.0 else (-elbowEncoder.value.degrees + 1968.degrees) * 90.0 / 1054.0
+        get() = if (isCompBot) {
+            (-elbowEncoder.value.degrees + 1560.degrees) * 90.0 / 1054.0
+        } else {
+            (-elbowEncoder.value.degrees + 1968.degrees) * 90.0 / 1054.0
+        }
+
     var elbowOffset = 0.0.degrees
     var elbowSetpoint: Angle = elbowAngle
         set(value) {
@@ -115,7 +126,8 @@ object Arm : Subsystem("Arm") {
         get() = elbowFilter.calculate(tempElbow.asDegrees - prevElbow.asDegrees)
 
     val distanceToTarget: Length
-        get() = ((FieldManager.getSelectedNode()?.position ?: PoseEstimator.currentPose) - PoseEstimator.currentPose).length.feet
+        get() = ((FieldManager.getSelectedNode()?.position
+            ?: PoseEstimator.currentPose) - PoseEstimator.currentPose).length.feet
     val targetOffset: Length
         get() = distanceToTarget - wristPosition.x.inches
 
@@ -182,7 +194,7 @@ object Arm : Subsystem("Arm") {
     const val ROBOT_HALF_WIDTH = 36.0 / 2.0
 
     var wristPosition = forwardKinematics(shoulderAngle, elbowAngle)
-        set (position) {
+        set(position) {
             field = position
             var clampedPosition = position + if (position.x.absoluteValue < 10.0) Vector2(0.0, 0.0) else wristPosOffset
 
@@ -208,12 +220,13 @@ object Arm : Subsystem("Arm") {
             }
         }
 
-//    val actualWristPosition
+    //    val actualWristPosition
 //        get() = forwardKinematics(shoulderAngle, elbowAngle)
     var wristPosOffset
         get() = if (wristPosition.x > 7.0) wristFrontOffset else if (wristPosition.x < -7.0) wristBackOffset else wristCenterOffset
         set(value) {
-            if (wristPosition.x > 7.0) wristFrontOffset = value else if (wristPosition.x < -7.0) wristBackOffset = value else wristCenterOffset = value
+            if (wristPosition.x > 7.0) wristFrontOffset = value else if (wristPosition.x < -7.0) wristBackOffset =
+                value else wristCenterOffset = value
         }
     var wristFrontOffset = Vector2(0.0, 0.0)
     var wristBackOffset = Vector2(0.0, 0.0)
@@ -334,12 +347,26 @@ object Arm : Subsystem("Arm") {
 
                 //zeroing
                 if ((shoulderMotor.position - shoulderAngle.asDegrees).absoluteValue > 2.0) {
-                    println("Resetting shoulder from ${round(shoulderMotor.position, 1)} to ${round(shoulderAngle.asDegrees, 1)}")
+                    println(
+                        "Resetting shoulder from ${
+                            round(
+                                shoulderMotor.position,
+                                1
+                            )
+                        } to ${round(shoulderAngle.asDegrees, 1)}"
+                    )
                     shoulderMotor.setRawOffset(shoulderAngle.asDegrees)
                     shoulderFollowerMotor.setRawOffset(shoulderAngle.asDegrees)
                 }
                 if ((elbowMotor.position - elbowAngle.asDegrees).absoluteValue > 4.0) { //testing time
-                    println("Resetting elbow from ${round(elbowMotor.position, 1)} to ${round(elbowAngle.asDegrees, 1)}")
+                    println(
+                        "Resetting elbow from ${round(elbowMotor.position, 1)} to ${
+                            round(
+                                elbowAngle.asDegrees,
+                                1
+                            )
+                        }"
+                    )
                     elbowMotor.setRawOffset(elbowAngle.asDegrees)
                 }
 

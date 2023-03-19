@@ -153,6 +153,9 @@ object Drive : Subsystem("Drive"), SwerveDrive {
     override var robotPivot = Vector2(0.0, 0.0)
     override var headingSetpoint = 0.0.degrees
 
+    var autoAim: Boolean = false
+    var angleToNode: Angle = 0.0.degrees
+
     override val parameters: SwerveParameters = SwerveParameters(
         gyroRateCorrection = 0.0,
         kpPosition = 0.32,
@@ -307,6 +310,12 @@ object Drive : Subsystem("Drive"), SwerveDrive {
             }
             val useGyro2 = useGyroEntry.getBoolean(true) && !DriverStation.isAutonomous()
 
+            if (autoAim) {
+                var error = (angleToNode - heading).wrap()
+//                if (error.asDegrees.absoluteValue > 90.0) error = (error - 180.0.degrees).wrap()
+                turn = aimPDController.update(error.asDegrees)
+            }
+
             drive(
                 OI.driveTranslation * maxTranslation,
                 turn * maxRotation,
@@ -427,6 +436,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
                 feedbackCoefficient = 360.0 / 2048.0 / 21.428  // 21.451 for bunnybot with same gearing
                 inverted(false)
                 setSensorPhase(false)
+                coastMode()
                 setRawOffsetConfig(absoluteAngle.asDegrees)
                 pid {
                     p(0.000002)
