@@ -13,6 +13,7 @@ import org.team2471.frc.lib.motion_profiling.MotionCurve
 import org.team2471.frc.lib.motion_profiling.Path2D
 import org.team2471.frc.lib.units.*
 import org.team2471.frc.lib.util.Timer
+import kotlin.math.absoluteValue
 
 //suspend fun scoreIfReady() {
 //    var startGoScore = false
@@ -232,9 +233,9 @@ suspend fun backScoreTowardCone() = use(Arm, Intake) {
     if (Arm.wristPosition.x < -10.0 || Intake.wristAngle.asDegrees < -40.0) {
         Intake.coneToward = true
         Drive.maxTranslation = 0.3
-//        if (Arm.autoArmEnabled) {
-//            Drive.autoAim = true
-//        }
+        if (Arm.autoArmEnabled) {
+            Drive.autoAim = true
+        }
         if (NodeDeckHub.isCone) {
             when (FieldManager.getSelectedNode()?.level) {
                 Level.HIGH -> {
@@ -271,9 +272,9 @@ suspend fun backScoreAwayCone() = use(Arm, Intake) {
     if (Arm.wristPosition.x < -10.0 || Intake.wristAngle.asDegrees < -40.0) {
         Intake.coneToward = false
         Drive.maxTranslation = 0.3 //make this a constant
-//        if (Arm.autoArmEnabled) {
-//            Drive.autoAim = true
-//        }
+        if (Arm.autoArmEnabled) {
+            Drive.autoAim = true
+        }
         if (NodeDeckHub.isCone) {
             when (FieldManager.getSelectedNode()?.level) {
                 Level.HIGH -> {
@@ -309,9 +310,9 @@ suspend fun backScoreAwayCone() = use(Arm, Intake) {
 suspend fun lineUpScoreCube(selectedNode: Int = NodeDeckHub.selectedNode.toInt()) = use(Arm, Intake) {
     if (Arm.wristPosition.x < -10.0 || Intake.wristAngle.asDegrees < -40.0) {
         Drive.maxTranslation = 0.3
-//        if (Arm.autoArmEnabled) {
-//            Drive.autoAim = true
-//        }
+        if (Arm.autoArmEnabled) {
+            Drive.autoAim = true
+        }
         when (FieldManager.nodeList[selectedNode]?.level) {
             Level.HIGH -> {
                 animateThroughPoses(
@@ -338,23 +339,23 @@ suspend fun lineUpScoreCube(selectedNode: Int = NodeDeckHub.selectedNode.toInt()
 }
 
 private suspend fun autoArmToPose(pose: Pose) {
-//    val selectedNode = FieldManager.getSelectedNode()
-//    if (Arm.autoArmEnabled && selectedNode != null) {
-//        periodic {
-//            if (!OI.operatorController.leftBumper && !OI.operatorController.rightBumper) {
-//                Drive.autoAim = false
-//                this.stop()
-//            }
-//            val deltaBumper =
-//                Arm.distanceToTarget.asInches - 16.0 - (FieldManager.getSelectedNode()!!.position.y - FieldManager.mirroredGridFromCenterY.asFeet).absoluteValue.feet.asInches
-//            val directionToNode = selectedNode.position - PoseEstimator.currentPose
-//            Drive.angleToNode = directionToNode.angle.degrees
-//            Arm.wristPosition.x = pose.wristPosition.x - deltaBumper
-//            // println("delta2=$delta wristpos=${Arm.wristPosition.x}")
-//            Arm.deltaValueEntry.setDouble(deltaBumper)
-//            Arm.nodeAngleEntry.setDouble(Drive.angleToNode.asDegrees)
-//        }
-//    }
+    val selectedNode = FieldManager.getSelectedNode()
+    if (Arm.autoArmEnabled && selectedNode != null) {
+        periodic {
+            if (!OI.operatorController.leftBumper && !OI.operatorController.rightBumper) {
+                Drive.autoAim = false
+                this.stop()
+            }
+            val deltaBumper =
+                Arm.distanceToTarget.asInches - 16.0 - (selectedNode.position.y - FieldManager.mirroredGridFromCenterY.asFeet).absoluteValue.feet.asInches
+            val directionToNode = selectedNode.position - PoseEstimator.currentPose
+            Drive.angleToNode = directionToNode.angle.degrees
+            Arm.wristPosition.x = pose.wristPosition.x - deltaBumper
+            // println("delta2=$delta wristpos=${Arm.wristPosition.x}")
+            Arm.deltaValueEntry.setDouble(deltaBumper)
+            Arm.nodeAngleEntry.setDouble(Drive.angleToNode.asDegrees)
+        }
+    }
 }
 
 suspend fun flip() = use(Arm) {

@@ -45,12 +45,15 @@ object Arm : Subsystem("Arm") {
     val shoulderIsZeroedEntry = table.getEntry("Shoulder Is Zeroed")
     val shoulderTickEntry = table.getEntry("Shoulder Ticks")
     val elbowTickEntry = table.getEntry("Elbow Ticks")
+    val autoArmEntry = table.getEntry("Auto Arm")
     var shoulderGetZeroCount = 0
     var shoulderZeroForward = false
     var shoulderZeroBackward = false
     val elbowAngleCheck = table.getEntry("Elbow Angle Check")
     val shoulderAngleCheck = table.getEntry("Shoulder Angle Check")
-
+    val deltaValueEntry = table.getEntry("Delta Value")
+    val elbowMotorCurrentEntry = table.getEntry("Elbow Motor Current")
+    val nodeAngleEntry = table.getEntry("Robot Angle")
     val wristFrontOffsetEntry = table.getEntry("Front Wrist Offset")
     val wristBackOffsetEntry = table.getEntry("Back Wrist Offset")
 
@@ -121,7 +124,7 @@ object Arm : Subsystem("Arm") {
         get() = elbowFilter.calculate(tempElbow.asDegrees - prevElbow.asDegrees)
 
     val distanceToTarget: Length
-        get() = if (FieldManager.getSelectedNode()!=null) (FieldManager.getSelectedNode()!!.position - Drive.position).length.feet else 0.0.feet
+        get() = ((FieldManager.getSelectedNode()?.position ?: PoseEstimator.currentPose) - PoseEstimator.currentPose).length.feet
     val targetOffset: Length
         get() = distanceToTarget - wristPosition.x.inches
 
@@ -225,9 +228,12 @@ object Arm : Subsystem("Arm") {
     var wristBackOffset = Vector2(0.0, 0.0)
     var wristCenterOffset = Vector2(0.0, 0.0)
 
+    val autoArmEnabled: Boolean
+        get() = autoArmEntry.getBoolean(true)
 
     init {
         println("Arm init")
+        autoArmEntry.setBoolean(true)
         shoulderMotor.restoreFactoryDefaults()
         shoulderFollowerMotor.restoreFactoryDefaults()
         elbowMotor.restoreFactoryDefaults()
