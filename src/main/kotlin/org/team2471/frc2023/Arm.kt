@@ -45,16 +45,11 @@ object Arm : Subsystem("Arm") {
     val shoulderIsZeroedEntry = table.getEntry("Shoulder Is Zeroed")
     val shoulderTickEntry = table.getEntry("Shoulder Ticks")
     val elbowTickEntry = table.getEntry("Elbow Ticks")
-    val autoArmEntry = table.getEntry("Auto Arm")
     var shoulderGetZeroCount = 0
     var shoulderZeroForward = false
     var shoulderZeroBackward = false
     val elbowAngleCheck = table.getEntry("Elbow Angle Check")
     val shoulderAngleCheck = table.getEntry("Shoulder Angle Check")
-    val deltaValueEntry = table.getEntry("Delta Value")
-    val elbowMotorCurrentEntry = table.getEntry("Elbow Motor Current")
-    val nodeAngleEntry = table.getEntry("Robot Angle")
-
 
     val wristFrontOffsetEntry = table.getEntry("Front Wrist Offset")
     val wristBackOffsetEntry = table.getEntry("Back Wrist Offset")
@@ -68,9 +63,9 @@ object Arm : Subsystem("Arm") {
     val shoulderAngle: Angle
         get() =
             if (isCompBot) {
-                ((-shoulderEncoder.value.degrees + 3120.degrees) / if (-shoulderEncoder.value + 1183 < 0.0) 12.4 else 9.8)
+                (-shoulderEncoder.value.degrees + 3120.degrees) / 11.2 //if (-shoulderEncoder.value + 1183 < 0.0) 12.4 else 9.8)
             } else {
-                ((-shoulderEncoder.value.degrees + 1120.degrees) / if (-shoulderEncoder.value + 1175 < 0.0) 11.2 else 11.2)
+                (-shoulderEncoder.value.degrees + 1120.degrees) / 11.2
             }
 
     val shoulderAnalogAngle: Angle
@@ -101,7 +96,7 @@ object Arm : Subsystem("Arm") {
         get() = elbowEncoder.value
     val elbowAngle: Angle
         get() = if (isCompBot) {
-            (-elbowEncoder.value.degrees + 1560.degrees) * 90.0 / 1054.0
+            (-elbowEncoder.value.degrees + 1643.degrees) * 90.0 / 1054.0
         } else {
             (-elbowEncoder.value.degrees + 1968.degrees) * 90.0 / 1054.0
         }
@@ -126,8 +121,7 @@ object Arm : Subsystem("Arm") {
         get() = elbowFilter.calculate(tempElbow.asDegrees - prevElbow.asDegrees)
 
     val distanceToTarget: Length
-        get() = ((FieldManager.getSelectedNode()?.position
-            ?: PoseEstimator.currentPose) - PoseEstimator.currentPose).length.feet
+        get() = if (FieldManager.getSelectedNode()!=null) (FieldManager.getSelectedNode()!!.position - Drive.position).length.feet else 0.0.feet
     val targetOffset: Length
         get() = distanceToTarget - wristPosition.x.inches
 
@@ -194,7 +188,7 @@ object Arm : Subsystem("Arm") {
     const val ROBOT_HALF_WIDTH = 36.0 / 2.0
 
     var wristPosition = forwardKinematics(shoulderAngle, elbowAngle)
-        set(position) {
+        set (position) {
             field = position
             var clampedPosition = position + if (position.x.absoluteValue < 10.0) Vector2(0.0, 0.0) else wristPosOffset
 
@@ -220,23 +214,19 @@ object Arm : Subsystem("Arm") {
             }
         }
 
-    //    val actualWristPosition
+//    val actualWristPosition
 //        get() = forwardKinematics(shoulderAngle, elbowAngle)
     var wristPosOffset
         get() = if (wristPosition.x > 7.0) wristFrontOffset else if (wristPosition.x < -7.0) wristBackOffset else wristCenterOffset
         set(value) {
-            if (wristPosition.x > 7.0) wristFrontOffset = value else if (wristPosition.x < -7.0) wristBackOffset =
-                value else wristCenterOffset = value
+            if (wristPosition.x > 7.0) wristFrontOffset = value else if (wristPosition.x < -7.0) wristBackOffset = value else wristCenterOffset = value
         }
     var wristFrontOffset = Vector2(0.0, 0.0)
     var wristBackOffset = Vector2(0.0, 0.0)
     var wristCenterOffset = Vector2(0.0, 0.0)
 
-    val autoArmEnabled: Boolean
-        get() = autoArmEntry.getBoolean(true)
 
     init {
-        autoArmEntry.setBoolean(true)
         println("Arm init")
         shoulderMotor.restoreFactoryDefaults()
         shoulderFollowerMotor.restoreFactoryDefaults()
@@ -246,7 +236,7 @@ object Arm : Subsystem("Arm") {
             coastMode()
             inverted(false)
             pid {
-                p(0.0000020)
+                p(0.0000017)
                 d(0.000001)
             }
             currentLimit(0, 60, 0)
@@ -257,7 +247,7 @@ object Arm : Subsystem("Arm") {
             coastMode()
             inverted(false)
             pid {
-                p(0.0000020)
+                p(0.0000017)
                 d(0.000001)
             }
             currentLimit(0, 60, 0)
@@ -267,8 +257,8 @@ object Arm : Subsystem("Arm") {
             feedbackCoefficient = 360.0 / 42.0 / 75.0
             coastMode()
             pid {
-                p(0.0000180)
-                d(0.000005)
+                p(0.0000055)
+                d(0.000004)
             }
             currentLimit(0, 60, 0)
             burnSettings()
@@ -309,7 +299,6 @@ object Arm : Subsystem("Arm") {
                 shoulderAngleCheck.setBoolean(shoulderAngle.asDegrees.absoluteValue < 10)
                 wristFrontOffsetEntry.setDoubleArray(arrayOf(wristFrontOffset.x, wristFrontOffset.y))
                 wristBackOffsetEntry.setDoubleArray(arrayOf(wristBackOffset.x, wristBackOffset.y))
-                elbowMotorCurrentEntry.setDouble(elbowMotor.current)
 
                 driverInControlEntry.setBoolean(OI.controlledBy == OI.PERSONINCONTROL.DRIVER)
                 operatorInControlEntry.setBoolean(OI.controlledBy == OI.PERSONINCONTROL.OPERATOR)
@@ -347,26 +336,12 @@ object Arm : Subsystem("Arm") {
 
                 //zeroing
                 if ((shoulderMotor.position - shoulderAngle.asDegrees).absoluteValue > 2.0) {
-                    println(
-                        "Resetting shoulder from ${
-                            round(
-                                shoulderMotor.position,
-                                1
-                            )
-                        } to ${round(shoulderAngle.asDegrees, 1)}"
-                    )
+                    println("Resetting shoulder from ${round(shoulderMotor.position, 1)} to ${round(shoulderAngle.asDegrees, 1)}")
                     shoulderMotor.setRawOffset(shoulderAngle.asDegrees)
                     shoulderFollowerMotor.setRawOffset(shoulderAngle.asDegrees)
                 }
                 if ((elbowMotor.position - elbowAngle.asDegrees).absoluteValue > 4.0) { //testing time
-                    println(
-                        "Resetting elbow from ${round(elbowMotor.position, 1)} to ${
-                            round(
-                                elbowAngle.asDegrees,
-                                1
-                            )
-                        }"
-                    )
+                    println("Resetting elbow from ${round(elbowMotor.position, 1)} to ${round(elbowAngle.asDegrees, 1)}")
                     elbowMotor.setRawOffset(elbowAngle.asDegrees)
                 }
 

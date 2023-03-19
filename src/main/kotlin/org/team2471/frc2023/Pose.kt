@@ -44,6 +44,12 @@ data class Pose(val wristPosition: Vector2, val wristAngle: Angle, val pivotAngl
         val FLIP_INTAKE_TO_BACK_WRIST = Pose(Vector2(-28.0, 26.0), -90.0.degrees, 0.0.degrees)
         val FLIP_INTAKE_TO_FRONT_POSE = Pose(Vector2(28.0, 20.0), -90.0.degrees, -90.0.degrees)
         val FLIP_INTAKE_TO_FRONT_WRIST = Pose(Vector2(28.0, 20.0), 90.0.degrees, -180.0.degrees)
+
+        val HIGH_SCORE_TO_PREFLIP
+            get() = Pose(Vector2(-29.0, 40.0), current.wristAngle, current.pivotAngle)
+        val MIDDLE_SCORE_TO_PREFLIP
+            get() = Pose(Vector2(-29.0, 30.0), current.wristAngle, current.pivotAngle)
+        val SCORE_TO_FLIP = Pose(Vector2(-10.0, 28.0), 90.0.degrees, -90.0.degrees)
     }
 
     operator fun plus(otherPose: Pose) = Pose(wristPosition + otherPose.wristPosition, wristAngle + otherPose.wristAngle, pivotAngle + otherPose.pivotAngle)
@@ -94,6 +100,9 @@ suspend fun animateToPose(pose: Pose, minTime: Double = 0.0) = use(Arm, Intake) 
     }
 }
 
+suspend fun animateThroughPoses(vararg poses: Pose) {
+    animateThroughPoses(*poses.map{Pair(0.0, it)}.toTypedArray())
+}
 suspend fun animateThroughPoses(vararg poses: Pair<Double, Pose>) = use(Arm, Intake) {
     println("Starting animation through $poses")
     val path = Path2D("Path")
@@ -165,6 +174,7 @@ suspend fun animateThroughPoses(vararg poses: Pair<Double, Pose>) = use(Arm, Int
     timer.start()
     periodic {
         val t = timer.get()
+        println("t: $t  pivot: ${Intake.pivotAngle}")
         Arm.wristPosition = path.getPosition(t)
         Intake.wristSetpoint = wristCurve.getValue(t).degrees
         Intake.pivotSetpoint = pivotCurve.getValue(t).degrees

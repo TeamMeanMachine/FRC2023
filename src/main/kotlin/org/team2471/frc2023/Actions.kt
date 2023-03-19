@@ -13,8 +13,6 @@ import org.team2471.frc.lib.motion_profiling.MotionCurve
 import org.team2471.frc.lib.motion_profiling.Path2D
 import org.team2471.frc.lib.units.*
 import org.team2471.frc.lib.util.Timer
-import kotlin.math.absoluteValue
-import kotlin.math.atan2
 
 //suspend fun scoreIfReady() {
 //    var startGoScore = false
@@ -234,9 +232,9 @@ suspend fun backScoreTowardCone() = use(Arm, Intake) {
     if (Arm.wristPosition.x < -10.0 || Intake.wristAngle.asDegrees < -40.0) {
         Intake.coneToward = true
         Drive.maxTranslation = 0.3
-        if (Arm.autoArmEnabled) {
-            Drive.autoAim = true
-        }
+//        if (Arm.autoArmEnabled) {
+//            Drive.autoAim = true
+//        }
         if (NodeDeckHub.isCone) {
             when (FieldManager.getSelectedNode()?.level) {
                 Level.HIGH -> {
@@ -273,9 +271,9 @@ suspend fun backScoreAwayCone() = use(Arm, Intake) {
     if (Arm.wristPosition.x < -10.0 || Intake.wristAngle.asDegrees < -40.0) {
         Intake.coneToward = false
         Drive.maxTranslation = 0.3 //make this a constant
-        if (Arm.autoArmEnabled) {
-            Drive.autoAim = true
-        }
+//        if (Arm.autoArmEnabled) {
+//            Drive.autoAim = true
+//        }
         if (NodeDeckHub.isCone) {
             when (FieldManager.getSelectedNode()?.level) {
                 Level.HIGH -> {
@@ -311,9 +309,9 @@ suspend fun backScoreAwayCone() = use(Arm, Intake) {
 suspend fun lineUpScoreCube(selectedNode: Int = NodeDeckHub.selectedNode.toInt()) = use(Arm, Intake) {
     if (Arm.wristPosition.x < -10.0 || Intake.wristAngle.asDegrees < -40.0) {
         Drive.maxTranslation = 0.3
-        if (Arm.autoArmEnabled) {
-            Drive.autoAim = true
-        }
+//        if (Arm.autoArmEnabled) {
+//            Drive.autoAim = true
+//        }
         when (FieldManager.nodeList[selectedNode]?.level) {
             Level.HIGH -> {
                 animateThroughPoses(
@@ -340,23 +338,23 @@ suspend fun lineUpScoreCube(selectedNode: Int = NodeDeckHub.selectedNode.toInt()
 }
 
 private suspend fun autoArmToPose(pose: Pose) {
-    val selectedNode = FieldManager.getSelectedNode()
-    if (Arm.autoArmEnabled && selectedNode != null) {
-        periodic {
-            if (!OI.operatorController.leftBumper && !OI.operatorController.rightBumper) {
-                Drive.autoAim = false
-                this.stop()
-            }
-            val deltaBumper =
-                Arm.distanceToTarget.asInches - 16.0 - (FieldManager.getSelectedNode()!!.position.y - FieldManager.mirroredGridFromCenterY.asFeet).absoluteValue.feet.asInches
-            val directionToNode = selectedNode.position - PoseEstimator.currentPose
-            Drive.angleToNode = directionToNode.angle.degrees
-            Arm.wristPosition.x = pose.wristPosition.x - deltaBumper
-            // println("delta2=$delta wristpos=${Arm.wristPosition.x}")
-            Arm.deltaValueEntry.setDouble(deltaBumper)
-            Arm.nodeAngleEntry.setDouble(Drive.angleToNode.asDegrees)
-        }
-    }
+//    val selectedNode = FieldManager.getSelectedNode()
+//    if (Arm.autoArmEnabled && selectedNode != null) {
+//        periodic {
+//            if (!OI.operatorController.leftBumper && !OI.operatorController.rightBumper) {
+//                Drive.autoAim = false
+//                this.stop()
+//            }
+//            val deltaBumper =
+//                Arm.distanceToTarget.asInches - 16.0 - (FieldManager.getSelectedNode()!!.position.y - FieldManager.mirroredGridFromCenterY.asFeet).absoluteValue.feet.asInches
+//            val directionToNode = selectedNode.position - PoseEstimator.currentPose
+//            Drive.angleToNode = directionToNode.angle.degrees
+//            Arm.wristPosition.x = pose.wristPosition.x - deltaBumper
+//            // println("delta2=$delta wristpos=${Arm.wristPosition.x}")
+//            Arm.deltaValueEntry.setDouble(deltaBumper)
+//            Arm.nodeAngleEntry.setDouble(Drive.angleToNode.asDegrees)
+//        }
+//    }
 }
 
 suspend fun flip() = use(Arm) {
@@ -374,9 +372,10 @@ suspend fun flip() = use(Arm) {
 
 suspend fun scoreObject() = use(Arm, Intake) {
     println("in scoreObject")
+    val nodeLevel = FieldManager.getSelectedNode()?.level
     if (NodeDeckHub.isCone) {
         if (Intake.coneToward) {
-            when (FieldManager.getSelectedNode()?.level) {
+            when (nodeLevel) {
                 Level.HIGH -> {
                     var midPose = Pose.current + Pose(Vector2(6.0, -2.5), 40.0.degrees, 0.0.degrees)
                     animateToPose(midPose, 0.5)
@@ -399,15 +398,17 @@ suspend fun scoreObject() = use(Arm, Intake) {
                 else -> println("Currently can't score there.")
             }
         } else { // cone away
-            when (FieldManager.getSelectedNode()?.level) {
+            when (nodeLevel) {
                 Level.HIGH -> {
                     var midPose = Pose.current + Pose(Vector2(3.0, -6.0), 50.0.degrees, 0.0.degrees)
                     animateToPose(midPose, 1.0)
                     Intake.intakeMotor.setPercentOutput(Intake.CONE_AWAY_SPIT)
                     midPose += Pose(Vector2(6.5, 5.0), 0.0.degrees, 0.0.degrees)
                     animateToPose(midPose)
+                    println("before last score pivot: ${Intake.pivotAngle}")
                     midPose += Pose(Vector2(10.0, 6.0), 0.0.degrees, 0.0.degrees)
                     animateToPose(midPose, 1.5)
+                    println("after last score pivot: ${Intake.pivotAngle}")
                 }
                 Level.MID -> {
                     val midPose = Pose.current + Pose(Vector2(7.0, -4.0), 40.0.degrees, 0.0.degrees)
@@ -424,26 +425,35 @@ suspend fun scoreObject() = use(Arm, Intake) {
         }
     } else {
         Intake.intakeMotor.setPercentOutput(Intake.CUBE_SPIT)
-        when (FieldManager.getSelectedNode()?.level) {
-            Level.LOW -> delay(1.0)
+        when (nodeLevel) {
+            Level.LOW -> delay(0.8)
             Level.MID -> animateToPose(Pose.current + Pose(Vector2(3.0, 0.0), 0.0.degrees, 0.0.degrees))
             Level.HIGH -> animateToPose(Pose.current + Pose(Vector2(12.0, 0.0), 0.0.degrees, 0.0.degrees))
             else -> println("Currently can't score there.")
         }
     }
-    Intake.intakeMotor.setPercentOutput(0.0)
-    toDrivePose()
+
+    resetArmVars()
+    when (nodeLevel) {
+        Level.HIGH -> animateThroughPoses(Pose.HIGH_SCORE_TO_PREFLIP, Pose.SCORE_TO_FLIP, Pose.FRONT_DRIVE_POSE)
+        else -> animateThroughPoses(Pose.MIDDLE_SCORE_TO_PREFLIP, Pose.SCORE_TO_FLIP, Pose.FRONT_DRIVE_POSE)
+    }
+    Drive.maxTranslation = 1.0
 }
 
 suspend fun toDrivePose() = use(Arm, Intake) {
-    Intake.wristOffset = 0.0.degrees
-    Intake.pivotOffset = 0.0.degrees
-    Arm.wristCenterOffset = Vector2(0.0, 0.0)
-    if (!Intake.holdingObject) Intake.intakeMotor.setPercentOutput(0.0)
+    resetArmVars()
     if (Arm.wristPosition.x < -10.0 || Intake.wristAngle.asDegrees < -55.0) animateToPose(Pose.BACK_DRIVE_POSE) else if (Arm.wristPosition.x > 10.0 || Intake.wristAngle.asDegrees > 55.0) animateToPose(
         Pose.FRONT_DRIVE_POSE
     )
     Drive.maxTranslation = 1.0
+}
+
+suspend fun resetArmVars() = use(Arm, Intake) {
+    Intake.wristOffset = 0.0.degrees
+    Intake.pivotOffset = 0.0.degrees
+    Arm.wristCenterOffset = Vector2(0.0, 0.0)
+    if (!Intake.holdingObject) Intake.intakeMotor.setPercentOutput(0.0)
 }
 
 suspend fun backScoreAuto(isCone: Boolean, pieceNumber: Int) = use(Arm, Intake) {

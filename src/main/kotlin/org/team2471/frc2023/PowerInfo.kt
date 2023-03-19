@@ -23,7 +23,7 @@ object PowerInfo : Subsystem("PowerDistribution") {
             println("setting power distribution info")
             PDH.clearStickyFaults()
             periodic {
-                batteryCheckEntry.setBoolean(RobotController.getBatteryVoltage()>12.6)
+                batteryCheckEntry.setBoolean(RobotController.getBatteryVoltage() > 12.6)
                 if (enableDashboardOutput) {
                     try {
                         totalCurrent.setDouble(PDH.totalCurrent)

@@ -63,7 +63,7 @@ object Robot : MeanlibRobot() {
 //        MAPoseEstimator
         Arm
         Intake
-        PowerInfo
+//        PowerInfo
     }
 
     override suspend fun enable() {
@@ -71,7 +71,7 @@ object Robot : MeanlibRobot() {
         Drive.enable()
         Arm.enable()
         Intake.enable()
-        PowerInfo.enable()
+//        PowerInfo.enable()
         SignalLights.enable()
         println("field centric? ${SmartDashboard.getBoolean("Use Gyro", true) && !DriverStation.isAutonomous()}")
         println("ending enable")
@@ -95,7 +95,7 @@ object Robot : MeanlibRobot() {
 
     override suspend fun test()  {
         println("test mode begin. Hi.")
-//        driveToPointsTest()
+//        Intake.intakeTest()
         Drive.setAngleOffsets()
     }
 
@@ -104,7 +104,7 @@ object Robot : MeanlibRobot() {
         Drive.disable()
         Arm.disable()
         Intake.disable()
-        PowerInfo.disable()
+//        PowerInfo.disable()
         SignalLights.disable()
     }
 
