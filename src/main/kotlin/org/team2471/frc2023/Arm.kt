@@ -233,7 +233,7 @@ object Arm : Subsystem("Arm") {
 
     init {
         println("Arm init")
-        autoArmEntry.setBoolean(true)
+        autoArmEntry.setBoolean(false)
         shoulderMotor.restoreFactoryDefaults()
         shoulderFollowerMotor.restoreFactoryDefaults()
         elbowMotor.restoreFactoryDefaults()

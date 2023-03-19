@@ -92,7 +92,7 @@ object Intake : Subsystem("Intake") {
             setPivotPower()
             pivotSetpointEntry.setDouble(field.asDegrees)
         }
-    val pivotPDController = PDController(0.0, 0.0) //0.1, 0.001
+    val pivotPDController = PDController(0.100, 0.001) //0.1, 0.001  //0.03, 0.04)   //0.35, 0.03
     var prevPFeedForward = 0.0
     val pFeedForward: Double
         get() {
@@ -138,7 +138,7 @@ object Intake : Subsystem("Intake") {
         wristMotor.restoreFactoryDefaults()
         intakeMotor.restoreFactoryDefaults() //intake bad
         wristMotor.config(20) {
-            feedbackCoefficient = 261.0 / 1273.0 * 196.7 / 360.0  //last one is fudge factor  //200
+            feedbackCoefficient = 261.0 / 1273.0 * 200.0 / 360.0  //last one is fudge factor
             coastMode()
             pid {
                 p(0.00001)
@@ -159,13 +159,13 @@ object Intake : Subsystem("Intake") {
 
         pivotCurve.storeValue(-185.0, 0.0)
         pivotCurve.storeValue(-179.0, 0.0)
-        pivotCurve.storeValue(-170.0, 0.13) //18
-        pivotCurve.storeValue(-90.0, 0.26)  //28
-        pivotCurve.storeValue(-45.0, 0.11) //9
+        pivotCurve.storeValue(-170.0, 0.18) //.05
+        pivotCurve.storeValue(-90.0, 0.28)
+        pivotCurve.storeValue(-45.0, 0.09)
         pivotCurve.storeValue(0.0, 0.0)
-        pivotCurve.storeValue(45.0, -0.11)
-        pivotCurve.storeValue(90.0, -0.23)
-        pivotCurve.storeValue(170.0, -0.10)
+        pivotCurve.storeValue(45.0, -0.09)
+        pivotCurve.storeValue(90.0, -0.28)
+        pivotCurve.storeValue(170.0, -0.18)
         pivotCurve.storeValue(179.0, 0.0)
         pivotCurve.storeValue(185.0, 0.0)
 
@@ -239,7 +239,6 @@ object Intake : Subsystem("Intake") {
                 if (wristAngle < -65.0.degrees) wristSetpoint = -90.0.degrees
                 if (wristAngle > 65.0.degrees) wristSetpoint = 90.0.degrees
             }
-            println("pivot ff: $pFeedForward")
         }
     }
 
