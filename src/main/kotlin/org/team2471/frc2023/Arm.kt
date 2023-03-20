@@ -101,7 +101,7 @@ object Arm : Subsystem("Arm") {
         get() = if (isCompBot) {
             (-elbowEncoder.value.degrees + 1643.degrees) * 90.0 / 1054.0
         } else {
-            (-elbowEncoder.value.degrees + 1968.degrees) * 90.0 / 1054.0
+            (-elbowEncoder.value.degrees + 1976.degrees) * 90.0 / 1054.0
         }
 
     var elbowOffset = 0.0.degrees

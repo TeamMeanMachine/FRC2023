@@ -11,6 +11,7 @@ import org.team2471.frc.lib.math.Vector2
 import org.team2471.frc.lib.motion.following.lookupPose
 import org.team2471.frc.lib.units.degrees
 import org.team2471.frc.lib.units.feet
+import org.team2471.frc.lib.units.radians
 
 object PoseEstimator {
 
@@ -51,7 +52,13 @@ object PoseEstimator {
             try {
                 val kAprilFinal = (kApril ?: kAprilEntry.getDouble(0.5)) * if (numTarget < 2) 0.7 else 1.0
                 val latencyPose = Drive.lookupPose(detection.timestamp)?.position
-                if (latencyPose != null) {
+                if (DriverStation.isDisabled() && latencyPose == null){
+                    val apriltagPose = Vector2(detection.pose.x, detection.pose.y)
+                    Drive.position = apriltagPose
+                    Drive.heading = detection.pose.rotation.radians.radians
+                    println("used apriltag for position and heading during disable")
+                }
+                if (latencyPose != null ) {
                     val odomDiff = Drive.position - latencyPose
                     val apriltagPose = Vector2(detection.pose.x, detection.pose.y) + odomDiff
                     offset = offset * (1.0 - kAprilFinal) + (Drive.position - apriltagPose) * kAprilFinal
