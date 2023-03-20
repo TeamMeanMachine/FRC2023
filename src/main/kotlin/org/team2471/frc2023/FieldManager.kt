@@ -109,8 +109,19 @@ object FieldManager {
         }
 //        avoidanceZones.add(AvoidanceZone("RedChargeStation", Vector2(-10.5, -6.0), Vector2(0.0, -12.0)))
         for (p in 0 until 8) {
-            gamePieceStartingPos.add(Vector2((gamePieceOnFieldFromCenterX - gamePieceOnFieldOffsetX * p.toDouble().mod(4.0)).asFeet, if (p > 3) -gamePieceOnFieldFromCenterY.asFeet else gamePieceOnFieldFromCenterY.asFeet))
-            println(gamePieceStartingPos[p])
+            // floor game piece starting locations:
+            //    Blue Side
+            //   3 2 1 0
+            // - ---------- +
+            //   7 6 5 4
+            //    Red Side
+
+            val pOffset = when (p) {
+                0 -> Vector2(0.0, 0.0)
+                else -> Vector2(0.0, 0.0)
+            }
+            gamePieceStartingPos.add(Vector2((gamePieceOnFieldFromCenterX - gamePieceOnFieldOffsetX * p.toDouble().mod(4.0)).asFeet, if (p > 3) -gamePieceOnFieldFromCenterY.asFeet else gamePieceOnFieldFromCenterY.asFeet) + pOffset)
+            println("Floor game piece $p: ${gamePieceStartingPos[p]}")
         }
 
     }
