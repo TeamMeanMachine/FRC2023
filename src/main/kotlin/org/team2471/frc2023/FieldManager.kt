@@ -140,9 +140,13 @@ object FieldManager {
         return nodeList[NodeDeckHub.selectedNode.toInt()]
     }
     fun getClosestGamePieceOnField(): Vector2 {
-        val currPose = PoseEstimator.currentPose
-        if (allianceSidePieces.isNullOrEmpty()) {
-            allianceSidePieces = gamePieceStartingPos.filter { (isBlueAlliance && it.y > 0.0 || isRedAlliance && it.y < 0.0) }.sortedBy { it.distance(currPose) }.toMutableList()
+        val farSafePoint = when (NodeDeckHub.startingPoint) {
+            StartingPoint.INSIDE -> insideSafePointFar
+            StartingPoint.OUTSIDE -> outsideSafePointFar
+            StartingPoint.MIDDLE -> middleStartingPosition //don't have middleSafePointFar
+        }
+        if (allianceSidePieces.isNullOrEmpty()) { // removes other alliances game pieces then sort by distance from currPose
+            allianceSidePieces = gamePieceStartingPos.filter { (isBlueAlliance && it.y > 0.0 || isRedAlliance && it.y < 0.0) }.sortedBy { it.distance(farSafePoint) }.toMutableList()
         }
         var xOffset: Length = 0.0.inches
         if (isRedAlliance) {
