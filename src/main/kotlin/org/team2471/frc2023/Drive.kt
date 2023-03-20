@@ -29,6 +29,7 @@ import org.team2471.frc.lib.units.*
 import org.team2471.frc.lib.units.Angle.Companion.cos
 import org.team2471.frc.lib.units.Angle.Companion.sin
 import org.team2471.frc2023.FieldManager.isBlueAlliance
+import org.team2471.frc2023.FieldManager.reflectFieldByAlliance
 import kotlin.math.absoluteValue
 import kotlin.math.sign
 
@@ -696,7 +697,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
 
         var safeDistance: Double = 100000.0
         val p3 = when (startingSide) {
-                StartingPoint.INSIDE -> FieldManager.insideSafePointFar
+                StartingPoint.INSIDE -> { FieldManager.insideSafePointFar + reflectFieldByAlliance(Vector2(0.0, 4.0.feet.asFeet)) }
                 StartingPoint.OUTSIDE -> FieldManager.outsideSafePointFar
                 StartingPoint.MIDDLE -> FieldManager.chargeSafePointFar
             }
@@ -709,7 +710,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         var offset = Vector2(0.0, 0.0)
         if (isBlueAlliance) {
             offset = when (NodeDeckHub.startingPoint) {
-                StartingPoint.INSIDE -> Vector2(8.inches.asFeet, 0.0)
+                StartingPoint.INSIDE -> Vector2(-6.inches.asFeet, -1.0.feet.asFeet)
                 else -> Vector2(0.0, 0.0)
             }
         }

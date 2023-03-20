@@ -102,6 +102,7 @@ suspend fun intakeCurrentLogic() {
 }
 
 suspend fun intakeFromGround(isCone: Boolean = NodeDeckHub.isCone) = use(Arm, Intake) {
+    println("inside intakeFromGround")
     if (Intake.wristAngle.asDegrees > 80.0) {
         try {
             println("in intakeFromGround")
@@ -447,6 +448,19 @@ suspend fun toDrivePose() = use(Arm, Intake) {
     if (Arm.wristPosition.x < -10.0 || Intake.wristAngle.asDegrees < -55.0) animateToPose(Pose.BACK_DRIVE_POSE) else if (Arm.wristPosition.x > 10.0 || Intake.wristAngle.asDegrees > 55.0) animateToPose(
         Pose.FRONT_DRIVE_POSE
     )
+    Drive.maxTranslation = 1.0
+}
+suspend fun toFrontDrivePose() = use(Arm, Intake) {
+    println("inside toFrontDrivePose")
+    resetArmVars()
+    println("starting to animate to drive")
+    animateToPose(Pose.FRONT_DRIVE_POSE)
+    println("finished animating to drive")
+    Drive.maxTranslation = 1.0
+}
+suspend fun toBackDrivePose() = use(Arm, Intake) {
+    resetArmVars()
+    animateToPose(Pose.BACK_DRIVE_POSE)
     Drive.maxTranslation = 1.0
 }
 

@@ -7,7 +7,6 @@ import edu.wpi.first.wpilibj.smartdashboard.SendableChooser
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard
 import org.team2471.frc.lib.coroutines.delay
 import org.team2471.frc.lib.coroutines.parallel
-import org.team2471.frc.lib.coroutines.periodic
 //import org.team2471.bunnybots2022.Drive
 import org.team2471.frc.lib.framework.use
 import org.team2471.frc.lib.math.Vector2
@@ -16,7 +15,6 @@ import org.team2471.frc.lib.motion_profiling.Autonomi
 import org.team2471.frc.lib.units.Angle
 import org.team2471.frc.lib.units.asFeet
 import org.team2471.frc.lib.units.degrees
-import org.team2471.frc.lib.units.feet
 import org.team2471.frc.lib.util.measureTimeFPGA
 import java.io.File
 import java.util.*
@@ -238,8 +236,9 @@ object AutoChooser {
         parallel({
             Drive.dynamicGoToGamePieceOnFloor(nextGamePiece, pickupHeading)
         }, {
-            toDrivePose()
-            flip()
+            println("before toFrontDrivePose")
+            toFrontDrivePose()
+            delay(0.15)
             println("before intakeFromGround")
             intakeFromGround(FieldManager.nodeList[nodeID]?.coneOrCube == GamePiece.CONE)
         })
