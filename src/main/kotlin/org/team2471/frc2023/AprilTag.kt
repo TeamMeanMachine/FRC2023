@@ -4,13 +4,15 @@ import edu.wpi.first.apriltag.AprilTagFieldLayout
 import edu.wpi.first.apriltag.AprilTagFields
 import edu.wpi.first.math.geometry.*
 import edu.wpi.first.networktables.NetworkTableInstance
+import edu.wpi.first.wpilibj.DriverStation
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.photonvision.PhotonCamera
 import org.photonvision.PhotonPoseEstimator
+import org.photonvision.PhotonUtils
 import org.photonvision.targeting.PhotonPipelineResult
+import org.photonvision.targeting.PhotonTrackedTarget
 import org.team2471.frc.lib.coroutines.periodic
-import org.team2471.frc.lib.motion.following.SwerveDrive
 import org.team2471.frc.lib.units.*
 import kotlin.math.abs
 import kotlin.math.absoluteValue
@@ -21,7 +23,8 @@ object AprilTag {
 
     private val frontCamSelectedEntry = pvTable.getEntry("Front Camera Selected")
     private val advantagePoseEntry = pvTable.getEntry("April Advantage Pose")
-    private val aprilTagStartupCheck = pvTable.getEntry("April Tag Start Up Check")
+    private val aprilTagStartupCheckEntry = pvTable.getEntry("April Tag Start Up Check")
+    private val seesAprilTagEntry = pvTable.getEntry("Sees an April Tag")
     //private val camBackEntry = pvTable.getEntry("Cam Back")
     //private val frontPoseEstimatorEntry = pvTable.getEntry("Front Pose Estimator")
     //private val backPoseEstimatorEntry = pvTable.getEntry("Back Pose Estimator")
@@ -72,7 +75,7 @@ object AprilTag {
 //        backPoseEstimator.setMultiTagFallbackStrategy(PhotonPoseEstimator.PoseStrategy.CLOSEST_TO_REFERENCE_POSE)
         GlobalScope.launch {
             periodic {
-                aprilTagStartupCheck.setBoolean(camFront != null && camBack != null && frontPoseEstimator != null && backPoseEstimator != null)
+                aprilTagStartupCheckEntry.setBoolean(camFront != null && camBack != null && frontPoseEstimator != null && backPoseEstimator != null)
 //                frontPoseEstimator.referencePose = Pose3d(Pose2d(PoseEstimator.currentPose.toWPIField(), Rotation2d(Drive.heading.asRadians)))
 //                backPoseEstimator.referencePose = Pose3d(Pose2d(PoseEstimator.currentPose.toWPIField(), Rotation2d(Drive.heading.asRadians)))
                 try {
@@ -83,14 +86,17 @@ object AprilTag {
                     if (frontCamSelected) {
                         maybePose = frontPoseEstimator?.let { camFront?.let { it1 -> getEstimatedGlobalPose(it1, it) } }
                         numTarget = camFront?.latestResult?.targets?.count() ?: 0
+                        addTargetsToTable(camFront?.latestResult?.targets)
                     } else {
                         maybePose = backPoseEstimator?.let { camBack?.let { it1 -> getEstimatedGlobalPose(it1, it) } }
                         numTarget = camBack?.latestResult?.targets?.count() ?: 0
-                        for (target in camBack?.latestResult?.targets!!) {
-                            addTargetToTable(target.fiducialId, target.bestCameraToTarget)
-                        }
+                        addTargetsToTable(camBack?.latestResult?.targets)
+                       // for (target in camBack?.latestResult?.targets!!) {
+                            //addTargetToTable(target.fiducialId, target.bestCameraToTarget)
+                       // }
                     }
                     if (maybePose != null) {
+                        seesAprilTagEntry.setBoolean(numTarget > 0)
     //                        println("MaybePose: $maybePose")
                         advantagePoseEntry.setDoubleArray(
                             doubleArrayOf(
@@ -114,6 +120,9 @@ object AprilTag {
     //true means front cam
     private fun useFrontCam(): Boolean {
 //        println("Angle: ${Drive.heading.asDegrees}")
+        if (DriverStation.isDisabled()){
+            return false
+        }
         return if (Drive.combinedPosition.y > 0) {
             abs(Drive.heading.asDegrees) < 90
         } else {
@@ -194,27 +203,49 @@ object AprilTag {
         }
     }
 
-    private fun addTargetToTable(tagID: Int, tagPos: Transform3d) {
-        if (tagID == 1) {
-            tag1Trajectory.setDoubleArray(doubleArrayOf(tagPos.x, tagPos.y, tagPos.rotation.angle))
-        } else if (tagID == 2) {
-            tag2Trajectory.setDoubleArray(doubleArrayOf(tagPos.x, tagPos.y, tagPos.rotation.angle))
-        }  else if (tagID == 3) {
-            tag3Trajectory.setDoubleArray(doubleArrayOf(tagPos.x, tagPos.y, tagPos.rotation.angle))
-        }  else if (tagID == 4) {
-            tag4Trajectory.setDoubleArray(doubleArrayOf(tagPos.x, tagPos.y, tagPos.rotation.angle))
-        }  else if (tagID == 5) {
-            tag5Trajectory.setDoubleArray(doubleArrayOf(tagPos.x, tagPos.y, tagPos.rotation.angle))
-        }  else if (tagID == 6) {
-            tag6Trajectory.setDoubleArray(doubleArrayOf(tagPos.x, tagPos.y, tagPos.rotation.angle))
-        }  else if (tagID == 7) {
-            tag7Trajectory.setDoubleArray(doubleArrayOf(tagPos.x, tagPos.y, tagPos.rotation.angle))
-        }  else if (tagID == 8) {
-            tag8Trajectory.setDoubleArray(doubleArrayOf(tagPos.x, tagPos.y, tagPos.rotation.angle))
+    private fun addTargetToTable(tagID: Int, tagPos: Transform3d?) {
+
+        val tagTrajectory = when (tagID) {
+            1 -> tag1Trajectory
+            2 -> tag2Trajectory
+            3 -> tag3Trajectory
+            4 -> tag4Trajectory
+            5 -> tag5Trajectory
+            6 -> tag6Trajectory
+            7 -> tag7Trajectory
+            8 -> tag8Trajectory
+            else -> tag1Trajectory
+        }
+
+        if (tagPos == null) {
+            tagTrajectory.setDoubleArray(doubleArrayOf())
         } else {
-            println("Invalid Tag Seen!")
+            tagTrajectory.setDoubleArray(doubleArrayOf(tagPos.x, -tagPos.y, tagPos.rotation.angle.radians.asDegrees))
         }
     }
+
+    private fun addTargetsToTable(targets: MutableList<PhotonTrackedTarget>?) {
+        for (visionCheck in 1..8){
+            val tagDetection = targets?.filter { it.fiducialId == visionCheck }
+            if (tagDetection != null) {
+                if (tagDetection.count() == 1) {
+
+                    val camToTarget = tagDetection.first().bestCameraToTarget
+                    val fieldToCam = PhotonUtils.estimateFieldToCamera(Transform2d(camToTarget.translation.toTranslation2d(), camToTarget.rotation.toRotation2d()),
+                        aprilTagFieldLayout.tags.first { it.ID == visionCheck }.pose.toPose2d())
+                    addTargetToTable(visionCheck, camToTarget)
+                } else {
+                    addTargetToTable(visionCheck, null)
+                }
+            } else {
+                addTargetToTable(visionCheck, null)
+            }
+
+
+        }
+
+    }
+
 //
 //    private fun customEstimatedPose(useFrontCam: Boolean): EstimatedRobotPose?{
 //        val cameraResult = if (useFrontCam) {
