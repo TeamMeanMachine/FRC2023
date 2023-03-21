@@ -140,7 +140,7 @@ suspend fun intakeFromGround(isCone: Boolean = NodeDeckHub.isCone) = use(Arm, In
             pivotCurve.storeValue(0.0, Pose.current.pivotAngle.asDegrees)
             if (isCone) {
                 pivotCurve.storeValue(startOfExtend * 0.7, -90.0)
-                pivotCurve.storeValue(startOfExtend * 0.9, -70.0)
+                pivotCurve.storeValue(startOfExtend * 0.9, -85.0)
                 pivotCurve.storeValue(startOfExtend, Pose.GROUND_INTAKE_CONE_NEAR.pivotAngle.asDegrees)
                 pivotCurve.storeValue(time, Pose.GROUND_INTAKE_CONE_FAR.pivotAngle.asDegrees)
             } else {

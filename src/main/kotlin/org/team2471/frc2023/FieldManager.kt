@@ -32,6 +32,8 @@ object FieldManager {
     private val gridFromCenterY = 224.0.inches + gamePieceOnFieldFromCenterY
     val chargeFromWall = 59.39.inches
 
+    var beforeFirstEnable = true
+
     val barrierTip = Vector2(58.0.inches.asFeet, 16.0)
 
 

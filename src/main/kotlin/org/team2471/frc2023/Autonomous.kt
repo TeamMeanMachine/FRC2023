@@ -189,10 +189,13 @@ object AutoChooser {
             StartingPoint.OUTSIDE -> doubleArrayOf(0.0, 30.0, 45.0)
         }
         FieldManager.resetClosestGamePieceOnField()
-        Drive.position = FieldManager.startingPosition
-        println("position: ${Drive.position}")
+        if ((Drive.position - FieldManager.startingPosition).length > 0.2) {
+            println("forcing position .. we are off by more than 0.2 feet")
+            Drive.position = FieldManager.startingPosition
+            println("position: ${Drive.position}")
+            PoseEstimator.zeroOffset()
+        }
         Drive.zeroGyro()
-        PoseEstimator.zeroOffset()
         println("position: ${Drive.position}, ${Drive.combinedPosition}")
         if (NodeDeckHub.amountOfAutoPieces > 0) {
             backScoreAuto(true, NodeDeckHub.firstAutoPiece)

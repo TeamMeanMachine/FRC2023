@@ -520,7 +520,8 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         println("Drive to the center of ramp")
         var prevPosition = position
         periodic {
-            drive(speed, 0.0, fieldCentric = false, true)
+           // drive(speed, 0.0, fieldCentric = false, true)
+            drive(Vector2(0.0, 62.0), 0.0, fieldCentric = false)
             val distanceTraveled = (position - prevPosition).length.feet
             println("distance = $distanceTraveled")
             if (distanceTraveled > distance) {

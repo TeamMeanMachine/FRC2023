@@ -67,6 +67,7 @@ object Robot : MeanlibRobot() {
     }
 
     override suspend fun enable() {
+        FieldManager.beforeFirstEnable = false
         println("starting enable")
         Drive.enable()
         Arm.enable()

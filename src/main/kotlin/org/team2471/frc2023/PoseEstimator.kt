@@ -57,7 +57,7 @@ object PoseEstimator {
             try {
                 val kAprilFinal = (kApril ?: kAprilEntry.getDouble(0.5)) * if (numTarget < 2) 0.7 else 1.0
                 val latencyPose = Drive.lookupPose(detection.timestamp)?.position
-                if (DriverStation.isDisabled() && latencyPose == null){
+                if (DriverStation.isDisabled() && latencyPose == null && FieldManager.beforeFirstEnable){
                     val apriltagPose = Vector2(detection.pose.x, detection.pose.y)
                     Drive.position = apriltagPose
                     Drive.heading = detection.pose.rotation.radians.radians
