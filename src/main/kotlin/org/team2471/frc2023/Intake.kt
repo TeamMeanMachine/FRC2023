@@ -67,7 +67,7 @@ object Intake : Subsystem("Intake") {
         }
 
     val pivotAnalogAngle: Angle
-        get() = ((pivotSensor.value - if (isCompBot) 913.0 else 39.8).degrees / 4096.0 * 360.0).wrap()
+        get() = ((pivotSensor.value - if (isCompBot) 913.0 else 2116.0).degrees / 4096.0 * 360.0).wrap()
     var pivotOffset: Angle = 0.0.degrees
 
     val pivotAngle: Angle
@@ -138,7 +138,7 @@ object Intake : Subsystem("Intake") {
         wristMotor.restoreFactoryDefaults()
         intakeMotor.restoreFactoryDefaults() //intake bad
         wristMotor.config(20) {
-            feedbackCoefficient = 261.0 / 1273.0 * 200.0 / 360.0  //last one is fudge factor
+            feedbackCoefficient = 261.0 / 1273.0 * 196.7 / 360.0  //last one is fudge factor
             coastMode()
             pid {
                 p(0.00001)
@@ -159,13 +159,13 @@ object Intake : Subsystem("Intake") {
 
         pivotCurve.storeValue(-185.0, 0.0)
         pivotCurve.storeValue(-179.0, 0.0)
-        pivotCurve.storeValue(-170.0, 0.18) //.05
-        pivotCurve.storeValue(-90.0, 0.28)
-        pivotCurve.storeValue(-45.0, 0.09)
+        pivotCurve.storeValue(-170.0, 0.13) //.05
+        pivotCurve.storeValue(-90.0, 0.26)
+        pivotCurve.storeValue(-45.0, 0.11)
         pivotCurve.storeValue(0.0, 0.0)
-        pivotCurve.storeValue(45.0, -0.09)
-        pivotCurve.storeValue(90.0, -0.28)
-        pivotCurve.storeValue(170.0, -0.18)
+        pivotCurve.storeValue(45.0, -0.11)
+        pivotCurve.storeValue(90.0, -0.23)
+        pivotCurve.storeValue(170.0, -0.10)
         pivotCurve.storeValue(179.0, 0.0)
         pivotCurve.storeValue(185.0, 0.0)
 

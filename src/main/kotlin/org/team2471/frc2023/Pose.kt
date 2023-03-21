@@ -61,7 +61,7 @@ suspend fun animateToPose(pose: Pose, minTime: Double = 0.0) = use(Arm, Intake) 
     path.addVector2(Pose.current.wristPosition)
     path.addVector2(pose.wristPosition)
     var distance = path.length
-    var rate = 55.0  //  inches per second
+    var rate = 65.0  //  inches per second
     var wristPosTime = distance / rate
 
     distance = (pose.wristAngle.asDegrees - Intake.wristAngle.asDegrees).absoluteValue
@@ -113,7 +113,7 @@ suspend fun animateThroughPoses(vararg poses: Pair<Double, Pose>) = use(Arm, Int
         path.addVector2(pose.second.wristPosition)
         distance.add(path.length - prevLength)
     }
-    var rate = 55.0  //  inches per second
+    var rate = 65.0  //  inches per second
     var wristPosTime = ArrayList<Double>(poses.size)
     for (i in poses.indices) {
         wristPosTime.add(distance[i] / rate)

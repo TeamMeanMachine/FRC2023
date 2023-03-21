@@ -148,7 +148,7 @@ suspend fun intakeFromGround(isCone: Boolean = NodeDeckHub.isCone) = use(Arm, In
                 pivotCurve.storeValue(startOfExtend, Pose.GROUND_INTAKE_CUBE_FAR.pivotAngle.asDegrees)
             }
 
-            val slewRateLimiter = SlewRateLimiter(1.0, -1.0, 0.0)
+            val slewRateLimiter = SlewRateLimiter(1.5, -1.5, 0.0)
 
             val timer = Timer()
             timer.start()
@@ -222,8 +222,12 @@ suspend fun intakeFromGround(isCone: Boolean = NodeDeckHub.isCone) = use(Arm, In
             Drive.maxTranslation = 1.0
             println("Holding = ${Intake.holdingObject}")
             Intake.intakeMotor.setPercentOutput(if (Intake.holdingObject) (if (isCone) Intake.HOLD_CONE else Intake.HOLD_CUBE) else 0.0) //intake bad
-            animateToPose(if (isCone) Pose.GROUND_INTAKE_FRONT_CONE else Pose.GROUND_INTAKE_FRONT_CUBE)
-            toDrivePose()
+            if (isCone) {
+                animateThroughPoses(Pose.GROUND_INTAKE_FRONT_CONE)
+            } else {
+                animateThroughPoses(Pose.GROUND_INTAKE_FRONT_CUBE)
+            }
+            toBackDrivePose()
         }
     } else {
         println("Wrong side--flip first!!")
