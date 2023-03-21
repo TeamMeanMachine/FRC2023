@@ -84,7 +84,7 @@ object OI : Subsystem("OI") {
         operatorController::back.whenTrue { Arm.resetShoulderZero()}
         operatorController::start.whenTrue {
             safeAnimationCheck(PERSONINCONTROL.OPERATOR) {
-                toDrivePose()
+                animateToPose(Pose.BACK_START_POSE)
             }
         }
         operatorController::leftBumper.whenTrue {

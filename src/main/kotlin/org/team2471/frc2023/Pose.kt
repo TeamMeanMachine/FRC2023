@@ -17,10 +17,10 @@ data class Pose(val wristPosition: Vector2, val wristAngle: Angle, val pivotAngl
             get() = Pose(Arm.wristPosition, Intake.wristAngle, Intake.pivotAngle)
         val START_POSE = Pose(Vector2(0.0, 9.0), -90.0.degrees, -90.0.degrees)
         val GROUND_INTAKE_FRONT_CONE = Pose(Vector2(18.0, 14.5), 90.0.degrees, -90.0.degrees)
-        val GROUND_INTAKE_FRONT_CUBE = Pose(Vector2(18.0, 14.0), 90.0.degrees, -180.0.degrees)
-        val GROUND_INTAKE_CONE_NEAR = Pose(Vector2(18.0, 9.5), 90.0.degrees, 0.0.degrees)
+        val GROUND_INTAKE_CONE_NEAR = Pose(Vector2(19.5, 6.2), 90.0.degrees, 0.0.degrees)
         val GROUND_INTAKE_CONE_FAR = Pose(Vector2(40.0, 10.5), 90.0.degrees, 0.0.degrees) //y: 10
-        val GROUND_INTAKE_CUBE_NEAR = Pose(Vector2(18.0, -6.0), 75.0.degrees, -180.0.degrees)//y: -8
+        val GROUND_INTAKE_FRONT_CUBE = Pose(Vector2(18.0, 14.0), 90.0.degrees, -180.0.degrees)
+        val GROUND_INTAKE_CUBE_NEAR = Pose(Vector2(18.0, -12.0), 75.0.degrees, -180.0.degrees)//y: -8
         val GROUND_INTAKE_CUBE_FAR = Pose(Vector2(40.0, -6.0), 75.0.degrees, -180.0.degrees) // y: -8
 
         val BACK_LOW_SCORE_CONE_TOWARD = Pose(Vector2(-10.0, 9.0), -60.0.degrees, 0.0.degrees)
@@ -38,8 +38,10 @@ data class Pose(val wristPosition: Vector2, val wristAngle: Angle, val pivotAngl
         val BACK_HIGH_SCORE_CONE_AWAY_MID = Pose(Vector2(-29.0, 45.0), -200.0.degrees, -180.0.degrees)
         val BACK_HIGH_SCORE_CONE_AWAY = Pose(Vector2(-44.0, 44.0), -190.0.degrees, -180.0.degrees)
 
-        val FRONT_DRIVE_POSE = Pose(Vector2(0.0, 9.0), 92.0.degrees, -180.0.degrees)
-        val BACK_DRIVE_POSE = Pose(Vector2(0.0, 9.0), -92.0.degrees, 0.0.degrees)
+        val BACK_START_POSE = Pose(Vector2(0.0, 9.0), -92.0.degrees, 0.0.degrees)
+
+        val FRONT_DRIVE_POSE = Pose(Vector2(0.0, 9.0), 92.0.degrees, -90.0.degrees)
+        val BACK_DRIVE_POSE = Pose(Vector2(7.5, 10.0), -92.0.degrees, -90.0.degrees)
         val FLIP_INTAKE_TO_BACK_POSE = Pose(Vector2(-28.0, 26.0), 90.0.degrees, -90.0.degrees)
         val FLIP_INTAKE_TO_BACK_WRIST = Pose(Vector2(-28.0, 26.0), -90.0.degrees, 0.0.degrees)
         val FLIP_INTAKE_TO_FRONT_POSE = Pose(Vector2(28.0, 20.0), -90.0.degrees, -90.0.degrees)
@@ -50,6 +52,9 @@ data class Pose(val wristPosition: Vector2, val wristAngle: Angle, val pivotAngl
         val MIDDLE_SCORE_TO_PREFLIP
             get() = Pose(Vector2(-29.0, 30.0), current.wristAngle, current.pivotAngle)
         val SCORE_TO_FLIP = Pose(Vector2(-10.0, 28.0), 90.0.degrees, -90.0.degrees)
+
+        val GROUND_TO_DRIVE_SAFE_CUBE = Pose(Vector2(37.0, 0.0), 75.0.degrees, -180.0.degrees)
+        val GROUND_TO_DRIVE_SAFE  = Pose(Vector2(35.0, 21.0), -90.0.degrees, -90.0.degrees)
     }
 
     operator fun plus(otherPose: Pose) = Pose(wristPosition + otherPose.wristPosition, wristAngle + otherPose.wristAngle, pivotAngle + otherPose.pivotAngle)

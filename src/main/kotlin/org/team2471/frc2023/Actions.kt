@@ -223,11 +223,11 @@ suspend fun intakeFromGround(isCone: Boolean = NodeDeckHub.isCone) = use(Arm, In
             println("Holding = ${Intake.holdingObject}")
             Intake.intakeMotor.setPercentOutput(if (Intake.holdingObject) (if (isCone) Intake.HOLD_CONE else Intake.HOLD_CUBE) else 0.0) //intake bad
             if (isCone) {
-                animateThroughPoses(Pose.GROUND_INTAKE_FRONT_CONE)
+                animateThroughPoses(Pose.GROUND_TO_DRIVE_SAFE, if (Intake.holdingObject) Pose.BACK_DRIVE_POSE else Pose.FRONT_DRIVE_POSE)
             } else {
-                animateThroughPoses(Pose.GROUND_INTAKE_FRONT_CUBE)
+                animateThroughPoses(Pose.GROUND_TO_DRIVE_SAFE_CUBE, Pose.GROUND_TO_DRIVE_SAFE, if (Intake.holdingObject) Pose.BACK_DRIVE_POSE else Pose.FRONT_DRIVE_POSE)
             }
-            toBackDrivePose()
+//            toBackDrivePose()
         }
     } else {
         println("Wrong side--flip first!!")
@@ -440,6 +440,7 @@ suspend fun scoreObject() = use(Arm, Intake) {
     }
 
     resetArmVars()
+    Intake.intakeMotor.setPercentOutput(0.0)
     when (nodeLevel) {
         Level.HIGH -> animateThroughPoses(Pose.HIGH_SCORE_TO_PREFLIP, Pose.SCORE_TO_FLIP, Pose.FRONT_DRIVE_POSE)
         else -> animateThroughPoses(Pose.MIDDLE_SCORE_TO_PREFLIP, Pose.SCORE_TO_FLIP, Pose.FRONT_DRIVE_POSE)
