@@ -16,14 +16,13 @@ object PowerInfo : Subsystem("PowerDistribution") {
     val totalCurrent = table.getEntry("Current")
     val totalEnergy = table.getEntry("Energy")
     val batteryVoltage = table.getEntry("Battery")
-    val batteryCheckEntry = table.getEntry("Battery Check")
+
     val enableDashboardOutput = false
     init {
         GlobalScope.launch {
             println("setting power distribution info")
             PDH.clearStickyFaults()
             periodic {
-                batteryCheckEntry.setBoolean(RobotController.getBatteryVoltage() > 12.6)
                 if (enableDashboardOutput) {
                     try {
                         totalCurrent.setDouble(PDH.totalCurrent)

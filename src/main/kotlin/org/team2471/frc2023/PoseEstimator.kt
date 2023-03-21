@@ -23,7 +23,8 @@ object PoseEstimator {
 
     private val offsetEntry = poseTable.getEntry("Offset")
     private val lastResetEntry = poseTable.getEntry("LastResetTime")
-
+    private val startingPosEntry = poseTable.getEntry("Starting Pose")
+    private val startingHeadingEntry = poseTable.getEntry("Starting Heading")
     private var offset = Vector2(0.0, 0.0)
     private var lastZeroTimestamp = 0.0
     val currentPose
@@ -33,6 +34,10 @@ object PoseEstimator {
         kAprilEntry.setDouble(0.25)
         GlobalScope.launch(MeanlibDispatcher) {
             periodic {
+                startingHeadingEntry.setBoolean((FieldManager.isBlueAlliance && (Drive.heading > 179.0.degrees || Drive.heading < -179.0.degrees)) || (FieldManager.isRedAlliance && Drive.heading > -1.0.degrees && Drive.heading < 1.0.degrees))
+                startingPosEntry.setBoolean((FieldManager.startingPosition - Drive.combinedPosition).length < 1)
+                //untested ^
+
                 val combinedWPIField = FieldManager.convertTMMtoWPI(currentPose.x.feet, currentPose.y.feet, Drive.heading)
                 advantagePoseEntry.setDoubleArray(doubleArrayOf(combinedWPIField.x,  combinedWPIField.y, combinedWPIField.rotation.degrees))
                 offsetEntry.setDoubleArray(doubleArrayOf(offset.x, offset.y))
