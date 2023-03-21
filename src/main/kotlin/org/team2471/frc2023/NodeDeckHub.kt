@@ -1,6 +1,7 @@
 package org.team2471.frc2023
 
 import edu.wpi.first.networktables.NetworkTableInstance
+import edu.wpi.first.wpilibj.RobotController
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.team2471.frc.lib.coroutines.periodic
@@ -27,6 +28,7 @@ object NodeDeckHub {
     private val autoFiveEntry = nodeDeckTable.getEntry("5")
     private val autoCheckEntry = nodeDeckTable.getEntry("Auto Check")
     private val autoPieceCheckEntry = nodeDeckTable.getEntry("Pieces Check")
+    private val batteryCheckEntry = nodeDeckTable.getEntry("Battery Check")
 
 
     private val armPoseEntry = nodeDeckTable.getEntry("armPose") //why is this in the NodeDeck table?
@@ -70,6 +72,7 @@ object NodeDeckHub {
     init {
         GlobalScope.launch {
             armPoseEntry.setDoubleArray(doubleArrayOf(0.0, 0.0, 7.0.inches.asMeters, 0.0))
+            batteryCheckEntry.setBoolean(RobotController.getBatteryVoltage()>12.6)
             periodic {
                 autoCheckEntry.setBoolean(selAuto == "NodeDeck")
                 autoPieceCheckEntry.setBoolean(amountOfAutoPieces > 0)

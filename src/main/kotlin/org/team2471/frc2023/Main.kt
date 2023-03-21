@@ -101,6 +101,8 @@ object Robot : MeanlibRobot() {
 
 
     override suspend fun disable() {
+        OI.driverController.rumble = 0.0
+        OI.operatorController.rumble = 0.0
         Drive.disable()
         Arm.disable()
         Intake.disable()
