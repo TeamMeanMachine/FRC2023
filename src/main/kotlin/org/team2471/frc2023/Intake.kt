@@ -256,6 +256,7 @@ object Intake : Subsystem("Intake") {
 
     override fun preEnable() {
         wristMotor.setPercentOutput(0.0)
+        intakeMotor.setPercentOutput(0.0)
         pivotSetpoint = pivotAngle
         wristSetpoint = wristAngle
     }
