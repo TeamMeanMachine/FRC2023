@@ -53,6 +53,10 @@ object Intake : Subsystem("Intake") {
     val coneMaxBlockCount = table.getEntry("Pixy Max Blocks")
     val coneFacingUpEntry = table.getEntry("Cone Is Up")
     val coneDebouncer = Debouncer(0.5,Debouncer.DebounceType.kFalling)
+    val cubeDetectEntry = table.getEntry("Cube Detect Power")
+    val coneDetectEntry = table.getEntry("Cone Detect Power")
+    val cubeHoldPowerEntry = table.getEntry("Cube Hold Power")
+    val coneHoldPowerEntry = table.getEntry("Cone Hold Power")
 
 
     val wristAngle: Angle
@@ -124,13 +128,17 @@ object Intake : Subsystem("Intake") {
 
     const val INTAKE_POWER = 1.0
     const val INTAKE_CONE = -1.0
-    const val HOLD_CONE = -0.30
-    const val DETECT_CONE = 20
+    const val INTAKE_CUBE = 0.55
+    var HOLD_CONE = -0.20
+        get() = coneHoldPowerEntry.getDouble(-0.20)
+    var HOLD_CUBE = 0.05
+        get() = cubeHoldPowerEntry.getDouble(0.05)
+    var DETECT_CONE = 20
+        get() = coneDetectEntry.getInteger(20.toLong()).toInt()
+    var DETECT_CUBE = 13
+        get() = cubeDetectEntry.getInteger(13.toLong()).toInt()
     const val CONE_TOWARD_SPIT = 0.6
     const val CONE_AWAY_SPIT = 1.0
-    const val INTAKE_CUBE = 0.55
-    const val HOLD_CUBE = 0.05
-    const val DETECT_CUBE = 13
     const val CUBE_SPIT = -0.20 // was at -0.25
 
     init {
@@ -175,6 +183,10 @@ object Intake : Subsystem("Intake") {
 
             wristSetpointEntry.setDouble(wristAngle.asDegrees)
             pivotSetpointEntry.setDouble(pivotAngle.asDegrees)
+            coneHoldPowerEntry.setDouble(-20.0)
+            coneDetectEntry.setInteger(20)
+            cubeHoldPowerEntry.setDouble(0.05)
+            cubeDetectEntry.setInteger(13)
 
             coneMaxBlockCount.setInteger(20)
             coneMinArea.setInteger(20)
@@ -301,6 +313,10 @@ object Intake : Subsystem("Intake") {
             println("Pixy 2 exception")
         }
         return largestBlock
+    }
+
+    override fun onDisable() {
+        intakeMotor.setPercentOutput(0.0)
     }
 }
 
