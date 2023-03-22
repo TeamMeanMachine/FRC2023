@@ -61,7 +61,6 @@ object PoseEstimator {
                     val apriltagPose = Vector2(detection.pose.x, detection.pose.y)
                     Drive.position = apriltagPose
                     Drive.heading = detection.pose.rotation.radians.radians
-                    println("used apriltag for position and heading during disable")
                 }
                 if (latencyPose != null ) {
                     val odomDiff = Drive.position - latencyPose
