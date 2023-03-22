@@ -68,7 +68,7 @@ object Arm : Subsystem("Arm") {
             if (isCompBot) {
                 (-shoulderEncoder.value.degrees + 3120.degrees) / 11.2 //if (-shoulderEncoder.value + 1183 < 0.0) 12.4 else 9.8)
             } else {
-                (-shoulderEncoder.value.degrees + 1120.degrees) / 11.2
+                (-shoulderEncoder.value.degrees + 1133.degrees) / 11.2
             }
 
     val shoulderAnalogAngle: Angle
@@ -101,7 +101,7 @@ object Arm : Subsystem("Arm") {
         get() = if (isCompBot) {
             (-elbowEncoder.value.degrees + 1643.degrees) * 90.0 / 1054.0
         } else {
-            (-elbowEncoder.value.degrees + 1976.degrees) * 90.0 / 1054.0
+            (-elbowEncoder.value.degrees + 1912.degrees) * 90.0 / 1054.0
         }
 
     var elbowOffset = 0.0.degrees

@@ -7,6 +7,7 @@ import org.team2471.frc.lib.math.Vector2
 import org.team2471.frc.lib.math.round
 import org.team2471.frc.lib.motion_profiling.MotionCurve
 import org.team2471.frc.lib.motion_profiling.Path2D
+import org.team2471.frc.lib.motion_profiling.Path2DPoint
 import org.team2471.frc.lib.units.Angle
 import org.team2471.frc.lib.units.degrees
 import kotlin.math.absoluteValue
@@ -40,12 +41,19 @@ data class Pose(val wristPosition: Vector2, val wristAngle: Angle, val pivotAngl
 
         val BACK_START_POSE = Pose(Vector2(0.0, 9.0), -92.0.degrees, 0.0.degrees)
 
-        val FRONT_DRIVE_POSE = Pose(Vector2(0.0, 9.0), 92.0.degrees, -90.0.degrees)
+        val FRONT_DRIVE_POSE_CENTER = Pose(Vector2(0.0, 9.0), 92.0.degrees, -90.0.degrees)
+        val BACK_DRIVE_POSE_CENTER = Pose(Vector2(0.0, 9.0), -92.0.degrees, -90.0.degrees)
+
+        val FRONT_DRIVE_POSE = Pose(Vector2(-7.5, 10.0), 92.0.degrees, -90.0.degrees)
         val BACK_DRIVE_POSE = Pose(Vector2(7.5, 10.0), -92.0.degrees, -90.0.degrees)
         val FLIP_INTAKE_TO_BACK_POSE = Pose(Vector2(-28.0, 26.0), 90.0.degrees, -90.0.degrees)
         val FLIP_INTAKE_TO_BACK_WRIST = Pose(Vector2(-28.0, 26.0), -90.0.degrees, 0.0.degrees)
         val FLIP_INTAKE_TO_FRONT_POSE = Pose(Vector2(28.0, 20.0), -90.0.degrees, -90.0.degrees)
         val FLIP_INTAKE_TO_FRONT_WRIST = Pose(Vector2(28.0, 20.0), 90.0.degrees, -180.0.degrees)
+        val FLIP_FRONT_UP = Pose(Vector2(-2.0, 13.5), -90.0.degrees, -90.0.degrees)
+        val FLIP_FRONT_WRIST = Pose(Vector2(-2.0, 13.5), 90.0.degrees, -90.0.degrees)
+        val FLIP_BACK_UP =  Pose(Vector2(2.0, 13.5), 90.0.degrees, -90.0.degrees)
+        val FLIP_BACK_WRIST =  Pose(Vector2(2.0, 13.5), -90.0.degrees, -90.0.degrees)
 
         val HIGH_SCORE_TO_PREFLIP
             get() = Pose(Vector2(-29.0, 40.0), current.wristAngle, current.pivotAngle)
@@ -55,6 +63,7 @@ data class Pose(val wristPosition: Vector2, val wristAngle: Angle, val pivotAngl
 
         val GROUND_TO_DRIVE_SAFE_CUBE = Pose(Vector2(37.0, 0.0), 75.0.degrees, -180.0.degrees)
         val GROUND_TO_DRIVE_SAFE  = Pose(Vector2(35.0, 21.0), -90.0.degrees, -90.0.degrees)
+        val GROUND_TO_DRIVE_SAFE_EMPTY = Pose(Vector2(35.0, 21.0), 90.0.degrees, -90.0.degrees)
     }
 
     operator fun plus(otherPose: Pose) = Pose(wristPosition + otherPose.wristPosition, wristAngle + otherPose.wristAngle, pivotAngle + otherPose.pivotAngle)
@@ -158,7 +167,22 @@ suspend fun animateThroughPoses(vararg poses: Pair<Double, Pose>) = use(Arm, Int
     val totalT = times.sum()
 
     path.addEasePoint(0.0,0.0)
-    path.addEasePoint(totalT, 1.0)
+    val pathLength = path.length
+    if (pathLength > 0.0) {
+        var partialLength = 0.0
+        var point: Path2DPoint? = path._xyCurve.headPoint
+        var i = 0
+        var time = 0.0
+        while (point != null && point.nextPoint != null) {
+            time += times[i]
+            partialLength += point.segmentLength
+            point = point.nextPoint
+            path.addEasePoint(time, partialLength / pathLength)
+//            println("time: $time Ease: ${partialLength / pathLength}")
+            i++
+        }
+    }
+    path.addEasePoint(totalT,1.0)
 
     val wristCurve = MotionCurve()
     var time = 0.0

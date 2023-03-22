@@ -58,6 +58,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
     val motorPower2Entry = table.getEntry("Motor Power 2")
     val motorPower3Entry = table.getEntry("Motor Power 3")
     val useGyroEntry = table.getEntry("Use Gyro")
+    val angleToNodeEntry = table.getEntry("Angle To Node")
 
     val advantageSwerveStates = table.getEntry("SwerveStates")
     val advantageSwerveTargets = table.getEntry("SwerveTargets")
@@ -316,6 +317,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
 //                if (error.asDegrees.absoluteValue > 90.0) error = (error - 180.0.degrees).wrap()
                 turn = aimPDController.update(error.asDegrees)
             }
+            angleToNodeEntry.setDouble(angleToNode.asDegrees)
 
             drive(
                 OI.driveTranslation * maxTranslation,

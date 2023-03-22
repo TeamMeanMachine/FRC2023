@@ -8,10 +8,7 @@ import org.team2471.frc.lib.coroutines.parallel
 import org.team2471.frc.lib.coroutines.periodic
 import org.team2471.frc.lib.framework.use
 import org.team2471.frc.lib.math.Vector2
-import org.team2471.frc.lib.math.cube
 import org.team2471.frc.lib.math.linearMap
-import org.team2471.frc.lib.math.squareWithSign
-import org.team2471.frc.lib.motion_profiling.MotionCurve
 import org.team2471.frc.lib.motion_profiling.Path2D
 import org.team2471.frc.lib.units.*
 import org.team2471.frc.lib.util.Timer
@@ -109,79 +106,73 @@ suspend fun intakeFromGround(isCone: Boolean = NodeDeckHub.isCone) = use(Arm, In
         try {
             println("in intakeFromGround")
             val path = Path2D("newPath")
-            path.addVector2(Pose.current.wristPosition)
             if (isCone) {
-                path.addVector2(Pose.GROUND_INTAKE_FRONT_CONE.wristPosition)
                 path.addVector2(Pose.GROUND_INTAKE_CONE_NEAR.wristPosition)
                 path.addVector2(Pose.GROUND_INTAKE_CONE_FAR.wristPosition)
             } else {
-                path.addVector2(Pose.GROUND_INTAKE_FRONT_CUBE.wristPosition)
                 path.addVector2(Pose.GROUND_INTAKE_CUBE_NEAR.wristPosition)
                 path.addVector2(Pose.GROUND_INTAKE_CUBE_FAR.wristPosition)
             }
             val distance = path.length
-            val rate = 55.0  //  inches per second
+            val rate = 150.0  //  inches per second
             val time = distance / rate
             path.addEasePoint(0.0, 0.0)
             path.addEasePoint(time, 1.0)
 
-            val startOfExtend = time * 0.5
 
-            val wristCurve = MotionCurve()
-            wristCurve.storeValue(0.0, Pose.current.wristAngle.asDegrees)
-            wristCurve.storeValue(time * 0.35, Pose.GROUND_INTAKE_FRONT_CONE.wristAngle.asDegrees)
-            if (isCone) {
-                wristCurve.storeValue(startOfExtend, Pose.GROUND_INTAKE_CONE_NEAR.wristAngle.asDegrees)
-                wristCurve.storeValue(time, Pose.GROUND_INTAKE_CONE_FAR.wristAngle.asDegrees)
+//            val wristCurve = MotionCurve()
+//            wristCurve.storeValue(0.0, Pose.current.wristAngle.asDegrees)
+//            wristCurve.storeValue(time * 0.35, Pose.GROUND_INTAKE_FRONT_CONE.wristAngle.asDegrees)
+//            if (isCone) {
+//                wristCurve.storeValue(startOfExtend, Pose.GROUND_INTAKE_CONE_NEAR.wristAngle.asDegrees)
+//                wristCurve.storeValue(time, Pose.GROUND_INTAKE_CONE_FAR.wristAngle.asDegrees)
+//            } else {
+//                wristCurve.storeValue(startOfExtend, Pose.GROUND_INTAKE_CUBE_NEAR.wristAngle.asDegrees)
+//                wristCurve.storeValue(time, Pose.GROUND_INTAKE_CUBE_FAR.wristAngle.asDegrees)
+//            }
+
+//            val pivotCurve = MotionCurve()
+//            pivotCurve.storeValue(0.0, Pose.current.pivotAngle.asDegrees)
+//            if (isCone) {
+//                pivotCurve.storeValue(startOfExtend * 0.7, -90.0)
+//                pivotCurve.storeValue(startOfExtend * 0.9, -85.0)
+//                pivotCurve.storeValue(startOfExtend, Pose.GROUND_INTAKE_CONE_NEAR.pivotAngle.asDegrees)
+//                pivotCurve.storeValue(time, Pose.GROUND_INTAKE_CONE_FAR.pivotAngle.asDegrees)
+//            } else {
+//                pivotCurve.storeValue(time, Pose.GROUND_INTAKE_CUBE_NEAR.pivotAngle.asDegrees)
+//                pivotCurve.storeValue(startOfExtend, Pose.GROUND_INTAKE_CUBE_FAR.pivotAngle.asDegrees)
+//            }
+
+
+            Drive.maxTranslation = 0.5
+            //go to close intake
+            if  (isCone) {
+                animateThroughPoses(Pose.GROUND_INTAKE_FRONT_CONE, Pose.GROUND_INTAKE_CONE_NEAR)
             } else {
-                wristCurve.storeValue(startOfExtend, Pose.GROUND_INTAKE_CUBE_NEAR.wristAngle.asDegrees)
-                wristCurve.storeValue(time, Pose.GROUND_INTAKE_CUBE_FAR.wristAngle.asDegrees)
+                animateThroughPoses(Pose.GROUND_INTAKE_FRONT_CUBE, Pose.GROUND_INTAKE_CUBE_NEAR)
             }
-
-            val pivotCurve = MotionCurve()
-            pivotCurve.storeValue(0.0, Pose.current.pivotAngle.asDegrees)
-            if (isCone) {
-                pivotCurve.storeValue(startOfExtend * 0.7, -90.0)
-                pivotCurve.storeValue(startOfExtend * 0.9, -85.0)
-                pivotCurve.storeValue(startOfExtend, Pose.GROUND_INTAKE_CONE_NEAR.pivotAngle.asDegrees)
-                pivotCurve.storeValue(time, Pose.GROUND_INTAKE_CONE_FAR.pivotAngle.asDegrees)
-            } else {
-                pivotCurve.storeValue(time, Pose.GROUND_INTAKE_CUBE_NEAR.pivotAngle.asDegrees)
-                pivotCurve.storeValue(startOfExtend, Pose.GROUND_INTAKE_CUBE_FAR.pivotAngle.asDegrees)
-            }
-
-            val slewRateLimiter = SlewRateLimiter(1.5, -1.5, 0.0)
+//            if (OI.operatorLeftTrigger < 0.05 && DriverStation.isTeleop()) {
+//                this.stop()
+//            }
+            val slewRateLimiter = SlewRateLimiter(10.0, -10.0, 0.0)
 
             val timer = Timer()
             timer.start()
-            Drive.maxTranslation = 0.5
-            periodic {
-                val t = timer.get()
-                Arm.wristPosition = path.getPosition(t)
-                Intake.wristSetpoint = wristCurve.getValue(t).degrees
-                Intake.pivotSetpoint = pivotCurve.getValue(t).degrees
-                if (t > startOfExtend || (OI.operatorLeftTrigger < 0.05 && DriverStation.isTeleop())) {
-                    this.stop()
-                }
-            }
+
             Intake.intakeMotor.setPercentOutput(if (isCone) Intake.INTAKE_CONE else Intake.INTAKE_CUBE) //intake bad
-            if (OI.operatorLeftTrigger > 0.05 || DriverStation.isAutonomous()) {
+            if (OI.operatorLeftTrigger > 0.05 || DriverStation.isAutonomous()) { //animate through close and far pos
                 var tInitialHold = -1.0
                 var rumbleTimer = -1.0
                 parallel({
                     periodic {
                         val tHold = if (tInitialHold != -1.0) timer.get() - tInitialHold else -1.0
                         val alpha2 =
-                            if (DriverStation.isTeleop()) slewRateLimiter.calculate(((OI.operatorLeftTrigger - 0.1) * 10.0 / 9.0).cube().coerceIn(0.0, 1.0)) else slewRateLimiter.calculate(
-                                1.0
-                            )
-                        val tPath = linearMap(0.0, 1.0, startOfExtend, time, alpha2)
+                            if (DriverStation.isTeleop()) slewRateLimiter.calculate(linearMap(0.5, 1.0, 0.0, 1.0, OI.operatorLeftTrigger).coerceIn(0.0, 1.0)) else slewRateLimiter.calculate(1.0)
+                        val tPath = linearMap(0.0, 1.0, 0.0, time, alpha2)
                         Arm.wristPosition =
                             path.getPosition(tPath) + if (tHold > 1.0) Vector2(-4.0, 4.0) else Vector2(0.0, 0.0) //test intake motor doesn't turn on as much, controlling intakeFromGround curved, rumble upon intake
-                        Intake.wristSetpoint = wristCurve.getValue(tPath).degrees
-                        Intake.pivotSetpoint = pivotCurve.getValue(tPath).degrees
                         Intake.intakeMotor.setPercentOutput(if (isCone) (if (tHold > 2.0) Intake.HOLD_CONE else Intake.INTAKE_CONE) else (if (tHold > 2.0) Intake.HOLD_CUBE else Intake.INTAKE_CUBE))
-                        if (DriverStation.isTeleop() && OI.operatorLeftTrigger < 0.1) {
+                        if (DriverStation.isTeleop() && OI.operatorLeftTrigger < 0.01) {
                             this.stop()
                         }
                         if (DriverStation.isAutonomous() && tPath >= time) {
@@ -202,7 +193,7 @@ suspend fun intakeFromGround(isCone: Boolean = NodeDeckHub.isCone) = use(Arm, In
                         }
                     }
                 }, {
-                    periodic {
+                    periodic {//rumble if holding object
                         if (Intake.holdingObject && tInitialHold == -1.0) {
                             tInitialHold = timer.get()
                             rumbleTimer = timer.get() + 1.0
@@ -232,16 +223,20 @@ suspend fun intakeFromGround(isCone: Boolean = NodeDeckHub.isCone) = use(Arm, In
 //            this.stop()
 //        }
 //    }
-        } finally {
+        } finally {//move back to drive pos
             Drive.maxTranslation = 1.0
             println("Holding = ${Intake.holdingObject}")
                 OI.driverController.rumble = 0.0
                 OI.operatorController.rumble = 0.0
             Intake.intakeMotor.setPercentOutput(if (Intake.holdingObject) (if (isCone) Intake.HOLD_CONE else Intake.HOLD_CUBE) else 0.0) //intake bad
-            if (isCone) {
-                animateThroughPoses(Pose.GROUND_TO_DRIVE_SAFE, if (Intake.holdingObject) Pose.BACK_DRIVE_POSE else Pose.FRONT_DRIVE_POSE)
+            if (Intake.holdingObject) {
+                if (isCone) {
+                    animateThroughPoses(Pose.GROUND_TO_DRIVE_SAFE, Pose.BACK_DRIVE_POSE)
+                } else {
+                    animateThroughPoses(Pose.GROUND_TO_DRIVE_SAFE_CUBE, Pose.GROUND_TO_DRIVE_SAFE, Pose.BACK_DRIVE_POSE)
+                }
             } else {
-                animateThroughPoses(Pose.GROUND_TO_DRIVE_SAFE_CUBE, Pose.GROUND_TO_DRIVE_SAFE, if (Intake.holdingObject) Pose.BACK_DRIVE_POSE else Pose.FRONT_DRIVE_POSE)
+                animateThroughPoses(Pose.FRONT_DRIVE_POSE)
             }
 //            toBackDrivePose()
         }
@@ -379,16 +374,14 @@ private suspend fun autoArmToPose(pose: Pose) {
     }
 }
 
-suspend fun flip() = use(Arm) {
+suspend fun flip() = use(Arm, Intake) {
     Drive.maxTranslation = 1.0
     if (Intake.wristAngle < -75.degrees || Arm.wristPosition.x < -10.0) {
-        animateToPose(Pose.FLIP_INTAKE_TO_FRONT_POSE)
-        animateToPose(Pose.FLIP_INTAKE_TO_FRONT_WRIST)
-        animateToPose(Pose.FRONT_DRIVE_POSE)
+        println("Flipping to FRONT")
+        animateThroughPoses(Pair(0.5, Pose.BACK_DRIVE_POSE_CENTER), Pair(0.5, Pose.FLIP_FRONT_UP), Pair(0.5, Pose.FLIP_FRONT_WRIST), Pair(0.5, Pose.FRONT_DRIVE_POSE))//, Pose.FLIP_INTAKE_TO_FRONT_WRIST, Pose.FRONT_DRIVE_POSE)
     } else if (Intake.wristAngle > 75.0.degrees || Arm.wristPosition.x > 10.0) {
-        animateToPose(Pose.FLIP_INTAKE_TO_BACK_POSE)
-        animateToPose(Pose.FLIP_INTAKE_TO_BACK_WRIST)
-        animateToPose(Pose.BACK_DRIVE_POSE)
+        println("Flipping to BACK")
+        animateThroughPoses(Pair(0.5, Pose.FRONT_DRIVE_POSE_CENTER), Pair(0.5, Pose.FLIP_BACK_UP), Pair(0.5, Pose.FLIP_BACK_WRIST), Pair(0.5, Pose.BACK_DRIVE_POSE))//, Pose.FLIP_INTAKE_TO_BACK_WRIST, Pose.BACK_DRIVE_POSE)
     }
 }
 
