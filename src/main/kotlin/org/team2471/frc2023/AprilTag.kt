@@ -233,6 +233,7 @@ object AprilTag {
                     val camToTarget = tagDetection.first().bestCameraToTarget
                     val fieldToCam = PhotonUtils.estimateFieldToCamera(Transform2d(camToTarget.translation.toTranslation2d(), camToTarget.rotation.toRotation2d()),
                         aprilTagFieldLayout.tags.first { it.ID == visionCheck }.pose.toPose2d())
+
                     addTargetToTable(visionCheck, camToTarget)
                 } else {
                     addTargetToTable(visionCheck, null)
