@@ -44,7 +44,7 @@ suspend fun Arm.springTest() = use(Arm) {
 suspend fun Intake.feedFowardTest() = use(Intake) {
     var power = 0.0
     periodic {
-        pivotMotor.setPercentOutput(power)
+        intakeMotor.setPercentOutput(power)
         power += 0.03
     }
 }

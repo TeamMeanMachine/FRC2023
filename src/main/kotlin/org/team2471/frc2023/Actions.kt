@@ -8,7 +8,9 @@ import org.team2471.frc.lib.coroutines.parallel
 import org.team2471.frc.lib.coroutines.periodic
 import org.team2471.frc.lib.framework.use
 import org.team2471.frc.lib.math.Vector2
+import org.team2471.frc.lib.math.cube
 import org.team2471.frc.lib.math.linearMap
+import org.team2471.frc.lib.math.squareWithSign
 import org.team2471.frc.lib.motion_profiling.MotionCurve
 import org.team2471.frc.lib.motion_profiling.Path2D
 import org.team2471.frc.lib.units.*
@@ -170,12 +172,12 @@ suspend fun intakeFromGround(isCone: Boolean = NodeDeckHub.isCone) = use(Arm, In
                     periodic {
                         val tHold = if (tInitialHold != -1.0) timer.get() - tInitialHold else -1.0
                         val alpha2 =
-                            if (DriverStation.isTeleop()) slewRateLimiter.calculate((OI.operatorLeftTrigger - 0.1) * 10.0 / 9.0) else slewRateLimiter.calculate(
+                            if (DriverStation.isTeleop()) slewRateLimiter.calculate(((OI.operatorLeftTrigger - 0.1) * 10.0 / 9.0).cube().coerceIn(0.0, 1.0)) else slewRateLimiter.calculate(
                                 1.0
                             )
                         val tPath = linearMap(0.0, 1.0, startOfExtend, time, alpha2)
                         Arm.wristPosition =
-                            path.getPosition(tPath) + if (tHold > 1.0) Vector2(-4.0, 4.0) else Vector2(0.0, 0.0)
+                            path.getPosition(tPath) + if (tHold > 1.0) Vector2(-4.0, 4.0) else Vector2(0.0, 0.0) //test intake motor doesn't turn on as much, controlling intakeFromGround curved, rumble upon intake
                         Intake.wristSetpoint = wristCurve.getValue(tPath).degrees
                         Intake.pivotSetpoint = pivotCurve.getValue(tPath).degrees
                         Intake.intakeMotor.setPercentOutput(if (isCone) (if (tHold > 2.0) Intake.HOLD_CONE else Intake.INTAKE_CONE) else (if (tHold > 2.0) Intake.HOLD_CUBE else Intake.INTAKE_CUBE))
@@ -204,7 +206,7 @@ suspend fun intakeFromGround(isCone: Boolean = NodeDeckHub.isCone) = use(Arm, In
                         if (Intake.holdingObject && tInitialHold == -1.0) {
                             tInitialHold = timer.get()
                             rumbleTimer = timer.get() + 1.0
-                            if (DriverStation.isAutonomous()) {
+                            if (!DriverStation.isAutonomous()) {
                                 OI.driverController.rumble = 0.3
                                 OI.operatorController.rumble = 0.3
                             }
