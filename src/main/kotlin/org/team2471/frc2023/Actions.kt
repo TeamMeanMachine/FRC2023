@@ -171,7 +171,7 @@ suspend fun intakeFromGround(isCone: Boolean = NodeDeckHub.isCone) = use(Arm, In
                         val tPath = linearMap(0.0, 1.0, 0.0, time, alpha2)
                         Arm.wristPosition =
                             path.getPosition(tPath) + if (tHold > 1.0) Vector2(-4.0, 4.0) else Vector2(0.0, 0.0) //test intake motor doesn't turn on as much, controlling intakeFromGround curved, rumble upon intake
-                        Intake.intakeMotor.setPercentOutput(if (isCone) (if (tHold > 2.0) Intake.HOLD_CONE else Intake.INTAKE_CONE) else (if (tHold > 2.0) Intake.HOLD_CUBE else Intake.INTAKE_CUBE))
+                        Intake.intakeMotor.setPercentOutput(if (isCone) (if (tHold > 3.0) Intake.HOLD_CONE else Intake.INTAKE_CONE) else (if (tHold > 2.0) Intake.HOLD_CUBE else Intake.INTAKE_CUBE))
                         if (DriverStation.isTeleop() && OI.operatorLeftTrigger < 0.01) {
                             this.stop()
                         }

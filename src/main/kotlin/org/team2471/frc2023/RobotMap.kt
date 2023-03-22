@@ -37,6 +37,10 @@ object Falcons {
     const val RIGHT_REAR_STEER = 6
     const val LEFT_REAR_DRIVE = 13
     const val LEFT_REAR_STEER = 19
+    const val SPARE1_DRIVE = 32
+    const val SPARE1_STEER = 33
+    const val SPARE2_DRIVE = 35
+    const val SPARE2_STEER = 36
 
 }
 
@@ -45,4 +49,6 @@ object CANCoders {
     const val CANCODER_FRONTRIGHT = 21
     const val CANCODER_REARRIGHT = 22
     const val CANCODER_REARLEFT = 23
+    const val CANCODER_SPARE1 = 34
+    const val CANCODER_SPARE2 = 37
 }

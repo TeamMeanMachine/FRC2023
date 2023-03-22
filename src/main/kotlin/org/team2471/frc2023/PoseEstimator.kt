@@ -23,8 +23,8 @@ object PoseEstimator {
 
     private val offsetEntry = poseTable.getEntry("Offset")
     private val lastResetEntry = poseTable.getEntry("LastResetTime")
-    private val startingPosEntry = poseTable.getEntry("Starting Pose")
-    private val startingHeadingEntry = poseTable.getEntry("Starting Heading")
+    private val startingPosEntry = poseTable.getEntry("Starting Pose Check")
+    private val startingHeadingEntry = poseTable.getEntry("Starting Heading Check")
     private var offset = Vector2(0.0, 0.0)
     private var lastZeroTimestamp = 0.0
     val currentPose
@@ -35,7 +35,7 @@ object PoseEstimator {
         GlobalScope.launch(MeanlibDispatcher) {
             periodic {
                 startingHeadingEntry.setBoolean((FieldManager.isBlueAlliance && (Drive.heading > 179.0.degrees || Drive.heading < -179.0.degrees)) || (FieldManager.isRedAlliance && Drive.heading > -1.0.degrees && Drive.heading < 1.0.degrees))
-                startingPosEntry.setBoolean((FieldManager.startingPosition - Drive.combinedPosition).length < 1)
+                startingPosEntry.setBoolean((FieldManager.startingPosition - Drive.combinedPosition).length < 0.25)
                 //untested ^
 
                 val combinedWPIField = FieldManager.convertTMMtoWPI(currentPose.x.feet, currentPose.y.feet, Drive.heading)
@@ -61,7 +61,6 @@ object PoseEstimator {
                     val apriltagPose = Vector2(detection.pose.x, detection.pose.y)
                     Drive.position = apriltagPose
                     Drive.heading = detection.pose.rotation.radians.radians
-//                    println("used apriltag for position and heading during disable")
                 }
                 if (latencyPose != null ) {
                     val odomDiff = Drive.position - latencyPose
