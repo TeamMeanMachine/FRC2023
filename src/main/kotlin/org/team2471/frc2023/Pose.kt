@@ -19,25 +19,25 @@ data class Pose(val wristPosition: Vector2, val wristAngle: Angle, val pivotAngl
         val START_POSE = Pose(Vector2(0.0, 9.0), -90.0.degrees, -90.0.degrees)
         val GROUND_INTAKE_FRONT_CONE = Pose(Vector2(18.0, 14.5), 90.0.degrees, -90.0.degrees)
         val GROUND_INTAKE_CONE_NEAR = Pose(Vector2(19.5, 6.2), 90.0.degrees, 0.0.degrees)
-        val GROUND_INTAKE_CONE_FAR = Pose(Vector2(40.0, 10.25), 90.0.degrees, 0.0.degrees) //y: 10
+        val GROUND_INTAKE_CONE_FAR = Pose(Vector2(40.0, 13.5), 90.0.degrees, 0.0.degrees) //y: 10
         val GROUND_INTAKE_FRONT_CUBE = Pose(Vector2(18.0, 14.0), 90.0.degrees, -180.0.degrees)
-        val GROUND_INTAKE_CUBE_NEAR = Pose(Vector2(18.0, -12.0), 75.0.degrees, -180.0.degrees)//y: -8
-        val GROUND_INTAKE_CUBE_FAR = Pose(Vector2(40.0, -6.0), 75.0.degrees, -180.0.degrees) // y: -8
+        val GROUND_INTAKE_CUBE_NEAR = Pose(Vector2(18.0, -5.0), 75.0.degrees, -180.0.degrees)//y: -8
+        val GROUND_INTAKE_CUBE_FAR = Pose(Vector2(40.0, -5.0), 75.0.degrees, -180.0.degrees) // y: -8
 
         val BACK_LOW_SCORE_CONE_TOWARD = Pose(Vector2(-10.0, 9.0), -60.0.degrees, 0.0.degrees)
         val BACK_LOW_SCORE_CONE_AWAY = Pose(Vector2(-10.0, 9.0), -80.0.degrees, 0.0.degrees)
         val BACK_LOW_SCORE_CUBE = Pose(Vector2(-10.0, 9.0), -90.0.degrees, 0.0.degrees)
 
         val BACK_MIDDLE_SCORE_CONE_AWAY_MID = Pose(Vector2(-25.0, 29.0), -180.0.degrees, -180.0.degrees)
-        val BACK_MIDDLE_SCORE_CONE_AWAY = Pose(Vector2(-30.5, 29.0), -180.0.degrees, -180.0.degrees)
+        val BACK_MIDDLE_SCORE_CONE_AWAY = Pose(Vector2(-28.5, 29.5), -180.0.degrees, -180.0.degrees)
         val BACK_MIDDLE_SCORE_CONE_TOWARD_MID = Pose(Vector2(-22.0, 30.5), -100.0.degrees, 0.0.degrees)
-        val BACK_MIDDLE_SCORE_CONE_TOWARD = Pose(Vector2(-31.5, 29.0), -100.0.degrees, 0.0.degrees)
-        val BACK_MIDDLE_SCORE_CUBE = Pose(Vector2(-24.5, 30.0), -100.0.degrees, 0.0.degrees)
+        val BACK_MIDDLE_SCORE_CONE_TOWARD = Pose(Vector2(-29.75, 28.5), -100.0.degrees, 0.0.degrees)
+        val BACK_MIDDLE_SCORE_CUBE = Pose(Vector2(-24.5, 31.5), -100.0.degrees, 0.0.degrees)
 
         val BACK_HIGH_SCORE_CONE_TOWARD_MID = Pose(Vector2(-28.0, 48.0), -100.0.degrees, 0.0.degrees)
-        val BACK_HIGH_SCORE_CONE_TOWARD = Pose(Vector2(-39.25, 43.0), -100.0.degrees, 0.0.degrees)
+        val BACK_HIGH_SCORE_CONE_TOWARD = Pose(Vector2(-40.5, 41.0), -100.0.degrees, 0.0.degrees)
         val BACK_HIGH_SCORE_CONE_AWAY_MID = Pose(Vector2(-29.0, 45.0), -200.0.degrees, -180.0.degrees)
-        val BACK_HIGH_SCORE_CONE_AWAY = Pose(Vector2(-44.0, 44.0), -190.0.degrees, -180.0.degrees)
+        val BACK_HIGH_SCORE_CONE_AWAY = Pose(Vector2(-42.5, 41.5), -190.0.degrees, -180.0.degrees)
 
         val BACK_START_POSE = Pose(Vector2(0.0, 9.0), -92.0.degrees, 0.0.degrees)
 
@@ -56,13 +56,16 @@ data class Pose(val wristPosition: Vector2, val wristAngle: Angle, val pivotAngl
         val FLIP_BACK_WRIST =  Pose(Vector2(2.0, 13.5), -90.0.degrees, -90.0.degrees)
 
         val HIGH_SCORE_TO_PREFLIP
-            get() = Pose(Vector2(-29.0, 40.0), current.wristAngle, current.pivotAngle)
-        val MIDDLE_SCORE_TO_PREFLIP
+            get() = Pose(Vector2(-28.0, 42.0), current.wristAngle, current.pivotAngle)
+        val MIDDLE_SCORE_CONE_TO_PREFLIP
             get() = Pose(Vector2(-29.0, 30.0), current.wristAngle, current.pivotAngle)
+        val MIDDLE_SCORE_CUBE_TO_PREFLIP
+            get() = Pose(Vector2(-29.0, 32.0), current.wristAngle, current.pivotAngle)
+
         val SCORE_TO_FLIP = Pose(Vector2(-10.0, 28.0), 90.0.degrees, -90.0.degrees)
 
-        val GROUND_TO_DRIVE_SAFE_CUBE = Pose(Vector2(37.0, 0.0), 75.0.degrees, -180.0.degrees)
-        val GROUND_TO_DRIVE_SAFE_CONE = Pose(Vector2(37.0, 0.0), 75.0.degrees, 0.0.degrees)
+        val GROUND_TO_DRIVE_SAFE_CUBE = Pose(Vector2(38.0, 6.0), 80.0.degrees, -180.0.degrees)
+        val GROUND_TO_DRIVE_SAFE_CONE = Pose(Vector2(37.0, 24.0), 100.0.degrees, 0.0.degrees)
         val GROUND_TO_DRIVE_SAFE  = Pose(Vector2(35.0, 21.0), -90.0.degrees, -90.0.degrees)
         val GROUND_TO_DRIVE_SAFE_EMPTY = Pose(Vector2(35.0, 21.0), 90.0.degrees, -90.0.degrees)
     }

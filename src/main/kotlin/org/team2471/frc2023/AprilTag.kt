@@ -171,7 +171,7 @@ object AprilTag {
     }
 
     fun resetCameras() {
-        if (camFront == null && frontPoseEstimator == null) {
+        if (camFront == null || frontPoseEstimator == null) {
             try {
                 if (pvTable.containsSubTable("PVFront")) {
                     camFront = PhotonCamera("PVFront")
@@ -186,7 +186,7 @@ object AprilTag {
                 println("Front pose failed")
             }
         }
-        if (camBack == null && backPoseEstimator == null){
+        if (camBack == null || backPoseEstimator == null){
             try {
                 if (pvTable.containsSubTable("PVBack")) {
                     camBack = PhotonCamera("PVBack")
