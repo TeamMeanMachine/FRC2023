@@ -200,9 +200,13 @@ object AutoChooser {
         println("position: ${Drive.position}, ${Drive.combinedPosition}")
         if (NodeDeckHub.amountOfAutoPieces > 0) {
             backScoreToward(true, NodeDeckHub.firstAutoPiece)
-            scoreObject(true, NodeDeckHub.firstAutoPiece)
             if (NodeDeckHub.amountOfAutoPieces > 1) {
-                nodeDeckPiece(gamePieceAngles[0].degrees, NodeDeckHub.secondAutoPiece,  NodeDeckHub.amountOfAutoPieces == 2 && NodeDeckHub.finishWithPiece)
+                parallel({
+                    scoreObject(true, NodeDeckHub.firstAutoPiece)
+                }, {
+                    delay(1.0)
+                    nodeDeckPiece(gamePieceAngles[0].degrees, NodeDeckHub.secondAutoPiece, NodeDeckHub.amountOfAutoPieces == 2 && NodeDeckHub.finishWithPiece)
+                })
                 if (NodeDeckHub.amountOfAutoPieces > 2) {
                     nodeDeckPiece(gamePieceAngles[1].degrees, NodeDeckHub.thirdAutoPiece,  NodeDeckHub.amountOfAutoPieces == 3 && NodeDeckHub.finishWithPiece)
                     if (NodeDeckHub.amountOfAutoPieces > 3) {
@@ -266,9 +270,10 @@ object AutoChooser {
                 parallel({
                     Drive.dynamicGoToScore(scoringNode.alignPosition, safeSide)
                 }, {
+                    delay(0.5)
                     backScoreAway(FieldManager.nodeList[nodeID]?.coneOrCube == GamePiece.CONE, nodeID)
-                    scoreObject(FieldManager.nodeList[nodeID]?.coneOrCube == GamePiece.CONE, nodeID)
                 })
+                scoreObject(FieldManager.nodeList[nodeID]?.coneOrCube == GamePiece.CONE, nodeID)
             }
         } else {
 

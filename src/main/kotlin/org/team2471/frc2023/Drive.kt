@@ -651,7 +651,6 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         println(FieldManager.insideSafePointClose.y)
         val newPath = Path2D("GoToScore")
         newPath.addEasePoint(0.0, 0.0)
-        var distance = 0.0
         val p1 = PoseEstimator.currentPose
         var p2 = PoseEstimator.currentPose
         var p3 = PoseEstimator.currentPose
@@ -662,7 +661,6 @@ object Drive : Subsystem("Drive"), SwerveDrive {
                 SafeSide.OUTSIDE -> FieldManager.outsideSafePointFar
                 SafeSide.CHARGE -> Vector2(FieldManager.centerOfChargeX, FieldManager.outsideSafePointFar.y)
             }
-            distance += (p2 - p1).length
             println("InsideFar")
         }
         if ((FieldManager.isRedAlliance && PoseEstimator.currentPose.y > FieldManager.insideSafePointClose.y) || (FieldManager.isBlueAlliance && PoseEstimator.currentPose.y < FieldManager.insideSafePointClose.y)) {
@@ -672,19 +670,25 @@ object Drive : Subsystem("Drive"), SwerveDrive {
                 SafeSide.OUTSIDE -> FieldManager.outsideSafePointClose
                 SafeSide.CHARGE -> Vector2(FieldManager.centerOfChargeX, FieldManager.outsideSafePointFar.y)
             }
-            distance += (p3 - p2).length
             println("InsideClose")
         }
         val p4 = Vector2(goalPosition.x, goalPosition.y + if (FieldManager.isBlueAlliance) -1.0 else 1.0)
-        distance += (p4 - p3).length
         val p5 = Vector2(goalPosition.x, goalPosition.y)
-        distance += (p5 - p4).length
-        println("Distance: $distance")
         val rateCurve = MotionCurve()
+
         rateCurve.setMarkBeginOrEndKeysToZeroSlope(false)
         rateCurve.storeValue(1.0, 2.0)  // distance, rate
         rateCurve.storeValue(8.0, 4.0)  // distance, rate
-        val rate = rateCurve.getValue(distance) // ft per sec
+        newPath.addVector2(p1)
+        newPath.addVector2(p2)
+        newPath.addVector2(p3)
+        newPath.addVector2(p4)
+        newPath.addVector2(p5)
+//        println("Final: $finalHeading  heading: ${heading.asDegrees}")
+        val distance = newPath.length
+
+        println("Distance: $distance")
+        val rate = rateCurve.getValue(distance) * if (DriverStation.isAutonomous()) 1.0 else 1.0 // ft per sec
         var time = distance / rate
         var finalHeading = if (FieldManager.isRedAlliance) 0.0 else if (heading.asDegrees > 0) 180.0 else -180.0
         val minSpin = 4/180.0 * (heading - finalHeading.degrees).wrap().asDegrees.absoluteValue
@@ -692,12 +696,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         val middleStartTime = if (NodeDeckHub.startingPoint == StartingPoint.MIDDLE) time * 2 else 0.0
         time = maxOf(time, middleStartTime, minSpin)
         newPath.addEasePoint(time, 1.0)
-        newPath.addVector2(p1)
-        newPath.addVector2(p2)
-        newPath.addVector2(p3)
-        newPath.addVector2(p4)
-        newPath.addVector2(p5)
-//        println("Final: $finalHeading  heading: ${heading.asDegrees}")
+
         newPath.addHeadingPoint(0.0, heading.asDegrees)
         newPath.addHeadingPoint(time, finalHeading)
         Drive.driveAlongPath(newPath) { abortPath() }
