@@ -30,6 +30,7 @@ import org.team2471.frc.lib.units.Angle.Companion.cos
 import org.team2471.frc.lib.units.Angle.Companion.sin
 import org.team2471.frc2023.FieldManager.isBlueAlliance
 import org.team2471.frc2023.FieldManager.reflectFieldByAlliance
+import java.util.Vector
 import kotlin.math.absoluteValue
 import kotlin.math.sign
 
@@ -565,15 +566,31 @@ object Drive : Subsystem("Drive"), SwerveDrive {
             //  println("Pitch = ${gyro.getNavX().pitch}, Time = ${driveTimer.get()}")
         }
     }
-
-    suspend fun driveToPoints(vararg positions: Vector2) {
+    suspend fun driveToPointsPercentSpeed(percent: Double, vararg positions: Vector2) {
         val newPath = Path2D("newPath")
         for (position in positions) {
             newPath.addVector2(position)
         }
         val distance = newPath.length
         val rate = rateCurve.getValue(distance) // ft per sec
-        val time = distance / rate
+        val time = distance / rate * percent
+        driveToPoints(time, *positions)
+    }
+    suspend fun driveToPoints(vararg positions: Vector2) {
+        driveToPoints(0.0, *positions)
+    }
+
+
+    suspend fun driveToPoints(minTime: Double, vararg positions: Vector2) {
+
+        val newPath = Path2D("newPath")
+        for (position in positions) {
+            newPath.addVector2(position)
+            println("Target Position: $position")
+        }
+        val distance = newPath.length
+        val rate = rateCurve.getValue(distance) // ft per sec
+        val time = maxOf(distance / rate, minTime)
         newPath.addEasePoint(0.0,0.0)
         newPath.addEasePoint(time, 1.0)
         newPath.addHeadingPoint(0.0, heading.asDegrees)
