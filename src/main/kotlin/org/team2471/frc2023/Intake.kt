@@ -57,6 +57,7 @@ object Intake : Subsystem("Intake") {
     val coneDetectEntry = table.getEntry("Cone Detect Power")
     val cubeHoldPowerEntry = table.getEntry("Cube Hold Power")
     val coneHoldPowerEntry = table.getEntry("Cone Hold Power")
+    val holdingObjectEntry = table.getEntry("Holding Object")
 
 
     val wristAngle: Angle
@@ -129,10 +130,10 @@ object Intake : Subsystem("Intake") {
     const val INTAKE_POWER = 1.0
     const val INTAKE_CONE = -1.0
     const val INTAKE_CUBE = 0.55
-    var HOLD_CONE = -0.20
-        get() = coneHoldPowerEntry.getDouble(-0.20)
+    var HOLD_CONE = -0.06
+        get() = coneHoldPowerEntry.getDouble(-0.10).coerceIn(0.0, -0.5) //coerce to prevent too large values in shuffleboard
     var HOLD_CUBE = 0.05
-        get() = cubeHoldPowerEntry.getDouble(0.05)
+        get() = cubeHoldPowerEntry.getDouble(0.05).coerceIn(0.5, 0.0) //coerce to prevent too large values in shuffleboard
     var DETECT_CONE = 20
         get() = coneDetectEntry.getInteger(20.toLong()).toInt()
     var DETECT_CUBE = 13
@@ -161,7 +162,7 @@ object Intake : Subsystem("Intake") {
         }
         intakeMotor.config { //intake bad
             brakeMode()
-            currentLimit(0, 60, 0)
+            currentLimit(0, 50, 0)
             burnSettings()
         }
 
@@ -183,10 +184,10 @@ object Intake : Subsystem("Intake") {
 
             wristSetpointEntry.setDouble(wristAngle.asDegrees)
             pivotSetpointEntry.setDouble(pivotAngle.asDegrees)
-            coneHoldPowerEntry.setDouble(-20.0)
-            coneDetectEntry.setInteger(20)
-            cubeHoldPowerEntry.setDouble(0.05)
-            cubeDetectEntry.setInteger(13)
+            coneHoldPowerEntry.setDouble(HOLD_CONE)
+            coneDetectEntry.setInteger(DETECT_CONE.toLong())
+            cubeHoldPowerEntry.setDouble(HOLD_CUBE)
+            cubeDetectEntry.setInteger(DETECT_CUBE.toLong())
 
             coneMaxBlockCount.setInteger(20)
             coneMinArea.setInteger(20)
@@ -194,6 +195,7 @@ object Intake : Subsystem("Intake") {
 
             periodic {
 
+                println("HOLD_CONE: $HOLD_CONE")
                 wristEntry.setDouble(wristAngle.asDegrees)
                 pivotEntry.setDouble(pivotAngle.asDegrees)
                 pivotSetpointEntry.setDouble(pivotSetpoint.asDegrees)

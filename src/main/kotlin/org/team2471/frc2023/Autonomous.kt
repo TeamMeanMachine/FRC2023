@@ -212,12 +212,17 @@ object AutoChooser {
         println("charge: ${NodeDeckHub.chargeInAuto}")
         if (NodeDeckHub.chargeInAuto) {
             if (NodeDeckHub.amountOfAutoPieces == 0) {
-                Drive.driveToPoints(Drive.position, Drive.position + Vector2(0.0, FieldManager.reflectFieldByAlliance(-0.25))) //combinedPosition is a little more sketchy right now. Change later
+                Drive.driveToPoints(Drive.combinedPosition, Drive.combinedPosition + Vector2(0.0, FieldManager.reflectFieldByAlliance(-0.25)))
                 delay(2.0)
             }
             parallel({
 //                Drive.dynamicGoToChargeCenter()
-                val destination = Vector2(FieldManager.centerOfChargeX + (Drive.robotHalfWidth.asFeet * 1.7 * if (NodeDeckHub.startingPoint == StartingPoint.OUTSIDE) -1 else 1), FieldManager.reflectFieldByAlliance(14.25))
+                val chargeX = when(NodeDeckHub.startingPoint) {
+                    StartingPoint.OUTSIDE -> -1
+                    StartingPoint.INSIDE -> 1
+                    StartingPoint.MIDDLE -> 0
+                }
+                val destination = Vector2(FieldManager.centerOfChargeX + (Drive.robotHalfWidth.asFeet * 1.7 * chargeX), FieldManager.reflectFieldByAlliance(14.25))
                 Drive.driveToPoints(Drive.combinedPosition, Vector2(destination.x, Drive.combinedPosition.y + FieldManager.reflectFieldByAlliance(-1.0)), destination)
                 Drive.rampTest()
 //            Drive.autoBalance()
@@ -226,7 +231,6 @@ object AutoChooser {
             })
         } else {
             toDrivePose()
-            flip()
         }
 //        var nextGamePiece = FieldManager.getClosestGamePieceOnField()
 //        println("nodedeck auto path to game piece: $nextGamePiece")

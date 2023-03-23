@@ -78,8 +78,7 @@ object PoseEstimator {
                 //        println(offset)
                 }
             } catch (ex: Exception) {
-                println("error in vision")
-            }
+               }
         }
     }
     fun zeroOffset() {
