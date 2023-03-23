@@ -202,11 +202,11 @@ object AutoChooser {
             backScoreToward(true, NodeDeckHub.firstAutoPiece)
             scoreObject(true, NodeDeckHub.firstAutoPiece)
             if (NodeDeckHub.amountOfAutoPieces > 1) {
-                nodeDeckPiece(gamePieceAngles[0].degrees, NodeDeckHub.secondAutoPiece, false) //NodeDeckHub.amountOfAutoPieces == 2 && NodeDeckHub.chargeInAuto)
+                nodeDeckPiece(gamePieceAngles[0].degrees, NodeDeckHub.secondAutoPiece,  NodeDeckHub.amountOfAutoPieces == 2 && NodeDeckHub.finishWithPiece)
                 if (NodeDeckHub.amountOfAutoPieces > 2) {
-                    nodeDeckPiece(gamePieceAngles[1].degrees, NodeDeckHub.thirdAutoPiece, false) //NodeDeckHub.amountOfAutoPieces == 3 && NodeDeckHub.chargeInAuto)
+                    nodeDeckPiece(gamePieceAngles[1].degrees, NodeDeckHub.thirdAutoPiece,  NodeDeckHub.amountOfAutoPieces == 3 && NodeDeckHub.finishWithPiece)
                     if (NodeDeckHub.amountOfAutoPieces > 3) {
-                        nodeDeckPiece(gamePieceAngles[2].degrees, NodeDeckHub.fourthAutoPiece, false) //NodeDeckHub.amountOfAutoPieces == 4 && NodeDeckHub.chargeInAuto)
+                        nodeDeckPiece(gamePieceAngles[2].degrees, NodeDeckHub.fourthAutoPiece,  NodeDeckHub.amountOfAutoPieces == 4 && NodeDeckHub.finishWithPiece)
                     }
                 }
             }
@@ -239,7 +239,7 @@ object AutoChooser {
 //        Drive.dynamicGoToGamePieceOnFloor(nextGamePiece, 0.0.degrees)
 
     }
-    suspend fun nodeDeckPiece(pickupHeading: Angle, nodeID: Int, goCharge: Boolean) = use(Intake, Drive, Arm) {
+    suspend fun nodeDeckPiece(pickupHeading: Angle, nodeID: Int, finishWithPiece: Boolean) = use(Intake, Drive, Arm) {
         val nextGamePiece = FieldManager.getClosestGamePieceOnField()
         println("nodedeck auto path to game piece: $nextGamePiece")
         parallel({
@@ -252,8 +252,8 @@ object AutoChooser {
         })
         println("finished goToGamePiece")
         val scoringNode = FieldManager.getNode(nodeID)
-        println("goCharge: $goCharge")
-        if (!goCharge) {
+        println("finishWithPiece: $finishWithPiece")
+        if (!finishWithPiece) {
             if (scoringNode == null) {
                 println("Scoring Node is Null")
             } else {
@@ -272,13 +272,12 @@ object AutoChooser {
             }
         } else {
 
-            ///Never runs right now!!
 //            Drive.dynamicGoToChargeCenter()
-            println("Right before charge. pos: ${Drive.combinedPosition}   8888888888888")
-            val destination = Vector2(FieldManager.centerOfChargeX + if (Drive.combinedPosition.x < FieldManager.centerOfChargeX) - Drive.robotHalfWidth.asFeet else + Drive.robotHalfWidth.asFeet * 2.0,
-                FieldManager.reflectFieldByAlliance((FieldManager.chargeFromCenterY + FieldManager.chargingStationDepth / 2.00).asFeet))
-            Drive.driveToPoints(Drive.combinedPosition, Vector2(destination.x, Drive.combinedPosition.y), destination)
-            Drive.rampTest()
+//            println("Right before charge. pos: ${Drive.combinedPosition}   8888888888888")
+//            val destination = Vector2(FieldManager.centerOfChargeX + if (Drive.combinedPosition.x < FieldManager.centerOfChargeX) - Drive.robotHalfWidth.asFeet else + Drive.robotHalfWidth.asFeet * 2.0,
+//                FieldManager.reflectFieldByAlliance((FieldManager.chargeFromCenterY + FieldManager.chargingStationDepth / 2.00).asFeet))
+//            Drive.driveToPoints(Drive.combinedPosition, Vector2(destination.x, Drive.combinedPosition.y), destination)
+//            Drive.rampTest()
 //            Drive.autoBalance()
         }
     }
