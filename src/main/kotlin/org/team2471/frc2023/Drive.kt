@@ -743,7 +743,9 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         val rate = rateCurve.getValue(distance) // ft per sec
         var time = distance / rate
         //val finalHeading = if (FieldManager.isBlueAlliance) 180.0 else 0.0
-        val finalHeading = if (FieldManager.isBlueAlliance) ((if (heading < 0.0.degrees) -180 else 180) - goalHeading.asDegrees) else goalHeading.asDegrees
+        var finalHeading = if (FieldManager.isBlueAlliance) ((if (heading < 0.0.degrees) -180 else 180) - goalHeading.asDegrees) else goalHeading.asDegrees
+        finalHeading = finalHeading.degrees.unWrap(heading).asDegrees
+        println("heading: $heading  Goal Heading: $goalHeading final heading $finalHeading")
         val minSpin = 4/180.0 * (heading - finalHeading.degrees).wrap().asDegrees.absoluteValue
         println("printing minimum spin time: $minSpin")
         time = maxOf(time,minSpin)

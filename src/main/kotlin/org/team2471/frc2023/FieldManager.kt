@@ -119,7 +119,7 @@ object FieldManager {
             //    Red Side
 
             val pOffset = when (p) {
-                0 -> Vector2(0.0, 0.0)
+                0 -> Vector2(3.0, 0.0) //feet
                 else -> Vector2(0.0, 0.0)
             }
             gamePieceStartingPos.add(Vector2((gamePieceOnFieldFromCenterX - gamePieceOnFieldOffsetX * p.toDouble().mod(4.0)).asFeet, if (p > 3) -gamePieceOnFieldFromCenterY.asFeet else gamePieceOnFieldFromCenterY.asFeet) + pOffset)

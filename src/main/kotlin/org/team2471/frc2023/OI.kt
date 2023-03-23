@@ -89,12 +89,12 @@ object OI : Subsystem("OI") {
         }
         operatorController::leftBumper.whenTrue {
             safeAnimationCheck(PERSONINCONTROL.OPERATOR) {
-                backScoreTowardCone()
+                backScoreToward()
             }
         }
         operatorController::rightBumper.whenTrue {
             safeAnimationCheck(PERSONINCONTROL.OPERATOR) {
-                backScoreAwayCone()
+                backScoreAway()
             }
         }
         operatorController::x.whenTrue {

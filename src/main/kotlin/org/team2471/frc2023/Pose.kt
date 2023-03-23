@@ -204,7 +204,7 @@ suspend fun animateThroughPoses(vararg poses: Pair<Double, Pose>) = use(Arm, Int
     timer.start()
     periodic {
         val t = timer.get()
-        println("t: $t  pivot: ${Intake.pivotAngle}")
+//        println("t: $t  pivot: ${Intake.pivotAngle}")
         Arm.wristPosition = path.getPosition(t)
         Intake.wristSetpoint = wristCurve.getValue(t).degrees
         Intake.pivotSetpoint = pivotCurve.getValue(t).degrees

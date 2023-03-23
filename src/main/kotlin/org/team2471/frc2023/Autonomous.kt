@@ -181,6 +181,7 @@ object AutoChooser {
         }
     }
     suspend fun nodeDeckAuto() = use(Drive, Intake, Arm) {
+        Intake.coneToward = false
         AprilTag.resetCameras()
         Intake.intakeMotor.setPercentOutput(Intake.HOLD_CONE)
         var gamePieceAngles = when (NodeDeckHub.startingPoint) {
@@ -198,7 +199,8 @@ object AutoChooser {
         Drive.zeroGyro()
         println("position: ${Drive.position}, ${Drive.combinedPosition}")
         if (NodeDeckHub.amountOfAutoPieces > 0) {
-            backScoreAuto(true, NodeDeckHub.firstAutoPiece)
+            backScoreToward(true, NodeDeckHub.firstAutoPiece)
+            scoreObject(true, NodeDeckHub.firstAutoPiece)
             if (NodeDeckHub.amountOfAutoPieces > 1) {
                 nodeDeckPiece(gamePieceAngles[0].degrees, NodeDeckHub.secondAutoPiece, false) //NodeDeckHub.amountOfAutoPieces == 2 && NodeDeckHub.chargeInAuto)
                 if (NodeDeckHub.amountOfAutoPieces > 2) {
@@ -245,7 +247,6 @@ object AutoChooser {
         }, {
             println("before toFrontDrivePose")
             toFrontDrivePose()
-            delay(0.15)
             println("before intakeFromGround")
             intakeFromGround(FieldManager.nodeList[nodeID]?.coneOrCube == GamePiece.CONE)
         })
@@ -265,8 +266,8 @@ object AutoChooser {
                 parallel({
                     Drive.dynamicGoToScore(scoringNode.alignPosition, safeSide)
                 }, {
-                    flip()
-                    backScoreAuto(FieldManager.nodeList[nodeID]?.coneOrCube == GamePiece.CONE, nodeID)
+                    backScoreAway(FieldManager.nodeList[nodeID]?.coneOrCube == GamePiece.CONE, nodeID)
+                    scoreObject(FieldManager.nodeList[nodeID]?.coneOrCube == GamePiece.CONE, nodeID)
                 })
             }
         } else {

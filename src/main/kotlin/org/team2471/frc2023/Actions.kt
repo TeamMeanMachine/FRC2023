@@ -102,7 +102,7 @@ suspend fun intakeCurrentLogic() {
 
 suspend fun intakeFromGround(isCone: Boolean = NodeDeckHub.isCone) = use(Arm, Intake) {
     println("inside intakeFromGround")
-    if (Intake.wristAngle.asDegrees > 80.0) {
+    if (Intake.wristAngle.asDegrees > 70.0 || DriverStation.isAutonomous()) {
         try {
             println("in intakeFromGround")
             val path = Path2D("newPath")
@@ -119,31 +119,6 @@ suspend fun intakeFromGround(isCone: Boolean = NodeDeckHub.isCone) = use(Arm, In
             path.addEasePoint(0.0, 0.0)
             path.addEasePoint(time, 1.0)
 
-
-//            val wristCurve = MotionCurve()
-//            wristCurve.storeValue(0.0, Pose.current.wristAngle.asDegrees)
-//            wristCurve.storeValue(time * 0.35, Pose.GROUND_INTAKE_FRONT_CONE.wristAngle.asDegrees)
-//            if (isCone) {
-//                wristCurve.storeValue(startOfExtend, Pose.GROUND_INTAKE_CONE_NEAR.wristAngle.asDegrees)
-//                wristCurve.storeValue(time, Pose.GROUND_INTAKE_CONE_FAR.wristAngle.asDegrees)
-//            } else {
-//                wristCurve.storeValue(startOfExtend, Pose.GROUND_INTAKE_CUBE_NEAR.wristAngle.asDegrees)
-//                wristCurve.storeValue(time, Pose.GROUND_INTAKE_CUBE_FAR.wristAngle.asDegrees)
-//            }
-
-//            val pivotCurve = MotionCurve()
-//            pivotCurve.storeValue(0.0, Pose.current.pivotAngle.asDegrees)
-//            if (isCone) {
-//                pivotCurve.storeValue(startOfExtend * 0.7, -90.0)
-//                pivotCurve.storeValue(startOfExtend * 0.9, -85.0)
-//                pivotCurve.storeValue(startOfExtend, Pose.GROUND_INTAKE_CONE_NEAR.pivotAngle.asDegrees)
-//                pivotCurve.storeValue(time, Pose.GROUND_INTAKE_CONE_FAR.pivotAngle.asDegrees)
-//            } else {
-//                pivotCurve.storeValue(time, Pose.GROUND_INTAKE_CUBE_NEAR.pivotAngle.asDegrees)
-//                pivotCurve.storeValue(startOfExtend, Pose.GROUND_INTAKE_CUBE_FAR.pivotAngle.asDegrees)
-//            }
-
-
             Drive.maxTranslation = 0.5
             //go to close intake
             if  (isCone) {
@@ -151,7 +126,7 @@ suspend fun intakeFromGround(isCone: Boolean = NodeDeckHub.isCone) = use(Arm, In
             } else {
                 animateThroughPoses(Pose.GROUND_INTAKE_FRONT_CUBE, Pose.GROUND_INTAKE_CUBE_NEAR)
             }
-//            if (OI.operatorLeftTrigger < 0.05 && DriverStation.isTeleop()) {
+//            if (OI.operatorLeftTrigger < 0.05 && DriverStation.isTeleop()) {  // todo: should be able to early exit the animations above
 //                this.stop()
 //            }
             val slewRateLimiter = SlewRateLimiter(10.0, -10.0, 0.0)
@@ -213,16 +188,6 @@ suspend fun intakeFromGround(isCone: Boolean = NodeDeckHub.isCone) = use(Arm, In
                     }
                 })
             }
-// play animation backwards
-//    periodic {
-//        val t = timer.get()
-//        Arm.endEffectorPosition = path.getPosition(t)
-//        Intake.wristSetpoint = wristCurve.getValue(t).degrees
-//        Intake.pivotSetpoint = pivotCurve.getValue(t).degrees
-//        if (t>startOfExtend || OI.operatorController.rightTrigger < 0.05) {
-//            this.stop()
-//        }
-//    }
         } finally {//move back to drive pos
             Drive.maxTranslation = 1.0
             println("Holding = ${Intake.holdingObject}")
@@ -238,22 +203,21 @@ suspend fun intakeFromGround(isCone: Boolean = NodeDeckHub.isCone) = use(Arm, In
             } else {
                 animateThroughPoses(Pose.FRONT_DRIVE_POSE)
             }
-//            toBackDrivePose()
         }
     } else {
         println("Wrong side--flip first!!")
     }
 }
 
-suspend fun backScoreTowardCone() = use(Arm, Intake) {
+suspend fun backScoreToward(isCone: Boolean = NodeDeckHub.isCone, pieceNumber: Int = NodeDeckHub.selectedNode.toInt()) = use(Arm, Intake) {
     if (Arm.wristPosition.x < -10.0 || Intake.wristAngle.asDegrees < -40.0) {
         Intake.coneToward = true
         Drive.maxTranslation = 0.3
         if (Arm.autoArmEnabled) {
             Drive.autoAim = true
         }
-        if (NodeDeckHub.isCone) {
-            when (FieldManager.getSelectedNode()?.level) {
+        if (isCone) {
+            when (FieldManager.nodeList[pieceNumber]?.level) {
                 Level.HIGH -> {
                     animateThroughPoses(
                         Pair(1.0, Pose.BACK_HIGH_SCORE_CONE_TOWARD_MID),
@@ -277,22 +241,22 @@ suspend fun backScoreTowardCone() = use(Arm, Intake) {
                 }
             }
         } else {
-            lineUpScoreCube()
+            lineUpScoreCube(pieceNumber)
         }
     } else {
         println("Wrong side--flip first!!")
     }
 }
 
-suspend fun backScoreAwayCone() = use(Arm, Intake) {
+suspend fun backScoreAway(isCone: Boolean = NodeDeckHub.isCone, pieceNumber: Int = NodeDeckHub.selectedNode.toInt()) = use(Arm, Intake) {
     if (Arm.wristPosition.x < -10.0 || Intake.wristAngle.asDegrees < -40.0) {
         Intake.coneToward = false
         Drive.maxTranslation = 0.3 //make this a constant
         if (Arm.autoArmEnabled) {
             Drive.autoAim = true
         }
-        if (NodeDeckHub.isCone) {
-            when (FieldManager.getSelectedNode()?.level) {
+        if (isCone) {
+            when (FieldManager.nodeList[pieceNumber]?.level) {
                 Level.HIGH -> {
                     animateThroughPoses(
                         Pair(1.0, Pose.BACK_HIGH_SCORE_CONE_AWAY_MID),
@@ -316,20 +280,20 @@ suspend fun backScoreAwayCone() = use(Arm, Intake) {
                 }
             }
         } else {
-            lineUpScoreCube()
+            lineUpScoreCube(pieceNumber)
         }
     } else {
         println("Wrong side--flip first!!")
     }
 }
 
-suspend fun lineUpScoreCube(selectedNode: Int = NodeDeckHub.selectedNode.toInt()) = use(Arm, Intake) {
+suspend fun lineUpScoreCube(pieceNumber: Int = NodeDeckHub.selectedNode.toInt()) = use(Arm, Intake) {
     if (Arm.wristPosition.x < -10.0 || Intake.wristAngle.asDegrees < -40.0) {
         Drive.maxTranslation = 0.3
         if (Arm.autoArmEnabled) {
             Drive.autoAim = true
         }
-        when (FieldManager.nodeList[selectedNode]?.level) {
+        when (FieldManager.nodeList[pieceNumber]?.level) {
             Level.HIGH -> {
                 animateThroughPoses(
                     Pair(0.0, Pose.BACK_HIGH_SCORE_CONE_TOWARD_MID),
@@ -385,10 +349,10 @@ suspend fun flip() = use(Arm, Intake) {
     }
 }
 
-suspend fun scoreObject() = use(Arm, Intake) {
+suspend fun scoreObject(isCone: Boolean = NodeDeckHub.isCone, pieceNumber: Int = NodeDeckHub.selectedNode.toInt()) = use(Arm, Intake) {
     println("in scoreObject")
-    val nodeLevel = FieldManager.getSelectedNode()?.level
-    if (NodeDeckHub.isCone) {
+    val nodeLevel = FieldManager.nodeList[pieceNumber]?.level
+    if (isCone) {
         if (Intake.coneToward) {
             when (nodeLevel) {
                 Level.HIGH -> {
@@ -450,9 +414,11 @@ suspend fun scoreObject() = use(Arm, Intake) {
 
     resetArmVars()
     Intake.intakeMotor.setPercentOutput(0.0)
-    when (nodeLevel) {
-        Level.HIGH -> animateThroughPoses(Pose.HIGH_SCORE_TO_PREFLIP, Pose.SCORE_TO_FLIP, Pose.FRONT_DRIVE_POSE)
-        else -> animateThroughPoses(Pose.MIDDLE_SCORE_TO_PREFLIP, Pose.SCORE_TO_FLIP, Pose.FRONT_DRIVE_POSE)
+    if (!DriverStation.isAutonomous()) {
+        when (nodeLevel) {
+            Level.HIGH -> animateThroughPoses(Pose.HIGH_SCORE_TO_PREFLIP, Pose.SCORE_TO_FLIP, Pose.FRONT_DRIVE_POSE)
+            else -> animateThroughPoses(Pose.MIDDLE_SCORE_TO_PREFLIP, Pose.SCORE_TO_FLIP, Pose.FRONT_DRIVE_POSE)
+        }
     }
     Drive.maxTranslation = 1.0
 }
@@ -513,7 +479,7 @@ suspend fun backScoreAuto(isCone: Boolean, pieceNumber: Int) = use(Arm, Intake) 
     } else {
         println("Wrong side--flip first!!")
     }
-    scoreObjectAuto(isCone, pieceNumber)
+    scoreObject(isCone, pieceNumber)
 }
 
 suspend fun scoreObjectAuto(isCone: Boolean, pieceNumber: Int) = use(Arm, Intake) {
