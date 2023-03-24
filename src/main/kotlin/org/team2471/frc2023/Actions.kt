@@ -137,10 +137,11 @@ suspend fun intakeFromGround(isCone: Boolean = NodeDeckHub.isCone) = use(Arm, In
             Intake.intakeMotor.setPercentOutput(if (isCone) Intake.INTAKE_CONE else Intake.INTAKE_CUBE) //intake bad
             if (OI.operatorLeftTrigger > 0.05 || DriverStation.isAutonomous()) { //animate through close and far pos
                 var tInitialHold = -1.0
+                var tHold = -1.0
                 var rumbleTimer = -1.0
                 parallel({
                     periodic {
-                        val tHold = if (tInitialHold != -1.0) timer.get() - tInitialHold else -1.0
+                        tHold = if (tInitialHold != -1.0) timer.get() - tInitialHold else -1.0
                         val alpha2 =
                             if (DriverStation.isTeleop()) slewRateLimiter.calculate(linearMap(0.5, 1.0, 0.0, 1.0, OI.operatorLeftTrigger).coerceIn(0.0, 1.0)) else slewRateLimiter.calculate(1.0)
                         val tPath = linearMap(0.0, 1.0, 0.0, time, alpha2)
@@ -196,6 +197,7 @@ suspend fun intakeFromGround(isCone: Boolean = NodeDeckHub.isCone) = use(Arm, In
                 OI.driverController.rumble = 0.0
                 OI.operatorController.rumble = 0.0
             Intake.intakeMotor.setPercentOutput(if (Intake.holdingObject) (if (isCone) Intake.HOLD_CONE else Intake.HOLD_CUBE) else 0.0) //intake bad
+            Arm.isFlipping = true
             if (Intake.holdingObject) {
                 if (isCone) {
                     animateThroughPoses(Pose.GROUND_TO_DRIVE_SAFE_CONE, Pose.GROUND_TO_DRIVE_SAFE, Pose.BACK_DRIVE_POSE)
@@ -205,6 +207,7 @@ suspend fun intakeFromGround(isCone: Boolean = NodeDeckHub.isCone) = use(Arm, In
             } else {
                 animateThroughPoses(Pose.FRONT_DRIVE_POSE)
             }
+            Arm.isFlipping = false
         }
     } else {
         println("Wrong side--flip first!!")

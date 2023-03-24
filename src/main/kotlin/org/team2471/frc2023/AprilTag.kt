@@ -75,6 +75,9 @@ object AprilTag {
 //        backPoseEstimator.setMultiTagFallbackStrategy(PhotonPoseEstimator.PoseStrategy.CLOSEST_TO_REFERENCE_POSE)
         GlobalScope.launch {
             periodic {
+                if (DriverStation.isDisabled()  && (camFront == null || frontPoseEstimator == null || camBack == null || backPoseEstimator == null)) {
+                    resetCameras()
+                    }
                 aprilTagStartupCheckEntry.setBoolean(camFront != null && camBack != null && frontPoseEstimator != null && backPoseEstimator != null)
 //                frontPoseEstimator.referencePose = Pose3d(Pose2d(PoseEstimator.currentPose.toWPIField(), Rotation2d(Drive.heading.asRadians)))
 //                backPoseEstimator.referencePose = Pose3d(Pose2d(PoseEstimator.currentPose.toWPIField(), Rotation2d(Drive.heading.asRadians)))

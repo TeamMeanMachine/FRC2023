@@ -548,9 +548,9 @@ object Drive : Subsystem("Drive"), SwerveDrive {
                 // plus a proportional part so that the power is higher when steep and less as it flattens.
                 drive(Vector2(0.0, gyro.getPitch().sign * 0.10 + gyro.getPitch() / 300.0), 0.0, fieldCentric = false)
 //                println("pitch = ${gyro.getPitch()}")
-                if (driveTimer.get() > 0.5) {
+                if (driveTimer.get() > 0.65) {
                     drive(Vector2(0.0, 0.0), 0.0)
-                    if(driveTimer.get() > 1.15) {
+                    if(driveTimer.get() > 1.25) {
                         driveTimer.reset()
                     }
                 }
@@ -746,7 +746,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         //val finalHeading = if (FieldManager.isBlueAlliance) 180.0 else 0.0
         var finalHeading = if (FieldManager.isBlueAlliance) ((if (heading < 0.0.degrees) -180 else 180) - goalHeading.asDegrees) else goalHeading.asDegrees
         finalHeading = finalHeading.degrees.unWrap(heading).asDegrees
-        println("heading: $heading  Goal Heading: $goalHeading final heading $finalHeading")
+        println("** heading: $heading  Goal Heading: $goalHeading final heading $finalHeading **")
         val minSpin = 4/180.0 * (heading - finalHeading.degrees).wrap().asDegrees.absoluteValue
         println("printing minimum spin time: $minSpin")
         time = maxOf(time,minSpin)

@@ -99,7 +99,7 @@ object Arm : Subsystem("Arm") {
         get() = elbowEncoder.value
     val elbowAngle: Angle
         get() = if (isCompBot) {
-            (-elbowEncoder.value.degrees + 1582.degrees) * 90.0 / 1054.0
+            (-elbowEncoder.value.degrees + 1469.degrees) * 90.0 / 1054.0
         } else {
             (-elbowEncoder.value.degrees + 1912.degrees) * 90.0 / 1054.0
         }
@@ -122,6 +122,7 @@ object Arm : Subsystem("Arm") {
     val elbowFilter = LinearFilter.movingAverage(5)
     val elbowDirection
         get() = elbowFilter.calculate(tempElbow.asDegrees - prevElbow.asDegrees)
+    var isFlipping: Boolean = false
 
     val distanceToTarget: Length
         get() = ((FieldManager.getSelectedNode()?.position ?: PoseEstimator.currentPose) - PoseEstimator.currentPose).length.feet

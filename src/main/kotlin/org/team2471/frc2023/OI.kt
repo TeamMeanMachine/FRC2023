@@ -103,7 +103,9 @@ object OI : Subsystem("OI") {
         }
         ({operatorController.leftTrigger > 0.1}).whenTrue {
             safeAnimationCheck(PERSONINCONTROL.OPERATOR) {
-                intakeFromGround()
+                if (!Arm.isFlipping) {
+                    intakeFromGround()
+                }
             }
         }
         ({operatorController.dPad == Controller.Direction.DOWN}).whenTrue {
