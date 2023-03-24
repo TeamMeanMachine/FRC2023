@@ -343,12 +343,12 @@ object Arm : Subsystem("Arm") {
 
                 //zeroing
                 if ((shoulderMotor.position - shoulderAngle.asDegrees).absoluteValue > 2.0) {
-                    println("Resetting shoulder from ${round(shoulderMotor.position, 1)} to ${round(shoulderAngle.asDegrees, 1)}")
+                    if ((shoulderMotor.position - shoulderAngle.asDegrees).absoluteValue > 15.0) println("Resetting shoulder from ${round(shoulderMotor.position, 1)} to ${round(shoulderAngle.asDegrees, 1)}")
                     shoulderMotor.setRawOffset(shoulderAngle.asDegrees)
                     shoulderFollowerMotor.setRawOffset(shoulderAngle.asDegrees)
                 }
                 if ((elbowMotor.position - elbowAngle.asDegrees).absoluteValue > 4.0) { //testing time
-                    println("Resetting elbow from ${round(elbowMotor.position, 1)} to ${round(elbowAngle.asDegrees, 1)}")
+                    if ((elbowMotor.position - elbowAngle.asDegrees).absoluteValue > 15.0) println("Resetting elbow from ${round(elbowMotor.position, 1)} to ${round(elbowAngle.asDegrees, 1)}")
                     elbowMotor.setRawOffset(elbowAngle.asDegrees)
                 }
 

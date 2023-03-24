@@ -61,7 +61,18 @@ object Intake : Subsystem("Intake") {
 
 
     val wristAngle: Angle
-        get() = wristMotor.position.degrees
+        get() {
+//            return wristMotor.position.degrees
+            val wristAng = wristMotor.position.degrees
+            if ((wristAng - prevWristAngle).asDegrees.absoluteValue > 15.0 && (wristAng.asDegrees + 89.0).absoluteValue < 1.0) {
+                println("Difference from wristAngle and prevAngle > 15.")
+                return prevWristAngle
+            } else {
+                return wristMotor.position.degrees
+            }
+            }
+    var prevWristAngle: Angle = -90.0.degrees
+
     var wristOffset = 0.0.degrees
     var wristSetpoint: Angle = wristAngle
         set(value) {
@@ -130,8 +141,8 @@ object Intake : Subsystem("Intake") {
     const val INTAKE_POWER = 1.0
     const val INTAKE_CONE = -1.0
     const val INTAKE_CUBE = 0.55
-    var HOLD_CONE = -0.10 //change default instead
-        get() = coneHoldPowerEntry.getDouble(-0.10).coerceIn(-0.5, 0.0) //coerce to prevent too large values in shuffleboard
+    var HOLD_CONE = -0.17 //change default instead
+        get() = coneHoldPowerEntry.getDouble(-0.17).coerceIn(-0.5, 0.0) //coerce to prevent too large values in shuffleboard
     var HOLD_CUBE = 0.1 //change default instead
         get() = cubeHoldPowerEntry.getDouble(0.1).coerceIn(0.0, 0.5) //coerce to prevent too large values in shuffleboard
     var DETECT_CONE = 20
@@ -216,32 +227,10 @@ object Intake : Subsystem("Intake") {
                 wristOffset += wrist.degrees
                 wristSetpoint += 0.0.degrees
 
-//                println("rot: $rotations    pInc:  ${round(pivotIncrementAngle.asDegrees, 2)}  pivotSet: ${pivotSetpoint.asDegrees}")
-
-//
-//                var pose3d = Pose3d(0.0,0.0,0.0, Rotation3d(0.0, 0.0, pivotAngle.asDegrees))
-//                pivotPose.setValue(pose3d)
-//
-//                pose3d = Pose3d(0.0,0.0,0.0, Rotation3d(0.0, 0.0, wristAngle.asDegrees))
-//                wristPose.setValue(pose3d)
-
                 intakeCurrentEntry.setDouble(intakeMotor.current) //intake bad
                 setPivotPower()
-//                println("min: ${round(wristMin.asDegrees, 1)}  max ${round(wristMax.asDegrees, 1)}")
-//                println("power: ${round(power, 1)}      openLoop: ${round(openLoopPower, 1)}    error: ${round(pError, 1)}   setpoint: ${round(pivotSetpoint.asDegrees, 1)}    angle: ${round(pivotAngle.asDegrees, 1)}")
 
-//                if (OI.operatorController.b) {
-//                    holdingObject = false
-//                    intakeMotor.setPercentOutput(INTAKE_POWER)
-//                } else {
-//                    intakeMotor.setPercentOutput(0.5 * OI.driverController.leftTrigger -
-//                            0.5 * OI.driverController.rightTrigger +
-//                            if (holdingObject) INTAKE_HOLD else 0.0
-//                    )
-//                    if (OI.driverController.rightTrigger > 0.1) {
-//                        holdingObject = false
-//                    }
-//                }
+                prevWristAngle = wristAngle
             }
         }
     }

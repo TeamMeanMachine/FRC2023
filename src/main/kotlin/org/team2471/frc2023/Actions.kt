@@ -420,23 +420,27 @@ suspend fun scoreObject(isCone: Boolean = NodeDeckHub.isCone, pieceNumber: Int =
     resetArmVars()
     Intake.intakeMotor.setPercentOutput(0.0)
     if (!DriverStation.isAutonomous()) {
-        when (nodeLevel) {
-            Level.HIGH -> animateThroughPoses(Pose.HIGH_SCORE_TO_PREFLIP, Pose.SCORE_TO_FLIP, Pose.FRONT_DRIVE_POSE)
-            Level.MID -> {
-                if (NodeDeckHub.isCone) {
-                    animateThroughPoses(Pose.MIDDLE_SCORE_CONE_TO_PREFLIP, Pose.SCORE_TO_FLIP, Pose.FRONT_DRIVE_POSE)
-                } else {
-                    animateThroughPoses(Pose.MIDDLE_SCORE_CUBE_TO_PREFLIP, Pose.SCORE_TO_FLIP, Pose.FRONT_DRIVE_POSE)
-                }
-            }
-            Level.LOW -> {
-                animateThroughPoses(Pose.BACK_DRIVE_POSE)
-                flip()
-            }
-            else -> println("No level selected :(")
-        }
+        afterScoreFlip(nodeLevel)
     }
     Drive.maxTranslation = 1.0
+}
+suspend fun afterScoreFlip(nodeLevel: Level?) {
+    println("going to drive pos after score. nodeLevel: $nodeLevel")
+    when (nodeLevel) {
+        Level.HIGH -> animateThroughPoses(Pose.HIGH_SCORE_TO_PREFLIP, Pose.SCORE_TO_FLIP, Pose.FRONT_DRIVE_POSE)
+        Level.MID -> {
+            if (NodeDeckHub.isCone) {
+                animateThroughPoses(Pose.MIDDLE_SCORE_CONE_TO_PREFLIP, Pose.SCORE_TO_FLIP, Pose.FRONT_DRIVE_POSE)
+            } else {
+                animateThroughPoses(Pose.MIDDLE_SCORE_CUBE_TO_PREFLIP, Pose.SCORE_TO_FLIP, Pose.FRONT_DRIVE_POSE)
+            }
+        }
+        Level.LOW -> {
+            animateThroughPoses(Pose.BACK_DRIVE_POSE)
+            flip()
+        }
+        else -> println("No level selected :(")
+    }
 }
 
 suspend fun toDrivePose() = use(Arm, Intake) {
@@ -464,6 +468,7 @@ suspend fun resetArmVars() = use(Arm, Intake) {
     Intake.wristOffset = 0.0.degrees
     Intake.pivotOffset = 0.0.degrees
     Arm.wristCenterOffset = Vector2(0.0, 0.0)
+    Arm.isFlipping = false
     if (!Intake.holdingObject) Intake.intakeMotor.setPercentOutput(0.0)
 }
 

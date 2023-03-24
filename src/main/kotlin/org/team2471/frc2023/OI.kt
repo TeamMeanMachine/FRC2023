@@ -84,7 +84,7 @@ object OI : Subsystem("OI") {
         operatorController::back.whenTrue { Arm.resetShoulderZero()}
         operatorController::start.whenTrue {
             safeAnimationCheck(PERSONINCONTROL.OPERATOR) {
-                animateToPose(Pose.BACK_START_POSE)
+                toDrivePose()
             }
         }
         operatorController::leftBumper.whenTrue {
@@ -105,6 +105,8 @@ object OI : Subsystem("OI") {
             safeAnimationCheck(PERSONINCONTROL.OPERATOR) {
                 if (!Arm.isFlipping) {
                     intakeFromGround()
+                } else {
+                    println("currently flipping")
                 }
             }
         }

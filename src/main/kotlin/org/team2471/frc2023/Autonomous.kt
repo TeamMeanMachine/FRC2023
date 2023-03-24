@@ -200,6 +200,7 @@ object AutoChooser {
         println("position: ${Drive.position}, ${Drive.combinedPosition}")
         if (NodeDeckHub.amountOfAutoPieces > 0) {
             backScoreToward(true, NodeDeckHub.firstAutoPiece)
+            if (NodeDeckHub.amountOfAutoPieces == 1) scoreObject(true, NodeDeckHub.firstAutoPiece)
             if (NodeDeckHub.amountOfAutoPieces > 1) {
                 parallel({
                     scoreObject(true, NodeDeckHub.firstAutoPiece)
@@ -211,9 +212,17 @@ object AutoChooser {
                     nodeDeckPiece(gamePieceAngles[1].degrees, NodeDeckHub.thirdAutoPiece,  NodeDeckHub.amountOfAutoPieces == 3 && NodeDeckHub.finishWithPiece)
                     if (NodeDeckHub.amountOfAutoPieces > 3) {
                         nodeDeckPiece(gamePieceAngles[2].degrees, NodeDeckHub.fourthAutoPiece,  NodeDeckHub.amountOfAutoPieces == 4 && NodeDeckHub.finishWithPiece)
+                    } else {
+                        afterScoreFlip(FieldManager.nodeList[NodeDeckHub.thirdAutoPiece]?.level)
                     }
+                } else {
+                    afterScoreFlip(FieldManager.nodeList[NodeDeckHub.secondAutoPiece]?.level)
                 }
+            } else {
+                afterScoreFlip(FieldManager.nodeList[NodeDeckHub.firstAutoPiece]?.level)
             }
+        } else {
+            flip()
         }
         println("charge: ${NodeDeckHub.chargeInAuto}")
         if (NodeDeckHub.chargeInAuto) {
@@ -231,7 +240,6 @@ object AutoChooser {
                 val destination = Vector2(FieldManager.centerOfChargeX + (Drive.robotHalfWidth.asFeet * 1.7 * chargeX), FieldManager.reflectFieldByAlliance(14.25))
                 Drive.driveToPoints(Drive.combinedPosition, Vector2(destination.x, Drive.combinedPosition.y + FieldManager.reflectFieldByAlliance(-1.0)), destination)
                 Drive.rampTest()
-//            Drive.autoBalance()
             }, {
                 toDrivePose()
             })
@@ -250,7 +258,7 @@ object AutoChooser {
             Drive.dynamicGoToGamePieceOnFloor(nextGamePiece, pickupHeading)
         }, {
             println("before toFrontDrivePose")
-            toFrontDrivePose()
+            afterScoreFlip(FieldManager.nodeList[nodeID]?.level)
             println("before intakeFromGround")
             intakeFromGround(FieldManager.nodeList[nodeID]?.coneOrCube == GamePiece.CONE)
         })

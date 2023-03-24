@@ -9,7 +9,6 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import org.jetbrains.kotlin.gradle.utils.`is`
 import org.team2471.frc.lib.actuators.FalconID
 import org.team2471.frc.lib.actuators.MotorController
 import org.team2471.frc.lib.control.PDConstantFController
@@ -30,7 +29,6 @@ import org.team2471.frc.lib.units.Angle.Companion.cos
 import org.team2471.frc.lib.units.Angle.Companion.sin
 import org.team2471.frc2023.FieldManager.isBlueAlliance
 import org.team2471.frc2023.FieldManager.reflectFieldByAlliance
-import java.util.Vector
 import kotlin.math.absoluteValue
 import kotlin.math.sign
 
@@ -744,10 +742,11 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         val rate = rateCurve.getValue(distance) // ft per sec
         var time = distance / rate
         //val finalHeading = if (FieldManager.isBlueAlliance) 180.0 else 0.0
-        var finalHeading = if (FieldManager.isBlueAlliance) ((if (heading < 0.0.degrees) -180 else 180) - goalHeading.asDegrees) else goalHeading.asDegrees
-        finalHeading = finalHeading.degrees.unWrap(heading).asDegrees
-        println("** heading: $heading  Goal Heading: $goalHeading final heading $finalHeading **")
-        val minSpin = 4/180.0 * (heading - finalHeading.degrees).wrap().asDegrees.absoluteValue
+        val currentHeading = Drive.heading
+        var finalHeading = if (FieldManager.isBlueAlliance) ((if (currentHeading < 0.0.degrees) -180 else 180) - goalHeading.asDegrees) else goalHeading.asDegrees
+        finalHeading = finalHeading.degrees.unWrap(currentHeading).asDegrees
+        println("** heading: $currentHeading  Goal Heading: $goalHeading final heading $finalHeading **")
+        val minSpin = 4.0/180.0 * (currentHeading - finalHeading.degrees).wrap().asDegrees.absoluteValue
         println("printing minimum spin time: $minSpin")
         time = maxOf(time,minSpin)
         newPath.addEasePoint(time, 1.0)
@@ -756,9 +755,11 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         newPath.addVector2(p3)
         newPath.addVector2(p4)
         println("$p1, $p2, $p3, $p4, finalH: $finalHeading")
-        newPath.addHeadingPoint(0.0, heading.asDegrees)
-        newPath.addHeadingPoint(safeDistance / rate, heading.asDegrees)
+        newPath.addHeadingPoint(0.0, currentHeading.asDegrees)
+//        newPath.addHeadingPoint(safeDistance / rate, heading.asDegrees)
+        println("Initial Heading: ${currentHeading.asDegrees}")
         newPath.addHeadingPoint(time, finalHeading)
+        println("Time: $time  Final Heading: $finalHeading")
         Drive.driveAlongPath(newPath){ abortPath() }
     }
 
