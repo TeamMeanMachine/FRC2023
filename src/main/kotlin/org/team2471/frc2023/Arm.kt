@@ -99,7 +99,7 @@ object Arm : Subsystem("Arm") {
         get() = elbowEncoder.value
     val elbowAngle: Angle
         get() = if (isCompBot) {
-            (-elbowEncoder.value.degrees + 1643.degrees) * 90.0 / 1054.0
+            (-elbowEncoder.value.degrees + 1582.degrees) * 90.0 / 1054.0
         } else {
             (-elbowEncoder.value.degrees + 1912.degrees) * 90.0 / 1054.0
         }

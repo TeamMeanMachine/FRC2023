@@ -514,6 +514,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
 //        driveDistance(Vector2(0.0, 0.25), FieldManager.reflectFieldByAlliance(-50.0).inches)
 //        println("Hopefully driving 2.5 inches")
 //        driveDistance(Vector2(0.0, -0.18), FieldManager.reflectFieldByAlliance(-2.5).inches)
+
         delay(0.5.seconds)
         autoBalance()
         xPose()
@@ -547,9 +548,9 @@ object Drive : Subsystem("Drive"), SwerveDrive {
                 // plus a proportional part so that the power is higher when steep and less as it flattens.
                 drive(Vector2(0.0, gyro.getPitch().sign * 0.10 + gyro.getPitch() / 300.0), 0.0, fieldCentric = false)
 //                println("pitch = ${gyro.getPitch()}")
-                if (driveTimer.get() > 0.65) {
+                if (driveTimer.get() > 0.5) {
                     drive(Vector2(0.0, 0.0), 0.0)
-                    if(driveTimer.get() > 1.25) {
+                    if(driveTimer.get() > 1.15) {
                         driveTimer.reset()
                     }
                 }

@@ -159,12 +159,14 @@ suspend fun intakeFromGround(isCone: Boolean = NodeDeckHub.isCone) = use(Arm, In
                         timer2.start()
                         var holdingTime = 50.0
                         periodic {
-                            if (timer2.get() > 2.0 || timer2.get() - holdingTime > 0.3) {
+                            if (timer2.get() > 2.0 || timer2.get() - holdingTime > 0.4) { //change 0.3 -> 0.4 untested
+                                println("totalTime: ${timer2.get() > 2.0}  holdTime ${timer2.get() - holdingTime > 0.4}")
                                 this.stop()
                             }
                             if (Intake.holdingObject && holdingTime == 50.0) {
                                 holdingTime = timer2.get()
                             }
+                            if (!Intake.holdingObject) holdingTime = 50.0 //untested
                         }
                     }
                 }, {
@@ -356,7 +358,7 @@ suspend fun scoreObject(isCone: Boolean = NodeDeckHub.isCone, pieceNumber: Int =
         if (Intake.coneToward) {
             when (nodeLevel) {
                 Level.HIGH -> {
-                    var midPose = Pose.current + Pose(Vector2(6.0, -3.5), 40.0.degrees, 0.0.degrees)
+                    var midPose = Pose.current + Pose(Vector2(5.5, -3.5), 40.0.degrees, 0.0.degrees)
                     animateToPose(midPose, 0.5)
                     Intake.intakeMotor.setPercentOutput(Intake.CONE_TOWARD_SPIT)
                     midPose += Pose(Vector2(6.5, 7.0), 0.0.degrees, 0.0.degrees)
@@ -365,7 +367,7 @@ suspend fun scoreObject(isCone: Boolean = NodeDeckHub.isCone, pieceNumber: Int =
                     animateToPose(midPose, 1.0)
                 }
                 Level.MID -> {
-                    val midPose = Pose.current + Pose(Vector2(10.0, -2.0), 40.0.degrees, 0.0.degrees)
+                    val midPose = Pose.current + Pose(Vector2(11.0, -2.5), 40.0.degrees, 0.0.degrees)
                     animateToPose(midPose, 1.0)
                     Intake.intakeMotor.setPercentOutput(Intake.CONE_TOWARD_SPIT)
                     animateToPose(midPose + Pose(Vector2(6.0, -2.0), 10.0.degrees, 0.0.degrees))
