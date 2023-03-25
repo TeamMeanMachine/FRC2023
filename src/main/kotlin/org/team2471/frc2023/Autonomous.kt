@@ -205,7 +205,7 @@ object AutoChooser {
                 parallel({
                     scoreObject(true, NodeDeckHub.firstAutoPiece)
                 }, {
-                    delay(1.0)
+                    delay(2.0)
                     nodeDeckPiece(gamePieceAngles[0].degrees, NodeDeckHub.secondAutoPiece, NodeDeckHub.amountOfAutoPieces == 2 && NodeDeckHub.finishWithPiece)
                 })
                 if (NodeDeckHub.amountOfAutoPieces > 2) {

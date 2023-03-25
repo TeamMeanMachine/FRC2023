@@ -65,7 +65,7 @@ object Intake : Subsystem("Intake") {
 //            return wristMotor.position.degrees
             val wristAng = wristMotor.position.degrees
             if ((wristAng - prevWristAngle).asDegrees.absoluteValue > 15.0 && (wristAng.asDegrees + 89.0).absoluteValue < 1.0) {
-                println("Difference from wristAngle and prevAngle > 15.")
+                println("Difference from wristAngle and prevAngle > 15. $wristAng")
                 return prevWristAngle
             } else {
                 return wristMotor.position.degrees
@@ -141,7 +141,7 @@ object Intake : Subsystem("Intake") {
     const val INTAKE_POWER = 1.0
     const val INTAKE_CONE = -1.0
     const val INTAKE_CUBE = 0.55
-    var HOLD_CONE = -0.17 //change default instead
+    var HOLD_CONE = -0.2 //change default instead
         get() = coneHoldPowerEntry.getDouble(-0.17).coerceIn(-0.5, 0.0) //coerce to prevent too large values in shuffleboard
     var HOLD_CUBE = 0.1 //change default instead
         get() = cubeHoldPowerEntry.getDouble(0.1).coerceIn(0.0, 0.5) //coerce to prevent too large values in shuffleboard

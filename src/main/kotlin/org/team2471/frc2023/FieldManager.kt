@@ -119,7 +119,7 @@ object FieldManager {
             //    Red Side
 
             val pOffset = when (p) {
-                0 -> Vector2(0.0, 0.0) //feet
+                0 -> Vector2(-0.8, 0.0) //feet
                 1 -> Vector2(-0.6, 0.4)
                 else -> Vector2(0.0, 0.0)
             }

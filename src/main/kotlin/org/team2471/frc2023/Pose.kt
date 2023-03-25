@@ -31,7 +31,7 @@ data class Pose(val wristPosition: Vector2, val wristAngle: Angle, val pivotAngl
         val BACK_MIDDLE_SCORE_CONE_AWAY_MID = Pose(Vector2(-25.0, 29.0), -180.0.degrees, -180.0.degrees)
         val BACK_MIDDLE_SCORE_CONE_AWAY = Pose(Vector2(-28.5, 29.5), -180.0.degrees, -180.0.degrees)
         val BACK_MIDDLE_SCORE_CONE_TOWARD_MID = Pose(Vector2(-22.0, 30.5), -100.0.degrees, 0.0.degrees)
-        val BACK_MIDDLE_SCORE_CONE_TOWARD = Pose(Vector2(-29.75, 28.5), -100.0.degrees, 0.0.degrees)
+        val BACK_MIDDLE_SCORE_CONE_TOWARD = Pose(Vector2(-29.75, 27.0), -100.0.degrees, 0.0.degrees)
         val BACK_MIDDLE_SCORE_CUBE = Pose(Vector2(-24.5, 31.5), -100.0.degrees, 0.0.degrees)
 
         val BACK_HIGH_SCORE_CONE_TOWARD_MID = Pose(Vector2(-28.0, 48.0), -100.0.degrees, 0.0.degrees)
@@ -83,7 +83,7 @@ suspend fun animateToPose(pose: Pose, minTime: Double = 0.0) = use(Arm, Intake) 
     var wristPosTime = distance / rate
 
     distance = (pose.wristAngle.asDegrees - Intake.wristAngle.asDegrees).absoluteValue
-    rate = 200.0 // deg per second
+    rate = 170.0 // deg per second
     var wristTime = distance / rate
 
     distance = (pose.pivotAngle.asDegrees - Intake.pivotAngle.asDegrees).absoluteValue
@@ -142,7 +142,7 @@ suspend fun animateThroughPoses(vararg poses: Pair<Double, Pose>) = use(Arm, Int
     for (i in 1..poses.indices.last) {
         distance.add((poses[i].second.wristAngle.asDegrees - poses[i-1].second.wristAngle.asDegrees).absoluteValue)
     }
-    rate = 200.0 // deg per second
+    rate = 170.0 // deg per second
     var wristTime = ArrayList<Double>(poses.size)
     for (i in poses.indices) {
         wristTime.add(distance[i] / rate)

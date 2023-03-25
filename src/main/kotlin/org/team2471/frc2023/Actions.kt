@@ -193,11 +193,16 @@ suspend fun intakeFromGround(isCone: Boolean = NodeDeckHub.isCone) = use(Arm, In
             }
         } finally {//move back to drive pos
             Drive.maxTranslation = 1.0
+//            if (!DriverStation.isAutonomous()) { //code to speed up auto :)
+//                groundBackToDrive(isCone)
+//            }
             println("Holding = ${Intake.holdingObject}")
                 OI.driverController.rumble = 0.0
                 OI.operatorController.rumble = 0.0
             Intake.intakeMotor.setPercentOutput(if (Intake.holdingObject) (if (isCone) Intake.HOLD_CONE else Intake.HOLD_CUBE) else 0.0) //intake bad
-            Arm.isFlipping = true
+            if (!DriverStation.isAutonomous()) {
+                Arm.isFlipping = true
+            }
             if (Intake.holdingObject) {
                 if (isCone) {
                     animateThroughPoses(Pose.GROUND_TO_DRIVE_SAFE_CONE, Pose.GROUND_TO_DRIVE_SAFE, Pose.BACK_DRIVE_POSE)
@@ -212,6 +217,25 @@ suspend fun intakeFromGround(isCone: Boolean = NodeDeckHub.isCone) = use(Arm, In
     } else {
         println("Wrong side--flip first!!")
     }
+}
+suspend fun groundBackToDrive(isCone: Boolean) {
+    println("Holding = ${Intake.holdingObject}")
+    OI.driverController.rumble = 0.0
+    OI.operatorController.rumble = 0.0
+    Intake.intakeMotor.setPercentOutput(if (Intake.holdingObject) (if (isCone) Intake.HOLD_CONE else Intake.HOLD_CUBE) else 0.0) //intake bad
+    if (!DriverStation.isAutonomous()) {
+        Arm.isFlipping = true
+    }
+    if (Intake.holdingObject) {
+        if (isCone) {
+            animateThroughPoses(Pose.GROUND_TO_DRIVE_SAFE_CONE, Pose.GROUND_TO_DRIVE_SAFE, Pose.BACK_DRIVE_POSE)
+        } else {
+            animateThroughPoses(Pose.GROUND_TO_DRIVE_SAFE_CUBE, Pose.GROUND_TO_DRIVE_SAFE, Pose.BACK_DRIVE_POSE)
+        }
+    } else {
+        animateThroughPoses(Pose.FRONT_DRIVE_POSE)
+    }
+    Arm.isFlipping = false
 }
 
 suspend fun backScoreToward(isCone: Boolean = NodeDeckHub.isCone, pieceNumber: Int = NodeDeckHub.selectedNode.toInt()) = use(Arm, Intake) {
@@ -356,6 +380,7 @@ suspend fun flip() = use(Arm, Intake) {
 
 suspend fun scoreObject(isCone: Boolean = NodeDeckHub.isCone, pieceNumber: Int = NodeDeckHub.selectedNode.toInt()) = use(Arm, Intake) {
     println("in scoreObject")
+    Drive.maxTranslation = 0.5
     val nodeLevel = FieldManager.nodeList[pieceNumber]?.level
     if (isCone) {
         if (Intake.coneToward) {
