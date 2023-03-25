@@ -183,7 +183,7 @@ object AutoChooser {
     suspend fun nodeDeckAuto() = use(Drive, Intake, Arm) {
         Intake.coneToward = false
         AprilTag.resetCameras()
-        Intake.intakeMotor.setPercentOutput(Intake.HOLD_CONE)
+        if (FieldManager.nodeList[NodeDeckHub.firstAutoPiece]?.level?.equals(Level.LOW) == true) Intake.intakeMotor.setPercentOutput(Intake.CUBE_SPIT) else Intake.intakeMotor.setPercentOutput(Intake.HOLD_CONE)
         var gamePieceAngles = when (NodeDeckHub.startingPoint) {
             StartingPoint.INSIDE -> doubleArrayOf(0.0, -30.0, -45.0)
             StartingPoint.MIDDLE -> doubleArrayOf(-30.0, -45.0, 30.0)
@@ -199,27 +199,38 @@ object AutoChooser {
         Drive.zeroGyro()
         println("position: ${Drive.position}, ${Drive.combinedPosition}")
         if (NodeDeckHub.amountOfAutoPieces > 0) {
-            backScoreToward(true, NodeDeckHub.firstAutoPiece)
-            if (NodeDeckHub.amountOfAutoPieces == 1) scoreObject(true, NodeDeckHub.firstAutoPiece)
-            if (NodeDeckHub.amountOfAutoPieces > 1) {
-                parallel({
-                    scoreObject(true, NodeDeckHub.firstAutoPiece)
+            if (FieldManager.nodeList[NodeDeckHub.firstAutoPiece]?.level?.equals(Level.LOW) == true) { //spit and run--special case
+                Intake.intakeMotor.setPercentOutput(Intake.CUBE_SPIT)
+                delay(0.8)
+                parallel ({
+                    if (!NodeDeckHub.chargeInAuto) Drive.dynamicGoToGamePieceOnFloor(FieldManager.getClosestGamePieceOnField(), gamePieceAngles[0].degrees)
                 }, {
-                    delay(2.0)
-                    nodeDeckPiece(gamePieceAngles[0].degrees, NodeDeckHub.secondAutoPiece, NodeDeckHub.amountOfAutoPieces == 2 && NodeDeckHub.finishWithPiece)
+                    Intake.intakeMotor.setPercentOutput(0.0)
+                    flip()
                 })
-                if (NodeDeckHub.amountOfAutoPieces > 2) {
-                    nodeDeckPiece(gamePieceAngles[1].degrees, NodeDeckHub.thirdAutoPiece,  NodeDeckHub.amountOfAutoPieces == 3 && NodeDeckHub.finishWithPiece)
-                    if (NodeDeckHub.amountOfAutoPieces > 3) {
-                        nodeDeckPiece(gamePieceAngles[2].degrees, NodeDeckHub.fourthAutoPiece,  NodeDeckHub.amountOfAutoPieces == 4 && NodeDeckHub.finishWithPiece)
+            } else {
+                backScoreToward(true, NodeDeckHub.firstAutoPiece)
+                if (NodeDeckHub.amountOfAutoPieces == 1) scoreObject(true, NodeDeckHub.firstAutoPiece)
+                if (NodeDeckHub.amountOfAutoPieces > 1) {
+                    parallel({
+                        scoreObject(true, NodeDeckHub.firstAutoPiece)
+                    }, {
+                        delay(2.0)
+                        nodeDeckPiece(gamePieceAngles[0].degrees, NodeDeckHub.secondAutoPiece, NodeDeckHub.amountOfAutoPieces == 2 && NodeDeckHub.finishWithPiece)
+                    })
+                    if (NodeDeckHub.amountOfAutoPieces > 2) {
+                        nodeDeckPiece(gamePieceAngles[1].degrees, NodeDeckHub.thirdAutoPiece,  NodeDeckHub.amountOfAutoPieces == 3 && NodeDeckHub.finishWithPiece)
+                        if (NodeDeckHub.amountOfAutoPieces > 3) {
+                            nodeDeckPiece(gamePieceAngles[2].degrees, NodeDeckHub.fourthAutoPiece,  NodeDeckHub.amountOfAutoPieces == 4 && NodeDeckHub.finishWithPiece)
+                        } else {
+                            afterScoreFlip(FieldManager.nodeList[NodeDeckHub.thirdAutoPiece]?.level)
+                        }
                     } else {
-                        afterScoreFlip(FieldManager.nodeList[NodeDeckHub.thirdAutoPiece]?.level)
+                        afterScoreFlip(FieldManager.nodeList[NodeDeckHub.secondAutoPiece]?.level)
                     }
                 } else {
-                    afterScoreFlip(FieldManager.nodeList[NodeDeckHub.secondAutoPiece]?.level)
+                    afterScoreFlip(FieldManager.nodeList[NodeDeckHub.firstAutoPiece]?.level)
                 }
-            } else {
-                afterScoreFlip(FieldManager.nodeList[NodeDeckHub.firstAutoPiece]?.level)
             }
         } else {
             flip()
@@ -249,7 +260,6 @@ object AutoChooser {
 //        var nextGamePiece = FieldManager.getClosestGamePieceOnField()
 //        println("nodedeck auto path to game piece: $nextGamePiece")
 //        Drive.dynamicGoToGamePieceOnFloor(nextGamePiece, 0.0.degrees)
-
     }
     suspend fun nodeDeckPiece(pickupHeading: Angle, nodeID: Int, finishWithPiece: Boolean) = use(Intake, Drive, Arm) {
         val nextGamePiece = FieldManager.getClosestGamePieceOnField()
@@ -305,5 +315,11 @@ object AutoChooser {
                 Drive.driveAlongPath(path, true)
             }
         }
+    }
+
+    private suspend fun spitAndRunAuto() {
+        Intake.intakeMotor.setPercentOutput(Intake.CUBE_SPIT)
+        Drive.driveToPoints()
+        Drive.dynamicGoToGamePieceOnFloor(FieldManager.getClosestGamePieceOnField(), if (FieldManager.isRedAlliance) 0.0.degrees else 180.0.degrees)
     }
 }

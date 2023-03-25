@@ -35,7 +35,7 @@ data class Pose(val wristPosition: Vector2, val wristAngle: Angle, val pivotAngl
         val BACK_MIDDLE_SCORE_CUBE = Pose(Vector2(-24.5, 31.5), -100.0.degrees, 0.0.degrees)
 
         val BACK_HIGH_SCORE_CONE_TOWARD_MID = Pose(Vector2(-28.0, 48.0), -100.0.degrees, 0.0.degrees)
-        val BACK_HIGH_SCORE_CONE_TOWARD = Pose(Vector2(-40.5, 41.0), -100.0.degrees, 0.0.degrees)
+        val BACK_HIGH_SCORE_CONE_TOWARD = Pose(Vector2(-39.5, 41.0), -100.0.degrees, 0.0.degrees)
         val BACK_HIGH_SCORE_CONE_AWAY_MID = Pose(Vector2(-29.0, 45.0), -200.0.degrees, -180.0.degrees)
         val BACK_HIGH_SCORE_CONE_AWAY = Pose(Vector2(-42.5, 41.5), -190.0.degrees, -180.0.degrees)
 
@@ -56,7 +56,7 @@ data class Pose(val wristPosition: Vector2, val wristAngle: Angle, val pivotAngl
         val FLIP_BACK_WRIST =  Pose(Vector2(2.0, 13.5), -90.0.degrees, -90.0.degrees)
 
         val HIGH_SCORE_TO_PREFLIP
-            get() = Pose(Vector2(-28.0, 42.0), current.wristAngle, current.pivotAngle)
+            get() = Pose(Vector2(-27.0, 42.5), current.wristAngle, current.pivotAngle)
         val MIDDLE_SCORE_CONE_TO_PREFLIP
             get() = Pose(Vector2(-29.0, 30.0), current.wristAngle, current.pivotAngle)
         val MIDDLE_SCORE_CUBE_TO_PREFLIP
