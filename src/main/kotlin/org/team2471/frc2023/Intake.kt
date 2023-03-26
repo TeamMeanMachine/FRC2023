@@ -158,7 +158,7 @@ object Intake : Subsystem("Intake") {
         wristMotor.restoreFactoryDefaults()
         intakeMotor.restoreFactoryDefaults() //intake bad
         wristMotor.config(20) {
-            feedbackCoefficient = 261.0 / 1273.0 * 199.0 / 360.0  //last one is fudge factor
+            feedbackCoefficient = 261.0 / 1273.0 * 198.0 / 360.0  //last one is fudge factor
             coastMode()
             pid {
                 p(0.00001)

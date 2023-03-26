@@ -249,8 +249,8 @@ suspend fun backScoreToward(isCone: Boolean = NodeDeckHub.isCone, pieceNumber: I
             when (FieldManager.nodeList[pieceNumber]?.level) {
                 Level.HIGH -> {
                     animateThroughPoses(
-                        Pair(1.0, Pose.BACK_HIGH_SCORE_CONE_TOWARD_MID),
-                        Pair(0.5, Pose.BACK_HIGH_SCORE_CONE_TOWARD)
+                        Pair(0.7, Pose.BACK_HIGH_SCORE_CONE_TOWARD_MID),
+                        Pair(0.3, Pose.BACK_HIGH_SCORE_CONE_TOWARD)
                     )
                     autoArmToPose(Pose.BACK_HIGH_SCORE_CONE_TOWARD)
                 }
@@ -288,8 +288,8 @@ suspend fun backScoreAway(isCone: Boolean = NodeDeckHub.isCone, pieceNumber: Int
             when (FieldManager.nodeList[pieceNumber]?.level) {
                 Level.HIGH -> {
                     animateThroughPoses(
-                        Pair(1.0, Pose.BACK_HIGH_SCORE_CONE_AWAY_MID),
-                        Pair(0.5, Pose.BACK_HIGH_SCORE_CONE_AWAY)
+                        Pair(0.9, Pose.BACK_HIGH_SCORE_CONE_AWAY_MID),
+                        Pair(0.4, Pose.BACK_HIGH_SCORE_CONE_AWAY)
                     )
                     autoArmToPose(Pose.BACK_HIGH_SCORE_CONE_AWAY)
                 }
@@ -380,74 +380,78 @@ suspend fun flip() = use(Arm, Intake) {
 
 suspend fun scoreObject(isCone: Boolean = NodeDeckHub.isCone, pieceNumber: Int = NodeDeckHub.selectedNode.toInt()) = use(Arm, Intake) {
     println("in scoreObject")
-    Drive.maxTranslation = 0.5
     val nodeLevel = FieldManager.nodeList[pieceNumber]?.level
-    if (isCone) {
-        if (Intake.coneToward) {
-            when (nodeLevel) {
-                Level.HIGH -> {
-                    var midPose = Pose.current + Pose(Vector2(5.5, -3.5), 40.0.degrees, 0.0.degrees)
-                    animateToPose(midPose, 0.5)
-                    Intake.intakeMotor.setPercentOutput(Intake.CONE_TOWARD_SPIT)
-                    midPose += Pose(Vector2(6.5, 7.0), 0.0.degrees, 0.0.degrees)
-                    animateToPose(midPose)
-                    midPose += Pose(Vector2(10.0, 6.0), 0.0.degrees, 0.0.degrees)
-                    animateToPose(midPose, 1.0)
+    if (Arm.wristPosition.x < -15.0 && (nodeLevel != Level.LOW || !DriverStation.isAutonomous())) {
+        Drive.maxTranslation = 0.5
+        if (isCone) {
+            if (Intake.coneToward) {
+                when (nodeLevel) {
+                    Level.HIGH -> {
+                        var midPose = Pose.current + Pose(Vector2(5.5, -3.5), 40.0.degrees, 0.0.degrees)
+                        animateToPose(midPose, 0.5)
+                        Intake.intakeMotor.setPercentOutput(Intake.CONE_TOWARD_SPIT)
+                        midPose += Pose(Vector2(6.5, 7.0), 0.0.degrees, 0.0.degrees)
+                        animateToPose(midPose)
+                        midPose += Pose(Vector2(10.0, 6.0), 0.0.degrees, 0.0.degrees)
+                        animateToPose(midPose, 0.9)
+                    }
+                    Level.MID -> {
+                        val midPose = Pose.current + Pose(Vector2(11.0, -2.5), 40.0.degrees, 0.0.degrees)
+                        animateToPose(midPose, 1.0)
+                        Intake.intakeMotor.setPercentOutput(Intake.CONE_TOWARD_SPIT)
+                        animateToPose(midPose + Pose(Vector2(6.0, -2.0), 10.0.degrees, 0.0.degrees))
+                    }
+                    Level.LOW -> {
+                        Intake.intakeMotor.setPercentOutput(Intake.CONE_TOWARD_SPIT)
+                        delay(1.0)
+                    }
+                    else -> println("Currently can't score there.")
                 }
-                Level.MID -> {
-                    val midPose = Pose.current + Pose(Vector2(11.0, -2.5), 40.0.degrees, 0.0.degrees)
-                    animateToPose(midPose, 1.0)
-                    Intake.intakeMotor.setPercentOutput(Intake.CONE_TOWARD_SPIT)
-                    animateToPose(midPose + Pose(Vector2(6.0, -2.0), 10.0.degrees, 0.0.degrees))
+            } else { // cone away
+                when (nodeLevel) {
+                    Level.HIGH -> {
+                        var midPose = Pose.current + Pose(Vector2(4.0, -7.0), 50.0.degrees, 0.0.degrees)
+                        animateToPose(midPose, 1.0)
+                        Intake.intakeMotor.setPercentOutput(Intake.CONE_AWAY_SPIT)
+                        midPose += Pose(Vector2(6.5, 5.5), 0.0.degrees, 0.0.degrees)
+                        animateToPose(midPose)
+                        println("before last score pivot: ${Intake.pivotAngle}")
+                        midPose += Pose(Vector2(10.0, 6.0), 0.0.degrees, 0.0.degrees)
+                        animateToPose(midPose, 1.5)
+                        println("after last score pivot: ${Intake.pivotAngle}")
+                    }
+                    Level.MID -> {
+                        val midPose = Pose.current + Pose(Vector2(7.0, -6.5), 40.0.degrees, 0.0.degrees)
+                        animateToPose(midPose, 1.0)
+                        Intake.intakeMotor.setPercentOutput(Intake.CONE_AWAY_SPIT)
+                        animateToPose(midPose + Pose(Vector2(6.0, -2.0), 10.0.degrees, 0.0.degrees))
+                    }
+                    Level.LOW -> {
+                        Intake.intakeMotor.setPercentOutput(Intake.CONE_AWAY_SPIT)
+                        delay(1.5)
+                    }
+                    else -> println("Currently can't score there.")
                 }
-                Level.LOW -> {
-                    Intake.intakeMotor.setPercentOutput(Intake.CONE_TOWARD_SPIT)
-                    delay(1.0)
-                }
-                else -> println("Currently can't score there.")
             }
-        } else { // cone away
+        } else {
+            Intake.intakeMotor.setPercentOutput(Intake.CUBE_SPIT)
             when (nodeLevel) {
-                Level.HIGH -> {
-                    var midPose = Pose.current + Pose(Vector2(4.0, -7.0), 50.0.degrees, 0.0.degrees)
-                    animateToPose(midPose, 1.0)
-                    Intake.intakeMotor.setPercentOutput(Intake.CONE_AWAY_SPIT)
-                    midPose += Pose(Vector2(6.5, 5.5), 0.0.degrees, 0.0.degrees)
-                    animateToPose(midPose)
-                    println("before last score pivot: ${Intake.pivotAngle}")
-                    midPose += Pose(Vector2(10.0, 6.0), 0.0.degrees, 0.0.degrees)
-                    animateToPose(midPose, 1.5)
-                    println("after last score pivot: ${Intake.pivotAngle}")
-                }
-                Level.MID -> {
-                    val midPose = Pose.current + Pose(Vector2(7.0, -6.5), 40.0.degrees, 0.0.degrees)
-                    animateToPose(midPose, 1.0)
-                    Intake.intakeMotor.setPercentOutput(Intake.CONE_AWAY_SPIT)
-                    animateToPose(midPose + Pose(Vector2(6.0, -2.0), 10.0.degrees, 0.0.degrees))
-                }
-                Level.LOW -> {
-                    Intake.intakeMotor.setPercentOutput(Intake.CONE_AWAY_SPIT)
-                    delay(1.5)
-                }
+                Level.LOW -> delay(0.8)
+                Level.MID -> animateToPose(Pose.current + Pose(Vector2(4.0, 3.0), 0.0.degrees, 0.0.degrees))
+                Level.HIGH -> animateToPose(Pose.current + Pose(Vector2(14.0, 0.0), 0.0.degrees, 0.0.degrees))
                 else -> println("Currently can't score there.")
             }
         }
-    } else {
-        Intake.intakeMotor.setPercentOutput(Intake.CUBE_SPIT)
-        when (nodeLevel) {
-            Level.LOW -> delay(0.8)
-            Level.MID -> animateToPose(Pose.current + Pose(Vector2(4.0, 3.0), 0.0.degrees, 0.0.degrees))
-            Level.HIGH -> animateToPose(Pose.current + Pose(Vector2(14.0, 0.0), 0.0.degrees, 0.0.degrees))
-            else -> println("Currently can't score there.")
-        }
-    }
 
-    resetArmVars()
-    Intake.intakeMotor.setPercentOutput(0.0)
-    if (!DriverStation.isAutonomous()) {
-        afterScoreFlip(nodeLevel)
+        resetArmVars()
+        Intake.intakeMotor.setPercentOutput(0.0)
+        if (!DriverStation.isAutonomous()) {
+            afterScoreFlip(nodeLevel)
+        }
+        Drive.maxTranslation = 1.0
+    } else {
+        println("Wrong side to score, flip first!")
     }
-    Drive.maxTranslation = 1.0
 }
 suspend fun afterScoreFlip(nodeLevel: Level?) {
     println("going to drive pos after score. nodeLevel: $nodeLevel")
