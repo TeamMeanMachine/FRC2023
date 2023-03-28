@@ -6,6 +6,7 @@ import edu.wpi.first.math.geometry.Translation2d
 import edu.wpi.first.wpilibj.DriverStation
 import edu.wpi.first.wpilibj.DriverStation.Alliance
 import org.team2471.frc.lib.math.Vector2
+import org.team2471.frc.lib.math.fitToRange
 import org.team2471.frc.lib.units.*
 
 object FieldManager {
@@ -105,7 +106,7 @@ object FieldManager {
                 //x cord of node 0 - the space between each node * column #, y cord of red top node + space between each node * row #
                 Vector2((36.0 - 22.0 * column)/12.0, (-308.5 + 17 * row - if (row == 2) 4.0 else 0.0)/12.0)
             }
-            nodeList[n] = ScoringNode(scoringType, level, pos, column)
+            nodeList[n] = ScoringNode(n, scoringType, level, pos, column)
 //            nodeList[n]?.position?.let { println(it.x) }
             //println("node:$n column:$column")
         }
@@ -119,8 +120,9 @@ object FieldManager {
             //    Red Side
 
             val pOffset = when (p) {
-                0 -> Vector2(-0.8, 0.0) //feet
+                0 -> Vector2(1.2, 0.8) //feet
                 1 -> Vector2(-0.6, 0.4)
+                4 -> Vector2(-0.2, 0.6)
                 else -> Vector2(0.0, 0.0)
             }
             gamePieceStartingPos.add(Vector2((gamePieceOnFieldFromCenterX - gamePieceOnFieldOffsetX * p.toDouble().mod(4.0)).asFeet, if (p > 3) -gamePieceOnFieldFromCenterY.asFeet else gamePieceOnFieldFromCenterY.asFeet) + pOffset)
@@ -146,12 +148,40 @@ object FieldManager {
         return Vector2(modX.meters.asFeet, modY.meters.asFeet)
     }
 
+    //node functions to make YOUR code look less messy!!!!
     fun getNode(nodeID: Int) : ScoringNode? {
         return nodeList[nodeID]
+    }
+    fun getNodeLevel(nodeID: Int): Level? {
+        return nodeList[nodeID]?.level
+    }
+    fun getNodePiece(nodeID: Int): GamePiece? {
+        return nodeList[nodeID]?.coneOrCube
+    }
+    fun getNodePosition(nodeID: Int): Vector2? {
+        return nodeList[nodeID]?.position
+    }
+    fun getNodeIsCone(nodeID: Int): Boolean {
+        return nodeList[nodeID]?.coneOrCube?.equals(GamePiece.CUBE) == true
+    }
+    fun getNodeIsLow(nodeID: Int): Boolean {
+        return nodeList[nodeID]?.level?.equals(Level.LOW) == true
+    }
+    fun getNodeIsMid(nodeID: Int): Boolean {
+        return nodeList[nodeID]?.level?.equals(Level.MID) == true
+    }
+    fun getNodeIsHigh(nodeID: Int): Boolean {
+        return nodeList[nodeID]?.level?.equals(Level.HIGH) == true
+    }
+    fun isValidNodeID(nodeID: Int): Boolean {
+        return nodeID in 0..53
     }
 
     fun getSelectedNode() : ScoringNode? {
         return nodeList[NodeDeckHub.selectedNode.toInt()]
+    }
+    fun getSelectedNodeID(): Int {
+        return NodeDeckHub.selectedNode.toInt()
     }
     fun getClosestGamePieceOnField(): Vector2 {
         val farSafePoint = when (NodeDeckHub.startingPoint) {
@@ -193,6 +223,7 @@ fun Pose2d.toTMMField():Pose2d {
 }
 
 data class ScoringNode (
+    var nodeID: Int,
     var coneOrCube: GamePiece,
     var level: Level,
     var position: Vector2,

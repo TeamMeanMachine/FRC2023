@@ -1,6 +1,7 @@
 package org.team2471.frc2023
 
 import edu.wpi.first.wpilibj.DriverStation
+import org.team2471.frc.lib.coroutines.delay
 import org.team2471.frc.lib.framework.Subsystem
 import org.team2471.frc.lib.input.*
 import org.team2471.frc.lib.math.Vector2
@@ -104,7 +105,7 @@ object OI : Subsystem("OI") {
         }
         ({operatorController.leftTrigger > 0.1}).whenTrue {
             safeAnimationCheck(PERSONINCONTROL.OPERATOR) {
-                if (!Arm.isFlipping && !DriverStation.isAutonomous()) {
+                if (!Arm.isFlipping) {
                     intakeFromGround()
                 } else {
                     println("currently flipping")
