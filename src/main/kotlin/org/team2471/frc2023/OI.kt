@@ -1,5 +1,6 @@
 package org.team2471.frc2023
 
+import edu.wpi.first.wpilibj.DriverStation
 import org.team2471.frc.lib.coroutines.delay
 import org.team2471.frc.lib.framework.Subsystem
 import org.team2471.frc.lib.input.*
@@ -63,8 +64,6 @@ object OI : Subsystem("OI") {
         driverController::x.whenTrue { Drive.xPose() }
         driverController::b.whenTrue {
             Intake.intakeMotor.setPercentOutput(if (NodeDeckHub.isCone) Intake.CONE_TOWARD_SPIT else Intake.CUBE_SPIT)
-            delay(1.0)
-            Intake.intakeMotor.setPercentOutput(0.0)
         }
         driverController::leftBumper.whenTrue {
                 Drive.dynamicGoToScoreCheck()
