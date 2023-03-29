@@ -493,7 +493,7 @@ suspend fun toBackDrivePose() = use(Arm, Intake) {
     Drive.maxTranslation = 1.0
 }
 
-suspend fun resetArmVars() = use(Arm, Intake) {
+suspend fun  resetArmVars() = use(Arm, Intake) {
     Intake.wristOffset = 0.0.degrees
     Intake.pivotOffset = 0.0.degrees
     Arm.wristCenterOffset = Vector2(0.0, 0.0)

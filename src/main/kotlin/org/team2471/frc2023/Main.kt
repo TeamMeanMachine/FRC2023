@@ -59,21 +59,23 @@ object Robot : MeanlibRobot() {
         println("Activating AprilTags! Last Detection: ${AprilTag.lastDetection}")
         PoseEstimator
         println("Activating PoseEstimator! currentPose ${PoseEstimator.currentPose}")
-        SignalLights
+//        SignalLights
 //        MAPoseEstimator
         Arm
+        println("Activating Arm! currentPosition ${Arm.wristPosition}")
         Intake
+        println("Activating Intake! wristAngle: ${Intake.wristAngle.asDegrees}")
 //        PowerInfo
     }
 
     override suspend fun enable() {
-        FieldManager.beforeFirstEnable = false
         println("starting enable")
+        FieldManager.beforeFirstEnable = false
         Drive.enable()
         Arm.enable()
         Intake.enable()
 //        PowerInfo.enable()
-        SignalLights.enable()
+//        SignalLights.enable()
         println("field centric? ${SmartDashboard.getBoolean("Use Gyro", true) && !DriverStation.isAutonomous()}")
         println("ending enable")
     }
@@ -108,7 +110,7 @@ object Robot : MeanlibRobot() {
         Arm.disable()
         Intake.disable()
 //        PowerInfo.disable()
-        SignalLights.disable()
+//        SignalLights.disable()
     }
 
     private fun initTimeMeasurement(){
