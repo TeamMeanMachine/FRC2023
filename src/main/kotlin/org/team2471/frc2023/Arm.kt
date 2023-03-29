@@ -66,7 +66,7 @@ object Arm : Subsystem("Arm") {
     val shoulderAngle: Angle
         get() =
             if (isCompBot) {
-                (-shoulderEncoder.value.degrees + 3139.degrees) / 11.2 //if (-shoulderEncoder.value + 1183 < 0.0) 12.4 else 9.8)
+                (-shoulderEncoder.value.degrees + 2481.degrees) / 11.2 //if (-shoulderEncoder.value + 1183 < 0.0) 12.4 else 9.8)
             } else {
                 (-shoulderEncoder.value.degrees + 1133.degrees) / 11.2
             }
@@ -99,7 +99,7 @@ object Arm : Subsystem("Arm") {
         get() = elbowEncoder.value
     val elbowAngle: Angle
         get() = if (isCompBot) {
-            (-elbowEncoder.value.degrees + 1420.degrees) * 90.0 / 1054.0
+            (-elbowEncoder.value.degrees + 1309.degrees) * 90.0 / 1054.0
         } else {
             (-elbowEncoder.value.degrees + 1912.degrees) * 90.0 / 1054.0
         }

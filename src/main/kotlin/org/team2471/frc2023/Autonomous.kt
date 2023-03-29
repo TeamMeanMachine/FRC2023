@@ -248,9 +248,10 @@ object AutoChooser {
                     StartingPoint.INSIDE -> 1
                     StartingPoint.MIDDLE -> 0
                 }
-                val destination = Vector2(FieldManager.centerOfChargeX + (Drive.robotHalfWidth.asFeet * 1.7 * chargeX), FieldManager.reflectFieldByAlliance(14.25))
-                Drive.driveToPoints(Drive.combinedPosition, Vector2(destination.x, Drive.combinedPosition.y + FieldManager.reflectFieldByAlliance(-1.0)), destination)
-                Drive.rampTest()
+                val chargeDestination = Vector2(FieldManager.centerOfChargeX + (Drive.robotHalfWidth.asFeet * 1.7 * chargeX), FieldManager.reflectFieldByAlliance(14.25))
+                Drive.driveToPoints(Drive.combinedPosition, Vector2(chargeDestination.x, -10.0 - Drive.robotHalfWidth.asFeet))
+                Drive.driveToPoints(Drive.combinedPosition, chargeDestination)
+                Drive.autoBalance()
             }, {
                 toDrivePose()
             })

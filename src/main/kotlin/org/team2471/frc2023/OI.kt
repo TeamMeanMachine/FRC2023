@@ -59,9 +59,6 @@ object OI : Subsystem("OI") {
         driverController::back.whenTrue { Drive.zeroGyro();
             Drive.initializeSteeringMotors() }
         driverController::start.whenTrue { Drive.calibrateRobotPosition() }
-        driverController::a.whenTrue {
-            Drive.rampTest()
-        }
 //        driverController::b.whenTrue { Drive.dynamicGoToFeeder()}
         driverController::x.whenTrue { Drive.xPose() }
         driverController::b.whenTrue {

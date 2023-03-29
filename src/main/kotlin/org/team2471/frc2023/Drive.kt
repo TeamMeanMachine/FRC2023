@@ -180,7 +180,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
 
     var maxTranslation = 1.0
     var maxRotation = 1.0
-        get() = linearMap(0.05, 70.0, 1.0, 0.0, Arm.wristPosition.x.absoluteValue)
+        get() = linearMap(0.05, 50.0, 1.0, 0.2, Arm.wristPosition.x.absoluteValue)
 
     const val MAX_INTAKE_TRANSLATION = 0.5
     const val MAX_SCORE_TRANSLATION = 0.3
@@ -493,76 +493,40 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         }
         initializeSteeringMotors()
     }
-    suspend fun rampTest() = use(Drive) {
-        println("Got into rampTest")
-//        val driveTimer = Timer()
-//        driveTimer.start()
-//        println("drive until not level")
-//        periodic {
-//            drive(Vector2(0.0, FieldManager.reflectFieldByAlliance(-0.3)), 0.0, fieldCentric = false, true)
-//            println("pitch = ${gyro.getPitch()}")
-//            if (if (FieldManager.isRedAlliance) gyro.getPitch() > 3.0 else gyro.getPitch() < -3.0) {
-//                stop()
-//            }
-//        }
-
-        driveToPoints(combinedPosition, Vector2(combinedPosition.x, FieldManager.reflectFieldByAlliance(14.25)))
-//
-//        println("Driving 50 inches.... supposedly")
-//        driveDistance(Vector2(0.0, 0.25), FieldManager.reflectFieldByAlliance(-50.0).inches)
-//        println("Hopefully driving 2.5 inches")
-//        driveDistance(Vector2(0.0, -0.18), FieldManager.reflectFieldByAlliance(-2.5).inches)
-
-        delay(0.5.seconds)
-        autoBalance()
-        xPose()
-    }
-
-    suspend fun driveDistance(speed: Vector2, distance: Length) {
-        println("Drive to the center of ramp")
-        var prevPosition = position
-        periodic {
-           // drive(speed, 0.0, fieldCentric = false, true)
-            drive(Vector2(0.0, 62.0), 0.0, fieldCentric = false)
-            val distanceTraveled = (position - prevPosition).length.feet
-            println("distance = $distanceTraveled")
-            if (distanceTraveled > distance) {
-                stop()
-            }
-        }
-        drive(Vector2(0.0, 0.0), 0.0)
-    }
-
     suspend fun autoBalance() {
-        val driveTimer = Timer()
+//        val driveTimer = Timer()
         val holdTimer = Timer()
-        driveTimer.start()
-        holdTimer.start()
-        var prevTilted = true
+        var testBalanced = false
+        var prevPitch = gyro.getPitch()
+        val goalHeading = if (isBlueAlliance) 180.0 else 0.0
         periodic {
-            if (gyro.getPitch().absoluteValue > 2.5) {
+            if (gyro.getPitch().absoluteValue > 2.5 && !testBalanced) {
                 println("pitched")
+
+                var error = (goalHeading.degrees - heading).wrap()
+                val turn = aimPDController.update(error.asDegrees)
                 // constant part for a feed forward, so there's always enough power to move.
                 // plus a proportional part so that the power is higher when steep and less as it flattens.
-                drive(Vector2(0.0, gyro.getPitch().sign * 0.10 + gyro.getPitch() / 300.0), 0.0, fieldCentric = false)
-//                println("pitch = ${gyro.getPitch()}")
-                if (driveTimer.get() > 0.65) {
+                drive(Vector2(0.0, gyro.getPitch().sign * 0.10 + gyro.getPitch() / 300.0), turn, fieldCentric = false)
+
+                if ((gyro.getPitch() - prevPitch).absoluteValue > 1.5) {
+                    println("I'm leveling")
                     drive(Vector2(0.0, 0.0), 0.0)
-                    if(driveTimer.get() > 1.25) {
-                        driveTimer.reset()
-                    }
+                    xPose()
+                    holdTimer.start()
+                    testBalanced = true
                 }
-                prevTilted = true
-            } else if (prevTilted) {
-                println("not pitched but just was")
-                holdTimer.reset()
-                drive(Vector2(0.0, 0.0), 0.0)
-                prevTilted = false
-            } else if (holdTimer.get() > 1.0) {
-                println("done")
-                stop()
+
+                prevPitch = gyro.getPitch()
             }
-            //  println("Pitch = ${gyro.getNavX().pitch}, Time = ${driveTimer.get()}")
+            else if (testBalanced && holdTimer.get() > 1.0) {
+                if (gyro.getPitch().absoluteValue < 2.5 ) {
+                    println("balanced for more then 1 second. stopping autoBalance...")
+                    this.stop()
+                } else {
+                    testBalanced = false
+                }
+            }
         }
     }
     suspend fun driveToPointsPercentSpeed(percent: Double, vararg positions: Vector2) {

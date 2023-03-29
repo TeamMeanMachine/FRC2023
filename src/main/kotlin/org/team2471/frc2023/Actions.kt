@@ -358,7 +358,7 @@ private suspend fun autoArmToPose(pose: Pose) {
             val deltaBumper =
                 Arm.distanceToTarget.asInches - 16.0 - (selectedNode.position.y - FieldManager.mirroredGridFromCenterY.asFeet).absoluteValue.feet.asInches
             val directionToNode = selectedNode.position - PoseEstimator.currentPose
-            Drive.angleToNode = directionToNode.angle.radians + 180.0.degrees
+            Drive.angleToNode = directionToNode.angle + 180.0.degrees
             Arm.wristPosition.x = pose.wristPosition.x - deltaBumper
             // println("delta2=$delta wristpos=${Arm.wristPosition.x}")
             Arm.deltaValueEntry.setDouble(deltaBumper)
