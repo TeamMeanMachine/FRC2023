@@ -262,7 +262,6 @@ object Drive : Subsystem("Drive"), SwerveDrive {
     }
 
     override fun preEnable() {
-        super.preEnable()
         //initializeSteeringMotors()
         odometer0Entry.setDouble(Preferences.getDouble("odometer 0",0.0))
         odometer1Entry.setDouble(Preferences.getDouble("odometer 1",0.0))
@@ -270,17 +269,15 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         odometer3Entry.setDouble(Preferences.getDouble("odometer 3",0.0))
         println("prefs at enable=${Preferences.getDouble("odometer 0",0.0)}")
     }
-    override fun postEnable(){
-        super.postEnable()
-       // initializeSteeringMotors()
-        println("Initialized From Post Enable")
-    }
+//    override fun postEnable(){
+//       // initializeSteeringMotors()
+//        println("Initialized From Post Enable")
+//    }
     override fun onDisable() {
         if (odometer0Entry.getDouble(0.0) > 0.0) Preferences.setDouble("odometer 0", odometer0Entry.getDouble(0.0))
         if (odometer1Entry.getDouble(0.0) > 0.0) Preferences.setDouble("odometer 1", odometer1Entry.getDouble(0.0))
         if (odometer2Entry.getDouble(0.0) > 0.0) Preferences.setDouble("odometer 2", odometer2Entry.getDouble(0.0))
         if (odometer3Entry.getDouble(0.0) > 0.0) Preferences.setDouble("odometer 3", odometer3Entry.getDouble(0.0))
-        super.onDisable()
     }
 
     override fun poseUpdate(poseTwist: SwerveDrive.Pose) {
