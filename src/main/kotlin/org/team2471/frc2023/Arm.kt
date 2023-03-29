@@ -43,8 +43,8 @@ object Arm : Subsystem("Arm") {
     val shoulderZeroedForwardEntry = table.getEntry("Shoulder Zero Forward")
     val shoulderZeroedBackwardEntry = table.getEntry("Shoulder Zero Backward")
     val shoulderIsZeroedEntry = table.getEntry("Shoulder Is Zeroed")
-    val shoulderTickEntry = table.getEntry("Shoulder Ticks")
-    val elbowTickEntry = table.getEntry("Elbow Ticks")
+    val shoulderTicksEntry = table.getEntry("Shoulder Ticks")
+    val elbowTicksEntry = table.getEntry("Elbow Ticks")
     val autoArmEntry = table.getEntry("Auto Arm")
     var shoulderGetZeroCount = 0
     var shoulderZeroForward = false
@@ -56,6 +56,8 @@ object Arm : Subsystem("Arm") {
     val nodeAngleEntry = table.getEntry("Robot Angle")
     val wristFrontOffsetEntry = table.getEntry("Front Wrist Offset")
     val wristBackOffsetEntry = table.getEntry("Back Wrist Offset")
+    val elbowTicksOffsetEntry = table.getEntry("Elbow Ticks Offset")
+    val shoulderTicksOffsetEntry = table.getEntry("Shoulder Ticks Offset")
 
 
     val driverInControlEntry = table.getEntry("Driver in Control")
@@ -66,9 +68,9 @@ object Arm : Subsystem("Arm") {
     val shoulderAngle: Angle
         get() =
             if (isCompBot) {
-                (-shoulderEncoder.value.degrees + 2481.degrees) / 11.2 //if (-shoulderEncoder.value + 1183 < 0.0) 12.4 else 9.8)
+                (-shoulderEncoder.value.degrees + shoulderTicksOffsetEntry.getDouble(2475.0).degrees) / 11.2 //if (-shoulderEncoder.value + 1183 < 0.0) 12.4 else 9.8)
             } else {
-                (-shoulderEncoder.value.degrees + 1133.degrees) / 11.2
+                (-shoulderEncoder.value.degrees + shoulderTicksOffsetEntry.getDouble(1133.0).degrees) / 11.2 //1133
             }
 
     val shoulderAnalogAngle: Angle
@@ -95,13 +97,14 @@ object Arm : Subsystem("Arm") {
     var prevShoulder = shoulderAngle
     val shoulderFollowerAngle: Angle
         get() = shoulderFollowerMotor.position.degrees + shoulderOffset
+
     val elbowTicks: Int
         get() = elbowEncoder.value
     val elbowAngle: Angle
         get() = if (isCompBot) {
-            (-elbowEncoder.value.degrees + 1309.degrees) * 90.0 / 1054.0
+            (-elbowEncoder.value.degrees + elbowTicksOffsetEntry.getDouble(2150.0).degrees) * 90.0 / 1054.0
         } else {
-            (-elbowEncoder.value.degrees + 1912.degrees) * 90.0 / 1054.0
+            (-elbowEncoder.value.degrees + elbowTicksOffsetEntry.getDouble(1912.0).degrees) * 90.0 / 1054.0 //1912
         }
 
     var elbowOffset = 0.0.degrees
@@ -235,6 +238,14 @@ object Arm : Subsystem("Arm") {
     init {
         println("Arm init")
         autoArmEntry.setBoolean(false)
+        if (!shoulderTicksOffsetEntry.exists()) {
+            shoulderTicksOffsetEntry.setDouble(2475.0)
+        }
+        if (!elbowTicksOffsetEntry.exists()) {
+            elbowTicksOffsetEntry.setDouble(2150.0)
+        }
+        shoulderTicksOffsetEntry.setPersistent()
+        elbowTicksOffsetEntry.setPersistent()
         shoulderMotor.restoreFactoryDefaults()
         shoulderFollowerMotor.restoreFactoryDefaults()
         elbowMotor.restoreFactoryDefaults()
@@ -329,8 +340,8 @@ object Arm : Subsystem("Arm") {
                 val (fkX, fkY) = forwardKinematics(shoulderAngle, elbowAngle)
                 xFKEntry.setDouble(fkX)
                 yFKENtry.setDouble(fkY)
-                shoulderTickEntry.setDouble(shoulderTicks.toDouble())
-                elbowTickEntry.setDouble(elbowTicks.toDouble())
+                shoulderTicksEntry.setDouble(shoulderTicks.toDouble())
+                elbowTicksEntry.setDouble(elbowTicks.toDouble())
 
                 var move = Vector2(
                     OI.operatorController.leftThumbstickX.deadband(0.2),
