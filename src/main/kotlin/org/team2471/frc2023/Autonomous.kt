@@ -186,7 +186,7 @@ object AutoChooser {
         if (FieldManager.nodeList[NodeDeckHub.firstAutoPiece]?.level?.equals(Level.LOW) == true) Intake.intakeMotor.setPercentOutput(Intake.CUBE_SPIT) else Intake.intakeMotor.setPercentOutput(Intake.HOLD_CONE)
         var gamePieceAngles = when (NodeDeckHub.startingPoint) {
             StartingPoint.INSIDE -> doubleArrayOf(0.0, -30.0, -45.0)
-            StartingPoint.MIDDLE -> doubleArrayOf(-30.0, -45.0, 30.0)
+            StartingPoint.MIDDLE -> doubleArrayOf(0.0, 30.0, -30.0)
             StartingPoint.OUTSIDE -> doubleArrayOf(0.0, 30.0, 45.0)
         }
         FieldManager.resetClosestGamePieceOnField()
@@ -215,7 +215,7 @@ object AutoChooser {
                     parallel({
                         scoreObject(true, NodeDeckHub.firstAutoPiece)
                     }, {
-                        delay(2.0)
+                        delay(0.5)
                         nodeDeckPiece(gamePieceAngles[0].degrees, NodeDeckHub.secondAutoPiece, NodeDeckHub.amountOfAutoPieces == 2 && NodeDeckHub.finishWithPiece)
                     })
                     if (NodeDeckHub.amountOfAutoPieces > 2) {
@@ -233,7 +233,7 @@ object AutoChooser {
                 }
             }
         } else {
-            flip()
+//            flip()
         }
         println("charge: ${NodeDeckHub.chargeInAuto}")
         if (NodeDeckHub.chargeInAuto) {
@@ -248,15 +248,15 @@ object AutoChooser {
                     StartingPoint.INSIDE -> 1
                     StartingPoint.MIDDLE -> 0
                 }
-                val chargeDestination = Vector2(FieldManager.centerOfChargeX + (Drive.robotHalfWidth.asFeet * 1.7 * chargeX), FieldManager.reflectFieldByAlliance(14.25))
-                Drive.driveToPoints(Drive.combinedPosition, Vector2(chargeDestination.x, -10.0 - Drive.robotHalfWidth.asFeet))
-                Drive.driveToPoints(Drive.combinedPosition, chargeDestination)
+                val chargeDestination = Vector2(FieldManager.centerOfChargeX + (Drive.robotHalfWidth.asFeet * 1.7 * chargeX), FieldManager.reflectFieldByAlliance(15.25))
+                Drive.driveToPointsPercentSpeed(0.5, Drive.combinedPosition, Vector2(chargeDestination.x, FieldManager.reflectFieldByAlliance(8.0 + Drive.robotHalfWidth.asFeet)))
+                Drive.driveToPointsPercentSpeed(0.5, Drive.combinedPosition, chargeDestination)
                 Drive.autoBalance()
             }, {
-                toDrivePose()
+//                toDrivePose()
             })
         } else {
-            toDrivePose()
+//            toDrivePose()
         }
 //        var nextGamePiece = FieldManager.getClosestGamePieceOnField()
 //        println("nodedeck auto path to game piece: $nextGamePiece")
@@ -287,9 +287,12 @@ object AutoChooser {
                     StartingPoint.OUTSIDE -> SafeSide.OUTSIDE
                 }
                 parallel({
+                    groundBackToDrive(FieldManager.getNodeIsCone(nodeID))
+                },{
+                    delay(0.5)
                     Drive.dynamicGoToScore(scoringNode.alignPosition, safeSide)
                 }, {
-                    delay(0.5)
+                    delay(2.0)
                     backScoreAway(FieldManager.nodeList[nodeID]?.coneOrCube == GamePiece.CONE, nodeID)
                 })
                 scoreObject(FieldManager.nodeList[nodeID]?.coneOrCube == GamePiece.CONE, nodeID)

@@ -18,8 +18,8 @@ data class Pose(val wristPosition: Vector2, val wristAngle: Angle, val pivotAngl
             get() = Pose(Arm.wristPosition, Intake.wristAngle, Intake.pivotAngle)
         val START_POSE = Pose(Vector2(0.0, 9.0), -90.0.degrees, -90.0.degrees)
         val GROUND_INTAKE_FRONT_CONE = Pose(Vector2(18.0, 14.5), 90.0.degrees, -90.0.degrees)
-        val GROUND_INTAKE_CONE_NEAR = Pose(Vector2(19.5, 6.2), 90.0.degrees, 0.0.degrees)
-        val GROUND_INTAKE_CONE_FAR = Pose(Vector2(40.0, 12.5), 90.0.degrees, 0.0.degrees)
+        val GROUND_INTAKE_CONE_NEAR = Pose(Vector2(19.5, 6.0), 90.0.degrees, 0.0.degrees)
+        val GROUND_INTAKE_CONE_FAR = Pose(Vector2(40.0, 8.0), 90.0.degrees, 0.0.degrees)
         val GROUND_INTAKE_FRONT_CUBE = Pose(Vector2(18.0, 14.0), 90.0.degrees, -180.0.degrees)
         val GROUND_INTAKE_CUBE_NEAR = Pose(Vector2(18.0, -4.0), 75.0.degrees, -180.0.degrees)
         val GROUND_INTAKE_CUBE_FAR = Pose(Vector2(40.0, -4.0), 75.0.degrees, -180.0.degrees)
@@ -34,10 +34,10 @@ data class Pose(val wristPosition: Vector2, val wristAngle: Angle, val pivotAngl
         val BACK_MIDDLE_SCORE_CONE_TOWARD = Pose(Vector2(-29.75, 27.0), -100.0.degrees, 0.0.degrees)
         val BACK_MIDDLE_SCORE_CUBE = Pose(Vector2(-24.5, 31.5), -100.0.degrees, 0.0.degrees)
 
-        val BACK_HIGH_SCORE_CONE_TOWARD_MID = Pose(Vector2(-28.0, 48.0), -100.0.degrees, 0.0.degrees)
-        val BACK_HIGH_SCORE_CONE_TOWARD = Pose(Vector2(-41.6, 41.0), -100.0.degrees, 0.0.degrees)
-        val BACK_HIGH_SCORE_CONE_AWAY_MID = Pose(Vector2(-29.0, 45.0), -200.0.degrees, -180.0.degrees)
-        val BACK_HIGH_SCORE_CONE_AWAY = Pose(Vector2(-42.5, 42.5), -190.0.degrees, -180.0.degrees)
+        val BACK_HIGH_SCORE_CONE_TOWARD_MID = Pose(Vector2(-28.0, 48.0), -90.0.degrees, 0.0.degrees)
+        val BACK_HIGH_SCORE_CONE_TOWARD = Pose(Vector2(-42.6, 41.0), -90.0.degrees, 0.0.degrees)
+        val BACK_HIGH_SCORE_CONE_AWAY_MID = Pose(Vector2(-29.0, 45.0), -180.0.degrees, -180.0.degrees)
+        val BACK_HIGH_SCORE_CONE_AWAY = Pose(Vector2(-42.5, 42.5), -180.0.degrees, -180.0.degrees)
 
         val BACK_START_POSE = Pose(Vector2(0.0, 9.0), -92.0.degrees, 0.0.degrees)
 
@@ -90,7 +90,7 @@ suspend fun animateThroughPoses(vararg poses: Pair<Double, Pose>) = use(Arm, Int
         path.addVector2(pose.second.wristPosition)
         distance.add(path.length - prevLength)
     }
-    var rate = 65.0  //  inches per second
+    var rate = 75.0  //  inches per second
     var wristPosTime = ArrayList<Double>(poses.size)
     for (i in poses.indices) {
         wristPosTime.add(distance[i] / rate)
@@ -101,7 +101,7 @@ suspend fun animateThroughPoses(vararg poses: Pair<Double, Pose>) = use(Arm, Int
     for (i in 1..poses.indices.last) {
         distance.add((poses[i].second.wristAngle.asDegrees - poses[i-1].second.wristAngle.asDegrees).absoluteValue)
     }
-    rate = 170.0 // deg per second
+    rate = 320.0 // deg per second
     var wristTime = ArrayList<Double>(poses.size)
     for (i in poses.indices) {
         wristTime.add(distance[i] / rate)
@@ -112,7 +112,7 @@ suspend fun animateThroughPoses(vararg poses: Pair<Double, Pose>) = use(Arm, Int
     for (i in 1..poses.indices.last) {
         distance.add((poses[i].second.pivotAngle.asDegrees - poses[i-1].second.pivotAngle.asDegrees).absoluteValue)
     }
-    rate = 200.0 // deg per second
+    rate = 500.0 // deg per second
     var pivotTime = ArrayList<Double>(poses.size)
     for (i in poses.indices) {
         pivotTime.add(distance[i] / rate)
@@ -142,7 +142,7 @@ suspend fun animateThroughPoses(vararg poses: Pair<Double, Pose>) = use(Arm, Int
             println("pivot time is equal to another value")
         }
         if (timeMap[pos] == null) {
-            timeMap[pos] = "pivot"
+            timeMap[pos] = "minTime"
         } else {
             println("min time is equal to another value")
         }

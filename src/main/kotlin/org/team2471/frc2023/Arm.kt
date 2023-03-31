@@ -68,7 +68,7 @@ object Arm : Subsystem("Arm") {
     val shoulderAngle: Angle
         get() =
             if (isCompBot) {
-                (-shoulderEncoder.value.degrees + shoulderTicksOffsetEntry.getDouble(2475.0).degrees) / 11.2 //if (-shoulderEncoder.value + 1183 < 0.0) 12.4 else 9.8)
+                (-shoulderEncoder.value.degrees + shoulderTicksOffsetEntry.getDouble(2409.0).degrees) / 11.2 //if (-shoulderEncoder.value + 1183 < 0.0) 12.4 else 9.8)
             } else {
                 (-shoulderEncoder.value.degrees + shoulderTicksOffsetEntry.getDouble(1133.0).degrees) / 11.2 //1133
             }
@@ -102,7 +102,7 @@ object Arm : Subsystem("Arm") {
         get() = elbowEncoder.value
     val elbowAngle: Angle
         get() = if (isCompBot) {
-            (-elbowEncoder.value.degrees + elbowTicksOffsetEntry.getDouble(2150.0).degrees) * 90.0 / 1054.0
+            (-elbowEncoder.value.degrees + elbowTicksOffsetEntry.getDouble(2410.0).degrees) * 90.0 / 1054.0
         } else {
             (-elbowEncoder.value.degrees + elbowTicksOffsetEntry.getDouble(1912.0).degrees) * 90.0 / 1054.0 //1912
         }
@@ -239,10 +239,10 @@ object Arm : Subsystem("Arm") {
         println("Arm init")
         autoArmEntry.setBoolean(false)
         if (!shoulderTicksOffsetEntry.exists()) {
-            shoulderTicksOffsetEntry.setDouble(2475.0)
+            shoulderTicksOffsetEntry.setDouble(2409.0)
         }
         if (!elbowTicksOffsetEntry.exists()) {
-            elbowTicksOffsetEntry.setDouble(2150.0)
+            elbowTicksOffsetEntry.setDouble(2410.0)
         }
         shoulderTicksOffsetEntry.setPersistent()
         elbowTicksOffsetEntry.setPersistent()

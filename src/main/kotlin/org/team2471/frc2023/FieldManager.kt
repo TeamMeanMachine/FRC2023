@@ -8,6 +8,7 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance
 import org.team2471.frc.lib.math.Vector2
 import org.team2471.frc.lib.math.fitToRange
 import org.team2471.frc.lib.units.*
+import kotlin.math.absoluteValue
 
 object FieldManager {
 
@@ -44,7 +45,7 @@ object FieldManager {
     val insideSafePointClose: Vector2
         get() = reflectFieldByAlliance( Vector2(barrierTip.x/2.0, (gridFromCenterY - 66.0.inches + Drive.robotHalfWidth).asFeet))
     val insideSafePointFar: Vector2
-        get() = Vector2(insideSafePointClose.x, reflectFieldByAlliance((chargeFromCenterY - 30.0.inches).asFeet))
+        get() = Vector2(insideSafePointClose.x, reflectFieldByAlliance((chargeFromCenterY - 36.0.inches).asFeet))
     val chargeSafePointClose: Vector2
         get() = Vector2(centerOfChargeX, insideSafePointClose.y)// already reflected
     val outsideSafePointClose: Vector2
@@ -68,7 +69,16 @@ object FieldManager {
         }
     val insideStartingPosition = Vector2(3.0, scoringNodeYPosition)
     val outsideStartingPosition = Vector2(-11.5, scoringNodeYPosition)
-    val middleStartingPosition = Vector2(centerOfChargeX, scoringNodeYPosition)
+    val middleStartingPosition : Vector2
+        get() {
+            val d1 = (Drive.combinedPosition.x - -28.0.inches.asFeet).absoluteValue
+            val d2 = (Drive.combinedPosition.x - -76.0.inches.asFeet).absoluteValue
+            if(d1 < d2) {
+                return Vector2(-28.0.inches.asFeet, reflectFieldByAlliance(3.0))    //auto line
+            } else {
+                return Vector2(-76.0.inches.asFeet, reflectFieldByAlliance(3.0))
+            }
+        }
 
     val closeDoubleSubstationOffsetX = 67.64.inches
     val farDoubleSubstationOffsetX = 149.inches
@@ -123,6 +133,7 @@ object FieldManager {
                 0 -> Vector2(1.2, 0.8) //feet
                 1 -> Vector2(-0.6, 0.4)
                 4 -> Vector2(-0.2, 0.6)
+                7 -> Vector2(1.0, 0.3)
                 else -> Vector2(0.0, 0.0)
             }
             gamePieceStartingPos.add(Vector2((gamePieceOnFieldFromCenterX - gamePieceOnFieldOffsetX * p.toDouble().mod(4.0)).asFeet, if (p > 3) -gamePieceOnFieldFromCenterY.asFeet else gamePieceOnFieldFromCenterY.asFeet) + pOffset)

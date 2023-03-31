@@ -193,26 +193,9 @@ suspend fun intakeFromGround(isCone: Boolean = NodeDeckHub.isCone) = use(Arm, In
             }
         } finally {//move back to drive pos
             Drive.maxTranslation = 1.0
-//            if (!DriverStation.isAutonomous()) { //code to speed up auto :)
-//                groundBackToDrive(isCone)
-//            }
-            println("Holding = ${Intake.holdingObject}")
-                OI.driverController.rumble = 0.0
-                OI.operatorController.rumble = 0.0
-            Intake.intakeMotor.setPercentOutput(if (Intake.holdingObject) (if (isCone) Intake.HOLD_CONE else Intake.HOLD_CUBE) else 0.0) //intake bad
             if (!DriverStation.isAutonomous()) {
-                Arm.isFlipping = true
+                groundBackToDrive(isCone)
             }
-            if (Intake.holdingObject) {
-                if (isCone) {
-                    animateThroughPoses(Pose.GROUND_TO_DRIVE_SAFE_CONE, Pose.GROUND_TO_DRIVE_SAFE, Pose.BACK_DRIVE_POSE)
-                } else {
-                    animateThroughPoses(Pose.GROUND_TO_DRIVE_SAFE_CUBE, Pose.GROUND_TO_DRIVE_SAFE, Pose.BACK_DRIVE_POSE)
-                }
-            } else {
-                animateThroughPoses(Pose.FRONT_DRIVE_POSE)
-            }
-            Arm.isFlipping = false
         }
     } else {
         println("Wrong side--flip first!!")
@@ -387,13 +370,13 @@ suspend fun scoreObject(isCone: Boolean = NodeDeckHub.isCone, pieceNumber: Int =
             if (Intake.coneToward) {
                 when (nodeLevel) {
                     Level.HIGH -> {
-                        var midPose = Pose.current + Pose(Vector2(5.5, -3.5), 40.0.degrees, 0.0.degrees)
+                        var midPose = Pose.current + Pose(Vector2(6.0, -4.5), 40.0.degrees, 0.0.degrees)
                         animateToPose(midPose, 0.5)
                         Intake.intakeMotor.setPercentOutput(Intake.CONE_TOWARD_SPIT)
                         midPose += Pose(Vector2(6.5, 7.0), 0.0.degrees, 0.0.degrees)
                         animateToPose(midPose)
-                        midPose += Pose(Vector2(10.0, 6.0), 0.0.degrees, 0.0.degrees)
-                        animateToPose(midPose, 0.9)
+                        midPose += Pose(Vector2(12.0, 7.0), 0.0.degrees, 0.0.degrees)
+                        animateToPose(midPose, 0.5)
                     }
                     Level.MID -> {
                         val midPose = Pose.current + Pose(Vector2(11.0, -2.5), 40.0.degrees, 0.0.degrees)

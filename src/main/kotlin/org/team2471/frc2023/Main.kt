@@ -48,6 +48,8 @@ object Robot : MeanlibRobot() {
         FieldManager
         OI
         println("Field Manager Active! Is Red ${FieldManager.isRedAlliance}")
+        Drive
+        println("Activating Drive!")
         Drive.zeroGyro()
         Drive.heading = 0.0.degrees
 
@@ -98,8 +100,8 @@ object Robot : MeanlibRobot() {
 
     override suspend fun test()  {
         println("test mode begin. Hi.")
-        Intake.feedFowardTest()
-//        Drive.setAngleOffsets()
+//        Intake.feedFowardTest()
+        Drive.setAngleOffsets()
     }
 
 

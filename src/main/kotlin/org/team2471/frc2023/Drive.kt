@@ -99,7 +99,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
             MotorController(FalconID(Falcons.LEFT_FRONT_DRIVE)),
             MotorController(FalconID(Falcons.LEFT_FRONT_STEER)),
             Vector2(-9.75, 9.75),
-            Preferences.getDouble("Angle Offset 0",-6.94).degrees,
+            Preferences.getDouble("Angle Offset 0",-9.05).degrees,
             CANCoders.CANCODER_FRONTLEFT,
             odometer0Entry,
             0
@@ -108,7 +108,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
             MotorController(FalconID(Falcons.RIGHT_FRONT_DRIVE)),
             MotorController(FalconID(Falcons.RIGHT_FRONT_STEER)),
             Vector2(9.75, 9.75),
-            Preferences.getDouble("Angle Offset 1",-252.59).degrees,
+            Preferences.getDouble("Angle Offset 1",-253.4).degrees,
             CANCoders.CANCODER_FRONTRIGHT,
             odometer1Entry,
             1
@@ -117,7 +117,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
             MotorController(FalconID(Falcons.RIGHT_REAR_DRIVE)),
             MotorController(FalconID(Falcons.RIGHT_REAR_STEER)),
             Vector2(9.75, -9.75),
-            Preferences.getDouble("Angle Offset 2",-345.23).degrees,
+            Preferences.getDouble("Angle Offset 2",-345.05).degrees,
             CANCoders.CANCODER_REARRIGHT,
             odometer2Entry,
             2
@@ -126,7 +126,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
             MotorController(FalconID(Falcons.LEFT_REAR_DRIVE)),
             MotorController(FalconID(Falcons.LEFT_REAR_STEER)),
             Vector2(-9.75, -9.75),
-            Preferences.getDouble("Angle Offset 3",-335.48).degrees,
+            Preferences.getDouble("Angle Offset 3",-308.41).degrees,
             CANCoders.CANCODER_REARLEFT,
             odometer3Entry,
             3
@@ -498,15 +498,15 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         val goalHeading = if (isBlueAlliance) 180.0 else 0.0
         periodic {
             if (gyro.getPitch().absoluteValue > 2.5 && !testBalanced) {
-                println("pitched")
+                //println("pitched")
 
                 var error = (goalHeading.degrees - heading).wrap()
-                val turn = aimPDController.update(error.asDegrees)
+                val turn = 0.0 //aimPDController.update(error.asDegrees)
                 // constant part for a feed forward, so there's always enough power to move.
                 // plus a proportional part so that the power is higher when steep and less as it flattens.
-                drive(Vector2(0.0, gyro.getPitch().sign * 0.10 + gyro.getPitch() / 300.0), turn, fieldCentric = false)
+                drive(Vector2(0.0, gyro.getPitch().sign * 0.125), turn, fieldCentric = false)
 
-                if ((gyro.getPitch() - prevPitch).absoluteValue > 1.5) {
+                if ((gyro.getPitch() - prevPitch).absoluteValue > 0.25) {
                     println("I'm leveling")
                     drive(Vector2(0.0, 0.0), 0.0)
                     xPose()
@@ -533,7 +533,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         }
         val distance = newPath.length
         val rate = rateCurve.getValue(distance) // ft per sec
-        val time = distance / rate * percent
+        val time = distance / rate / percent
         driveToPoints(time, *positions)
     }
     suspend fun driveToPoints(vararg positions: Vector2) {
@@ -670,7 +670,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         val p2 = when (startingSide) {
                 StartingPoint.INSIDE -> FieldManager.insideSafePointClose
                 StartingPoint.OUTSIDE -> FieldManager.outsideSafePointClose
-                StartingPoint.MIDDLE -> FieldManager.chargeSafePointClose
+                StartingPoint.MIDDLE -> Vector2(p1.x, FieldManager.chargeSafePointClose.y)
             }
 
         distance += (p2 - p1).length
@@ -679,7 +679,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         val p3 = when (startingSide) {
                 StartingPoint.INSIDE -> { FieldManager.insideSafePointFar + reflectFieldByAlliance(Vector2(0.0, 4.0.feet.asFeet)) }
                 StartingPoint.OUTSIDE -> FieldManager.outsideSafePointFar
-                StartingPoint.MIDDLE -> FieldManager.chargeSafePointFar
+                StartingPoint.MIDDLE -> Vector2(p1.x, FieldManager.chargeSafePointFar.y)
             }
         if(startingSide == StartingPoint.MIDDLE) {
             distance += 2.5
@@ -696,10 +696,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         }
         val p4 = Vector2(goalPosition.x + (distFromObject * sin(goalHeading)) - 4.0.inches.asFeet,goalPosition.y - distFromObject * cos(goalHeading)) + offset
         distance += (p4 - p3).length
-//        val rateCurve = MotionCurve()
-//        rateCurve.setMarkBeginOrEndKeysToZeroSlope(false)
-//        rateCurve.storeValue(1.0, 2.0)  // distance, rate
-//        rateCurve.storeValue(8.0, 4.0)  // distance, rate
+
         val rate = rateCurve.getValue(distance) // ft per sec
         var time = distance / rate
         //val finalHeading = if (FieldManager.isBlueAlliance) 180.0 else 0.0
