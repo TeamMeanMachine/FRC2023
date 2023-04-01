@@ -195,6 +195,8 @@ suspend fun intakeFromGround(isCone: Boolean = NodeDeckHub.isCone) = use(Arm, In
             Drive.maxTranslation = 1.0
             if (!DriverStation.isAutonomous()) {
                 groundBackToDrive(isCone)
+            } else {
+                Intake.intakeMotor.setPercentOutput(if (Intake.holdingObject) (if (isCone) Intake.HOLD_CONE else Intake.HOLD_CUBE) else 0.0)
             }
         }
     } else {
@@ -205,7 +207,7 @@ suspend fun groundBackToDrive(isCone: Boolean) {
     println("Holding = ${Intake.holdingObject}")
     OI.driverController.rumble = 0.0
     OI.operatorController.rumble = 0.0
-    Intake.intakeMotor.setPercentOutput(if (Intake.holdingObject) (if (isCone) Intake.HOLD_CONE else Intake.HOLD_CUBE) else 0.0) //intake bad
+    Intake.intakeMotor.setPercentOutput(if (Intake.holdingObject) (if (isCone) Intake.HOLD_CONE else Intake.HOLD_CUBE) else 0.0)
     if (!DriverStation.isAutonomous()) {
         Arm.isFlipping = true
     }
@@ -373,10 +375,10 @@ suspend fun scoreObject(isCone: Boolean = NodeDeckHub.isCone, pieceNumber: Int =
                         var midPose = Pose.current + Pose(Vector2(6.0, -4.5), 40.0.degrees, 0.0.degrees)
                         animateToPose(midPose, 0.5)
                         Intake.intakeMotor.setPercentOutput(Intake.CONE_TOWARD_SPIT)
-                        midPose += Pose(Vector2(6.5, 7.0), 0.0.degrees, 0.0.degrees)
+                        midPose += Pose(Vector2(6.5, 10.0), 0.0.degrees, 0.0.degrees)
                         animateToPose(midPose)
-                        midPose += Pose(Vector2(12.0, 7.0), 0.0.degrees, 0.0.degrees)
-                        animateToPose(midPose, 0.5)
+                        midPose += Pose(Vector2(13.0, 10.0), 0.0.degrees, 0.0.degrees)
+                        animateToPose(midPose)
                     }
                     Level.MID -> {
                         val midPose = Pose.current + Pose(Vector2(11.0, -2.5), 40.0.degrees, 0.0.degrees)

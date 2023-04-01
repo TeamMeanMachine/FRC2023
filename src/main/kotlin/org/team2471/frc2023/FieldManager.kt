@@ -133,7 +133,8 @@ object FieldManager {
                 0 -> Vector2(1.2, 0.8) //feet
                 1 -> Vector2(-0.6, 0.4)
                 4 -> Vector2(-0.2, 0.6)
-                7 -> Vector2(1.0, 0.3)
+                7 -> Vector2(0.0, 1.0)
+                6 -> Vector2(0.5, 1.0)
                 else -> Vector2(0.0, 0.0)
             }
             gamePieceStartingPos.add(Vector2((gamePieceOnFieldFromCenterX - gamePieceOnFieldOffsetX * p.toDouble().mod(4.0)).asFeet, if (p > 3) -gamePieceOnFieldFromCenterY.asFeet else gamePieceOnFieldFromCenterY.asFeet) + pOffset)
@@ -173,16 +174,16 @@ object FieldManager {
         return nodeList[nodeID]?.position
     }
     fun getNodeIsCone(nodeID: Int): Boolean {
-        return nodeList[nodeID]?.coneOrCube?.equals(GamePiece.CUBE) == true
+        return nodeList[nodeID]?.coneOrCube == GamePiece.CONE
     }
     fun getNodeIsLow(nodeID: Int): Boolean {
-        return nodeList[nodeID]?.level?.equals(Level.LOW) == true
+        return nodeList[nodeID]?.level == Level.LOW
     }
     fun getNodeIsMid(nodeID: Int): Boolean {
-        return nodeList[nodeID]?.level?.equals(Level.MID) == true
+        return nodeList[nodeID]?.level == Level.MID
     }
     fun getNodeIsHigh(nodeID: Int): Boolean {
-        return nodeList[nodeID]?.level?.equals(Level.HIGH) == true
+        return nodeList[nodeID]?.level == Level.HIGH
     }
     fun isValidNodeID(nodeID: Int): Boolean {
         return nodeID in 0..53
