@@ -637,8 +637,8 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         val rateCurve = MotionCurve()
 
         rateCurve.setMarkBeginOrEndKeysToZeroSlope(false)
-        rateCurve.storeValue(1.0, 2.0)  // distance, rate
-        rateCurve.storeValue(8.0, 4.0)  // distance, rate
+        rateCurve.storeValue(1.0, 3.0)  // distance, rate
+        rateCurve.storeValue(8.0, 6.0)  // distance, rate
         newPath.addVector2(p1)
         newPath.addVector2(p2)
         newPath.addVector2(p3)
@@ -663,7 +663,6 @@ object Drive : Subsystem("Drive"), SwerveDrive {
     }
     suspend fun dynamicGoToGamePieceOnFloor(goalPosition: Vector2, goalHeading: Angle,  startingSide: StartingPoint = NodeDeckHub.startingPoint)  {
         val newPath = Path2D("GoTo GamePiece")
-        newPath.addEasePoint(0.0,0.0)
         var distance = 0.0
         println("position: ${Drive.position}, ${Drive.combinedPosition}")
         val p1 = PoseEstimator.currentPose
@@ -677,8 +676,8 @@ object Drive : Subsystem("Drive"), SwerveDrive {
 
         var safeDistance: Double = 100000.0
         val p3 = when (startingSide) {
-                StartingPoint.INSIDE -> { FieldManager.insideSafePointFar + reflectFieldByAlliance(Vector2(0.0, 4.0.feet.asFeet)) }
-                StartingPoint.OUTSIDE -> FieldManager.outsideSafePointFar
+                StartingPoint.INSIDE -> FieldManager.insideSafePointFar + reflectFieldByAlliance(Vector2(0.0, 4.0.feet.asFeet))
+                StartingPoint.OUTSIDE -> FieldManager.outsideSafePointFar + reflectFieldByAlliance(Vector2(0.0, 4.0.feet.asFeet))
                 StartingPoint.MIDDLE -> Vector2(p1.x, FieldManager.chargeSafePointFar.y)
             }
         if(startingSide == StartingPoint.MIDDLE) {
@@ -694,7 +693,8 @@ object Drive : Subsystem("Drive"), SwerveDrive {
                 else -> Vector2(0.0, 0.0)
             }
         }
-        val p4 = Vector2(goalPosition.x + (distFromObject * sin(goalHeading)) - 4.0.inches.asFeet,goalPosition.y - distFromObject * cos(goalHeading)) + offset
+        val vectorOffset = Vector2(-goalHeading.sin(), -goalHeading.cos()) * distFromObject
+        val p4 = goalPosition + vectorOffset + offset
         distance += (p4 - p3).length
 
         val rate = rateCurve.getValue(distance) // ft per sec
@@ -707,7 +707,10 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         val minSpin = 4.0/180.0 * (currentHeading - finalHeading.degrees).wrap().asDegrees.absoluteValue
         println("printing minimum spin time: $minSpin")
         time = maxOf(time,minSpin)
-        newPath.addEasePoint(time, 1.0)
+        newPath.addEasePoint(0.0,0.0)
+//        newPath.addEasePointSlopeAndMagnitude()
+        newPath.addEasePointSlopeAndMagnitude(time, 1.0, 0.0, 1.5)
+
         newPath.addVector2(p1)
         newPath.addVector2(p2)
         newPath.addVector2(p3)

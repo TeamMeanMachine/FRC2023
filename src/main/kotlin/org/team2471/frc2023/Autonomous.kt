@@ -215,7 +215,7 @@ object AutoChooser {
                     parallel({
                         scoreObject(true, NodeDeckHub.firstAutoPiece)
                     }, {
-                        delay(0.5)
+                        delay(0.3)
                         nodeDeckPiece(gamePieceAngles[0].degrees, NodeDeckHub.secondAutoPiece, NodeDeckHub.amountOfAutoPieces == 2 && NodeDeckHub.finishWithPiece)
                     })
                     if (NodeDeckHub.amountOfAutoPieces > 2) {
@@ -292,7 +292,7 @@ object AutoChooser {
                     delay(0.5)
                     Drive.dynamicGoToScore(scoringNode.alignPosition, safeSide)
                 }, {
-                    delay(2.0)
+                    delay(4.0)
                     backScoreAway(FieldManager.nodeList[nodeID]?.coneOrCube == GamePiece.CONE, nodeID)
                 })
                 scoreObject(FieldManager.nodeList[nodeID]?.coneOrCube == GamePiece.CONE, nodeID)
