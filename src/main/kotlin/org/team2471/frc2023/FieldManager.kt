@@ -174,16 +174,16 @@ object FieldManager {
         return nodeList[nodeID]?.position
     }
     fun getNodeIsCone(nodeID: Int): Boolean {
-        return nodeList[nodeID]?.coneOrCube?.equals(GamePiece.CUBE) == true
+        return nodeList[nodeID]?.coneOrCube == GamePiece.CONE
     }
     fun getNodeIsLow(nodeID: Int): Boolean {
-        return nodeList[nodeID]?.level?.equals(Level.LOW) == true
+        return nodeList[nodeID]?.level == Level.LOW
     }
     fun getNodeIsMid(nodeID: Int): Boolean {
-        return nodeList[nodeID]?.level?.equals(Level.MID) == true
+        return nodeList[nodeID]?.level == Level.MID
     }
     fun getNodeIsHigh(nodeID: Int): Boolean {
-        return nodeList[nodeID]?.level?.equals(Level.HIGH) == true
+        return nodeList[nodeID]?.level == Level.HIGH
     }
     fun isValidNodeID(nodeID: Int): Boolean {
         return nodeID in 0..53
