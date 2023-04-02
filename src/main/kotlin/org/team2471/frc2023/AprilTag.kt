@@ -75,9 +75,10 @@ object AprilTag {
 //        backPoseEstimator.setMultiTagFallbackStrategy(PhotonPoseEstimator.PoseStrategy.CLOSEST_TO_REFERENCE_POSE)
         GlobalScope.launch {
             periodic {
-                if (DriverStation.isDisabled()  && (camFront == null || frontPoseEstimator == null || camBack == null || backPoseEstimator == null)) {
-                    resetCameras()
-                    }
+//                println("Apriltags Running")
+//                if (DriverStation.isDisabled()  && (camFront == null || frontPoseEstimator == null || camBack == null || backPoseEstimator == null)) {
+//                    resetCameras()
+//                    }
                 aprilTagStartupCheckEntry.setBoolean(camFront != null && camBack != null && frontPoseEstimator != null && backPoseEstimator != null)
 //                frontPoseEstimator.referencePose = Pose3d(Pose2d(PoseEstimator.currentPose.toWPIField(), Rotation2d(Drive.heading.asRadians)))
 //                backPoseEstimator.referencePose = Pose3d(Pose2d(PoseEstimator.currentPose.toWPIField(), Rotation2d(Drive.heading.asRadians)))
@@ -85,7 +86,7 @@ object AprilTag {
                     val frontCamSelected = useFrontCam()
                     frontCamSelectedEntry.setBoolean(frontCamSelected)
                     var maybePose: Pose2d?
-                    var numTarget = 0
+                    var numTarget: Int
                     if (frontCamSelected) {
                         maybePose = frontPoseEstimator?.let { camFront?.let { it1 -> getEstimatedGlobalPose(it1, it) } }
                         numTarget = camFront?.latestResult?.targets?.count() ?: 0
@@ -169,6 +170,7 @@ object AprilTag {
             return null
         }
         } catch (ex: Exception) {
+            println("***********************************************************AprilTag Failed. Try Operator down*****************************************************")
             return null
         }
     }
@@ -188,6 +190,8 @@ object AprilTag {
             } catch (ex: Exception) {
                 println("Front pose failed")
             }
+        } else {
+            println("camfront already found, skipping reset")
         }
         if (camBack == null || backPoseEstimator == null){
             try {
@@ -203,7 +207,10 @@ object AprilTag {
             } catch (ex: Exception) {
                 println("Back pose failed")
             }
+        }  else {
+            println("camback already found, skipping reset")
         }
+        println("Finished cams reset")
     }
 
     private fun addTargetToTable(tagID: Int, tagPos: Transform3d?) {
