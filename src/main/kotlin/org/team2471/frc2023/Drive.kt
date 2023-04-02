@@ -25,8 +25,6 @@ import org.team2471.frc.lib.motion_profiling.MotionCurve
 import org.team2471.frc.lib.motion_profiling.Path2D
 import org.team2471.frc.lib.motion_profiling.following.SwerveParameters
 import org.team2471.frc.lib.units.*
-import org.team2471.frc.lib.units.Angle.Companion.cos
-import org.team2471.frc.lib.units.Angle.Companion.sin
 import org.team2471.frc2023.FieldManager.isBlueAlliance
 import org.team2471.frc2023.FieldManager.reflectFieldByAlliance
 import kotlin.math.absoluteValue
@@ -650,14 +648,15 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         println("Distance: $distance")
         val rate = rateCurve.getValue(distance) * if (DriverStation.isAutonomous()) 1.0 else 1.0 // ft per sec
         var time = distance / rate
-        var finalHeading = if (FieldManager.isRedAlliance) 0.0 else if (heading.asDegrees > 0) 180.0 else -180.0
-        val minSpin = 4/180.0 * (heading - finalHeading.degrees).wrap().asDegrees.absoluteValue
+        val currentHeading = heading
+        var finalHeading = if (FieldManager.isRedAlliance) 0.0 else if (currentHeading.asDegrees > 0) 180.0 else -180.0
+        val minSpin = 4/180.0 * (currentHeading - finalHeading.degrees).wrap().asDegrees.absoluteValue
         println("printing minimum spin time: $minSpin")
         val middleStartTime = if (NodeDeckHub.startingPoint == StartingPoint.MIDDLE) time * 2 else 0.0
         time = maxOf(time, middleStartTime, minSpin)
         newPath.addEasePoint(time, 1.0)
 
-        newPath.addHeadingPoint(0.0, heading.asDegrees)
+        newPath.addHeadingPoint(0.0, currentHeading.asDegrees)
         newPath.addHeadingPoint(time, finalHeading)
         Drive.driveAlongPath(newPath) { abortPath() }
     }
@@ -665,28 +664,31 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         val newPath = Path2D("GoTo GamePiece")
         var distance = 0.0
         println("position: ${Drive.position}, ${Drive.combinedPosition}")
-        val p1 = PoseEstimator.currentPose
-        val p2 = when (startingSide) {
+        val p1currentPose = PoseEstimator.currentPose
+        val p2safePointClose = when (startingSide) {
                 StartingPoint.INSIDE -> FieldManager.insideSafePointClose
                 StartingPoint.OUTSIDE -> FieldManager.outsideSafePointClose
-                StartingPoint.MIDDLE -> Vector2(p1.x, FieldManager.chargeSafePointClose.y)
+                StartingPoint.MIDDLE -> Vector2(p1currentPose.x, FieldManager.chargeSafePointClose.y)
             }
 
-        distance += (p2 - p1).length
 
-        val p3 = when (startingSide) {
+
+        val p3safePointFar = when (startingSide) {
                 StartingPoint.INSIDE -> FieldManager.insideSafePointFar + reflectFieldByAlliance(Vector2(0.0, 4.0.feet.asFeet))
                 StartingPoint.OUTSIDE -> FieldManager.outsideSafePointFar + reflectFieldByAlliance(Vector2(0.0, 4.0.feet.asFeet))
-                StartingPoint.MIDDLE -> Vector2(p1.x, FieldManager.chargeSafePointFar.y)
+                StartingPoint.MIDDLE -> Vector2(p1currentPose.x, FieldManager.chargeSafePointFar.y)
             }
         if(startingSide == StartingPoint.MIDDLE) {
             distance += 2.5
         }
-        distance += (p3 - p2).length
         val distFromObject = 55.0.inches.asFeet
         val vectorOffset = Vector2(-goalHeading.sin(), -goalHeading.cos() * if (FieldManager.isBlueAlliance) -1.0 else 1.0) * distFromObject
-        val p4 = goalPosition + vectorOffset
-        distance += (p4 - p3).length
+        val p4goalPosition = goalPosition + vectorOffset
+        newPath.addVector2(p1currentPose)
+        newPath.addVector2(p2safePointClose)
+        newPath.addVector2(p3safePointFar)
+        newPath.addVector2(p4goalPosition)
+        distance = newPath.length
 
         val rate = rateCurve.getValue(distance) // ft per sec
         var time = distance / rate
@@ -700,12 +702,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         time = maxOf(time,minSpin)
         newPath.addEasePoint(0.0,0.0)
         newPath.addEasePointSlopeAndMagnitude(time, 1.0, 0.0, 1.8)
-
-        newPath.addVector2(p1)
-        newPath.addVector2(p2)
-        newPath.addVector2(p3)
-        newPath.addVector2(p4)
-        println("$p1, $p2, $p3, $p4, finalH: $finalHeading")
+        println("$p1currentPose, $p2safePointClose, $p3safePointFar, $p4goalPosition, finalH: $finalHeading")
         newPath.addHeadingPoint(0.0, currentHeading.asDegrees)
 //        newPath.addHeadingPoint(safeDistance / rate, heading.asDegrees)
         println("Initial Heading: ${currentHeading.asDegrees}")
