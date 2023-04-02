@@ -89,7 +89,7 @@ suspend fun animateThroughPoses(vararg poses: Pair<Double, Pose>) {
     animateThroughPoses(false, *poses)
 }
 suspend fun animateThroughPoses(waituntilDone: Boolean = false, vararg poses: Pair<Double, Pose>) = use(Arm, Intake) {
-    println("Starting animation through $poses")
+    println("Starting animation through ${poses.size} poses")
     val path = Path2D("Path")
 
     val pivotRate = 500.0 // deg per second
@@ -122,7 +122,7 @@ suspend fun animateThroughPoses(waituntilDone: Boolean = false, vararg poses: Pa
         val maxName = timeMap.filter { it.value == maxTime }.keys.first()
         //val secondMaxName = timeMap.filter {it.value == secondMaxTime}.keys.first()
         println("you can save $timeSavings by tuning $maxName")
-        println("min time: ${round(minTime, 2)},  wrist pos time: ${round(wristPosTime, 2)}, wrist time: ${round(wristTime, 2)} , pivot time: ${round(pivotTime, 2)}")
+        println(" ${pose.toString()} min time: ${round(minTime, 2)},  wrist pos time: ${round(wristPosTime, 2)}, wrist time: ${round(wristTime, 2)} , pivot time: ${round(pivotTime, 2)}")
         path.addVector2(pose.wristPosition)
         times.add(maxTime)
         val currentTime = times.sum()
