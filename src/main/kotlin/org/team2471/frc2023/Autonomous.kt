@@ -210,18 +210,15 @@ object AutoChooser {
                 })
             } else {
                 backScoreToward(true, NodeDeckHub.firstAutoPiece)
-                if (NodeDeckHub.amountOfAutoPieces == 1) scoreObject(true, NodeDeckHub.firstAutoPiece)
+                if (NodeDeckHub.amountOfAutoPieces == 1) scoreObject(NodeDeckHub.firstAutoPiece)
                 if (NodeDeckHub.amountOfAutoPieces > 1) {
-                    parallel({
-                        scoreObject(true, NodeDeckHub.firstAutoPiece)
-                    }, {
-                        delay(0.3)
-                        nodeDeckPiece(gamePieceAngles[0].degrees, NodeDeckHub.secondAutoPiece, NodeDeckHub.amountOfAutoPieces == 2 && NodeDeckHub.finishWithPiece)
-                    })
+                    nodeDeckPiece(gamePieceAngles[0].degrees, NodeDeckHub.secondAutoPiece, NodeDeckHub.amountOfAutoPieces == 2 && NodeDeckHub.finishWithPiece, NodeDeckHub.firstAutoPiece)
+                    if (NodeDeckHub.amountOfAutoPieces == 2) scoreObject(NodeDeckHub.secondAutoPiece)
                     if (NodeDeckHub.amountOfAutoPieces > 2) {
-                        nodeDeckPiece(gamePieceAngles[1].degrees, NodeDeckHub.thirdAutoPiece,  NodeDeckHub.amountOfAutoPieces == 3 && NodeDeckHub.finishWithPiece)
+                        nodeDeckPiece(gamePieceAngles[1].degrees, NodeDeckHub.thirdAutoPiece,  NodeDeckHub.amountOfAutoPieces == 3 && NodeDeckHub.finishWithPiece, NodeDeckHub.secondAutoPiece)
+                        if (NodeDeckHub.amountOfAutoPieces == 3) scoreObject(NodeDeckHub.thirdAutoPiece)
                         if (NodeDeckHub.amountOfAutoPieces > 3) {
-                            nodeDeckPiece(gamePieceAngles[2].degrees, NodeDeckHub.fourthAutoPiece,  NodeDeckHub.amountOfAutoPieces == 4 && NodeDeckHub.finishWithPiece)
+                            nodeDeckPiece(gamePieceAngles[2].degrees, NodeDeckHub.fourthAutoPiece,  NodeDeckHub.amountOfAutoPieces == 4 && NodeDeckHub.finishWithPiece, NodeDeckHub.thirdAutoPiece)
                         } else {
                             afterScoreFlip(FieldManager.nodeList[NodeDeckHub.thirdAutoPiece]?.level)
                         }
@@ -262,16 +259,19 @@ object AutoChooser {
 //        println("nodedeck auto path to game piece: $nextGamePiece")
 //        Drive.dynamicGoToGamePieceOnFloor(nextGamePiece, 0.0.degrees)
     }
-    suspend fun nodeDeckPiece(pickupHeading: Angle, nodeID: Int, finishWithPiece: Boolean) = use(Intake, Drive, Arm) {
+    suspend fun nodeDeckPiece(pickupHeading: Angle, nodeID: Int, finishWithPiece: Boolean, prevPiece: Int) = use(Intake, Drive, Arm) {
         val nextGamePiece = FieldManager.getClosestGamePieceOnField()
         println("nodedeck auto path to game piece: $nextGamePiece")
         parallel({
+            delay(0.3)
             Drive.dynamicGoToGamePieceOnFloor(nextGamePiece, pickupHeading)
         }, {
+            scoreObject(prevPiece)
             println("before toFrontDrivePose")
             afterScoreFlip(FieldManager.nodeList[nodeID]?.level)
+            delay(0.25)
             println("before intakeFromGround")
-            intakeFromGround(FieldManager.nodeList[nodeID]?.coneOrCube == GamePiece.CONE)
+            intakeFromGroundAuto(FieldManager.nodeList[nodeID]?.coneOrCube == GamePiece.CONE)
         })
         println("finished goToGamePiece")
         val scoringNode = FieldManager.getNode(nodeID)
@@ -289,13 +289,11 @@ object AutoChooser {
                 parallel({
                     groundBackToDrive(FieldManager.getNodeIsCone(nodeID))
                 },{
-                    delay(0.5)
                     Drive.dynamicGoToScore(scoringNode.alignPosition, safeSide)
                 }, {
-                    delay(4.0)
+                    delay(1.75)
                     backScoreAway(FieldManager.nodeList[nodeID]?.coneOrCube == GamePiece.CONE, nodeID)
                 })
-                scoreObject(FieldManager.nodeList[nodeID]?.coneOrCube == GamePiece.CONE, nodeID)
             }
         } else {
 

@@ -168,7 +168,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
     )
 
     override val carpetFlow = Vector2(0.0, 1.0)
-    override val kCarpet = 0.0256 //0.025 // how much downstream and upstream carpet directions affect the distance, for no effect, use  0.0 (2.5% more distance downstream)
+    override val kCarpet = 0.0234 //0.025 // how much downstream and upstream carpet directions affect the distance, for no effect, use  0.0 (2.5% more distance downstream)
     override val kTread = 0.0 //.04 // how much of an effect treadWear has on distance (fully worn tread goes 4% less than full tread)  0.0 for no effect
 
     val autoPDController = PDConstantFController(0.015, 0.04, 0.05)
@@ -445,7 +445,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
             driveMotor.config {
                 brakeMode()
                 //                    wheel diam / 12 in per foot * pi / ticks / gear ratio
-                feedbackCoefficient = 4.0 / 12.0 * Math.PI / 2048.0 / 5.42 * (94.0 / 96.0)
+                feedbackCoefficient = 4.0 / 12.0 * Math.PI / 2048.0 / 5.42 * (90.8/96.0)
                 currentLimit(70, 75, 1)
                 openLoopRamp(0.2)
             }
@@ -674,7 +674,6 @@ object Drive : Subsystem("Drive"), SwerveDrive {
 
         distance += (p2 - p1).length
 
-        var safeDistance: Double = 100000.0
         val p3 = when (startingSide) {
                 StartingPoint.INSIDE -> FieldManager.insideSafePointFar + reflectFieldByAlliance(Vector2(0.0, 4.0.feet.asFeet))
                 StartingPoint.OUTSIDE -> FieldManager.outsideSafePointFar + reflectFieldByAlliance(Vector2(0.0, 4.0.feet.asFeet))
@@ -684,7 +683,6 @@ object Drive : Subsystem("Drive"), SwerveDrive {
             distance += 2.5
         }
         distance += (p3 - p2).length
-        safeDistance = distance
         val distFromObject = 55.0.inches.asFeet * if (FieldManager.isBlueAlliance) -1.0 else 1.0
         var offset = Vector2(0.0, 0.0)
         if (isBlueAlliance) {
@@ -708,8 +706,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         println("printing minimum spin time: $minSpin")
         time = maxOf(time,minSpin)
         newPath.addEasePoint(0.0,0.0)
-//        newPath.addEasePointSlopeAndMagnitude()
-        newPath.addEasePointSlopeAndMagnitude(time, 1.0, 0.0, 1.5)
+        newPath.addEasePointSlopeAndMagnitude(time, 1.0, 0.0, 1.8)
 
         newPath.addVector2(p1)
         newPath.addVector2(p2)
