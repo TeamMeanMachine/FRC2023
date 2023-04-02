@@ -95,6 +95,11 @@ object Arm : Subsystem("Arm") {
     val shoulderCurve = MotionCurve()
     var tempShoulder = shoulderAngle
     var prevShoulder = shoulderAngle
+    val shoulderError
+        get() = shoulderAngle - shoulderSetpoint
+    val elbowError
+        get() = elbowAngle - elbowSetpoint
+
     val shoulderFollowerAngle: Angle
         get() = shoulderFollowerMotor.position.degrees + shoulderOffset
 

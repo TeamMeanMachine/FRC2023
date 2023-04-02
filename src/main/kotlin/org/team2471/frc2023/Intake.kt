@@ -5,9 +5,9 @@ import edu.wpi.first.math.filter.LinearFilter
 import edu.wpi.first.networktables.NetworkTableInstance
 import edu.wpi.first.wpilibj.AnalogInput
 import edu.wpi.first.wpilibj.DigitalInput
-import io.github.pseudoresonance.pixy2api.Pixy2
-import io.github.pseudoresonance.pixy2api.Pixy2CCC
-import io.github.pseudoresonance.pixy2api.links.SPILink
+//import io.github.pseudoresonance.pixy2api.Pixy2
+//import io.github.pseudoresonance.pixy2api.Pixy2CCC
+//import io.github.pseudoresonance.pixy2api.links.SPILink
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.team2471.frc.lib.actuators.*
@@ -47,12 +47,12 @@ object Intake : Subsystem("Intake") {
     val intakePowerEntry = table.getEntry("Intake Power")
     val wristPose = table.getEntry("Wrist Pose")
     val pivotPose = table.getEntry("Pivot Pose")
-    val coneOrientationEntry = table.getEntry("Cone Orientation")
-    val coneMinBlockY = table.getEntry("Pixy Min Block Y")
-    val coneMinArea = table.getEntry("Pixy Min Area")
-    val coneMaxBlockCount = table.getEntry("Pixy Max Blocks")
-    val coneFacingUpEntry = table.getEntry("Cone Is Up")
-    val coneDebouncer = Debouncer(0.5,Debouncer.DebounceType.kFalling)
+//    val coneOrientationEntry = table.getEntry("Cone Orientation")
+//    val coneMinBlockY = table.getEntry("Pixy Min Block Y")
+//    val coneMinArea = table.getEntry("Pixy Min Area")
+//    val coneMaxBlockCount = table.getEntry("Pixy Max Blocks")
+//    val coneFacingUpEntry = table.getEntry("Cone Is Up")
+//    val coneDebouncer = Debouncer(0.5,Debouncer.DebounceType.kFalling)
     val cubeDetectEntry = table.getEntry("Cube Detect Power")
     val coneDetectEntry = table.getEntry("Cone Detect Power")
     val cubeHoldPowerEntry = table.getEntry("Cube Hold Power")
@@ -83,7 +83,7 @@ object Intake : Subsystem("Intake") {
         }
 
     val pivotAnalogAngle: Angle
-        get() = ((pivotSensor.value - if (isCompBot) 913.0 else 2116.0).degrees / 4096.0 * 360.0).wrap()
+        get() = ((pivotSensor.value - if (isCompBot) 913.0 else 2590.0).degrees / 4096.0 * 360.0).wrap() //third arm previous ticks: 2116.0
     var pivotOffset: Angle = 0.0.degrees
 
     val pivotAngle: Angle
@@ -122,6 +122,11 @@ object Intake : Subsystem("Intake") {
         }
     val pivotCurve = MotionCurve()
 
+    val pivotError
+        get() = pivotAngle - pivotSetpoint
+    val wristError
+        get() = wristAngle - wristSetpoint
+
     var wristIsReset = false
 
     var wristMin = -90.0.degrees
@@ -134,8 +139,8 @@ object Intake : Subsystem("Intake") {
 
     var holdDetectedTime = -5.0
 
-    lateinit var pixy : Pixy2
-    var coneFacingUp = false
+//    lateinit var pixy : Pixy2
+//    var coneFacingUp = false
     var coneToward = true //not supposed to be a get. We want to set it when pixy facing ground
 
     const val INTAKE_POWER = 1.0
@@ -154,7 +159,7 @@ object Intake : Subsystem("Intake") {
     const val CUBE_SPIT = -0.20 // was at -0.25
 
     init {
-        initializePixy()
+//        initializePixy()
         wristMotor.restoreFactoryDefaults()
         intakeMotor.restoreFactoryDefaults() //intake bad
         wristMotor.config(20) {
@@ -200,9 +205,9 @@ object Intake : Subsystem("Intake") {
             cubeHoldPowerEntry.setDouble(HOLD_CUBE)
             cubeDetectEntry.setInteger(DETECT_CUBE.toLong())
 
-            coneMaxBlockCount.setInteger(20)
-            coneMinArea.setInteger(20)
-            coneMinBlockY.setInteger(100)
+//            coneMaxBlockCount.setInteger(20)
+//            coneMinArea.setInteger(20)
+//            coneMinBlockY.setInteger(100)
 
             periodic {
 
@@ -211,11 +216,11 @@ object Intake : Subsystem("Intake") {
                 pivotSetpointEntry.setDouble(pivotSetpoint.asDegrees)
                 pErrorEntry.setDouble(pivotSetpoint.asDegrees - pivotAngle.asDegrees)
                 pFeedEntry.setDouble(pFeedForward)
-                val coneOrientation = coneUp()
-                coneFacingUp = coneDebouncer.calculate(coneOrientation == true)
-
-                coneOrientationEntry.setInteger(if (coneOrientation == null) -1 else if (coneOrientation) 1 else 0)
-                coneFacingUpEntry.setBoolean(coneFacingUp)
+//                val coneOrientation = coneUp()
+//                coneFacingUp = coneDebouncer.calculate(coneOrientation == true)
+//
+//                coneOrientationEntry.setInteger(if (coneOrientation == null) -1 else if (coneOrientation) 1 else 0)
+//                coneFacingUpEntry.setBoolean(coneFacingUp)
 
                 var pivot = OI.operatorController.rightThumbstickX.deadband(0.2)
                 var wrist = OI.operatorController.rightThumbstickY.deadband(0.2)
@@ -251,68 +256,68 @@ object Intake : Subsystem("Intake") {
         wristSetpoint = wristAngle
     }
 
-    fun initializePixy() {
-        pixy = Pixy2.createInstance(SPILink()) // Creates a new Pixy2 camera using SPILink
-        pixy.init() // Initializes the camera and prepares to send/receive data
-        pixy.setLamp(0.toByte(), 0.toByte()) // Turns the LEDs on
-        pixy.setLED(255, 255, 255) // Sets the RGB LED to full white
-    }
+//    fun initializePixy() {
+//        pixy = Pixy2.createInstance(SPILink()) // Creates a new Pixy2 camera using SPILink
+//        pixy.init() // Initializes the camera and prepares to send/receive data
+//        pixy.setLamp(0.toByte(), 0.toByte()) // Turns the LEDs on
+//        pixy.setLED(255, 255, 255) // Sets the RGB LED to full white
+//    }
 
-    fun coneUp(): Boolean? {
-        try {
-            val blockCount: Int = pixy.ccc.getBlocks(false, (Pixy2CCC.CCC_SIG1 + Pixy2CCC.CCC_SIG2), coneMaxBlockCount.getInteger(10).toInt())
-            //println("Found $blockCount blocks $blockCount!") // Reports number of blocks found
-            if (blockCount <= 0) {
-                return false // If blocks were not found, stop processing
-            }
-            val blocks: ArrayList<Pixy2CCC.Block> = pixy.ccc.blockCache // Gets a list of all blocks found by the Pixy2
-            for (block in blocks) { // Loops through all blocks and finds the widest one
-                if (block.y < coneMinBlockY.getInteger(100) && block.area > coneMinArea.getInteger(100)) {
-                    return true
-                }
-            }
-        } catch (ex:java.lang.Exception) {
-            println("Pixy 2 exception")
-            return null
-        }
-        return false
-    }
+//    fun coneUp(): Boolean? {
+//        try {
+//            val blockCount: Int = pixy.ccc.getBlocks(false, (Pixy2CCC.CCC_SIG1 + Pixy2CCC.CCC_SIG2), coneMaxBlockCount.getInteger(10).toInt())
+//            //println("Found $blockCount blocks $blockCount!") // Reports number of blocks found
+//            if (blockCount <= 0) {
+//                return false // If blocks were not found, stop processing
+//            }
+//            val blocks: ArrayList<Pixy2CCC.Block> = pixy.ccc.blockCache // Gets a list of all blocks found by the Pixy2
+//            for (block in blocks) { // Loops through all blocks and finds the widest one
+//                if (block.y < coneMinBlockY.getInteger(100) && block.area > coneMinArea.getInteger(100)) {
+//                    return true
+//                }
+//            }
+//        } catch (ex:java.lang.Exception) {
+//            println("Pixy 2 exception")
+//            return null
+//        }
+//        return false
+//    }
 
-    fun getBiggestBlock(): Pixy2CCC.Block? {
-        // Gets the number of "blocks", identified targets, that match signature 1 on the Pixy2,
-        // does not wait for new data if none is available,
-        // and limits the number of returned blocks to 25, for a slight increase in efficiency
-        var largestBlock: Pixy2CCC.Block? = null
-        try {
-            val blockCount: Int = pixy.ccc.getBlocks(false, Pixy2CCC.CCC_SIG1.toInt(), 25)
-            println("Found $blockCount blocks!") // Reports number of blocks found
-            if (blockCount <= 0) {
-                return null // If blocks were not found, stop processing
-            }
-            val blocks: ArrayList<Pixy2CCC.Block> = pixy.ccc.blockCache // Gets a list of all blocks found by the Pixy2
-            for (block in blocks) { // Loops through all blocks and finds the widest one
-                if (largestBlock == null) {
-                    largestBlock = block
-                } else if (block.width > largestBlock.width) {
-                    largestBlock = block
-                }
-            }
-            if (largestBlock != null) {
-                println("Area: ${largestBlock.height * largestBlock.width} , distance from ground ${largestBlock.y + largestBlock.height}")
-            }
-        } catch (ex:java.lang.Exception) {
-            println("Pixy 2 exception")
-        }
-        return largestBlock
-    }
+//    fun getBiggestBlock(): Pixy2CCC.Block? {
+//        // Gets the number of "blocks", identified targets, that match signature 1 on the Pixy2,
+//        // does not wait for new data if none is available,
+//        // and limits the number of returned blocks to 25, for a slight increase in efficiency
+//        var largestBlock: Pixy2CCC.Block? = null
+//        try {
+//            val blockCount: Int = pixy.ccc.getBlocks(false, Pixy2CCC.CCC_SIG1.toInt(), 25)
+//            println("Found $blockCount blocks!") // Reports number of blocks found
+//            if (blockCount <= 0) {
+//                return null // If blocks were not found, stop processing
+//            }
+//            val blocks: ArrayList<Pixy2CCC.Block> = pixy.ccc.blockCache // Gets a list of all blocks found by the Pixy2
+//            for (block in blocks) { // Loops through all blocks and finds the widest one
+//                if (largestBlock == null) {
+//                    largestBlock = block
+//                } else if (block.width > largestBlock.width) {
+//                    largestBlock = block
+//                }
+//            }
+//            if (largestBlock != null) {
+//                println("Area: ${largestBlock.height * largestBlock.width} , distance from ground ${largestBlock.y + largestBlock.height}")
+//            }
+//        } catch (ex:java.lang.Exception) {
+//            println("Pixy 2 exception")
+//        }
+//        return largestBlock
+//    }
 
     override fun onDisable() {
         intakeMotor.setPercentOutput(0.0)
     }
 }
 
-val Pixy2CCC.Block.area : Int
-    get() = this.width * this.height
+//val Pixy2CCC.Block.area : Int
+//    get() = this.width * this.height
 
 suspend fun Intake.pivotTest() = use(this) {
     var angle = pivotAngle
@@ -342,7 +347,7 @@ suspend fun Intake.pivotTest() = use(this) {
 fun setPivotPower() {
     val pError = (Intake.pivotSetpoint + Intake.pivotOffset - Intake.pivotAngle).wrap().asDegrees
     val openLoopPower = Intake.pivotPDController.update(pError).coerceIn(-1.0, 1.0)
-//    println("pivotError: ${round(pError, 1)}    openLoopPower: ${round(openLoopPower, 1)}")
+    if ((Intake.pivotSetpoint.asDegrees - Intake.pivotAngle.asDegrees).absoluteValue > 20.0) println("pivotError: ${round(pError, 1)}    openLoopPower: ${round(openLoopPower, 1)}")
     val power = openLoopPower + Intake.pFeedForward
     Intake.pivotMotor.setPercentOutput(power)
 }

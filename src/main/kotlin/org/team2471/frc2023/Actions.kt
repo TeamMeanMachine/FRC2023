@@ -144,10 +144,11 @@ suspend fun intakeFromGround(isCone: Boolean = NodeDeckHub.isCone) = use(Arm, In
             Drive.maxTranslation = 0.5
             //go to close intake
             if  (isCone) {
-                animateThroughPoses(Pose.GROUND_INTAKE_FRONT_CONE, Pose.GROUND_INTAKE_CONE_NEAR)
+                animateThroughPoses(true, Pose.GROUND_INTAKE_FRONT_CONE, Pose.GROUND_INTAKE_CONE_NEAR)
             } else {
-                animateThroughPoses(Pose.GROUND_INTAKE_FRONT_CUBE, Pose.GROUND_INTAKE_CUBE_NEAR)
+                animateThroughPoses(true, Pose.GROUND_INTAKE_FRONT_CUBE, Pose.GROUND_INTAKE_CUBE_NEAR)
             }
+            println("after, wristPos: ${Arm.shoulderSetpoint} ${Arm.elbowSetpoint}    actual: ${Arm.shoulderAngle} ${Arm.elbowAngle}")
 //            if (OI.operatorLeftTrigger < 0.05 && DriverStation.isTeleop()) {  // todo: should be able to early exit the animations above
 //                this.stop()
 //            }
@@ -353,14 +354,17 @@ private suspend fun autoArmToPose(pose: Pose) {
     }
 }
 
-suspend fun flip() = use(Arm, Intake) {
+suspend fun flip(overrideFront: Boolean? = null) = use(Arm, Intake) {
     Drive.maxTranslation = 1.0
-    if (Intake.wristAngle < -75.degrees || Arm.wristPosition.x < -10.0) {
+    println("overrideFront: $overrideFront")
+    if (Intake.wristAngle < -75.0.degrees || Arm.wristPosition.x < -10.0 || overrideFront == true) {
         println("Flipping to FRONT")
         animateThroughPoses(Pair(0.5, Pose.BACK_DRIVE_POSE_CENTER), Pair(0.5, Pose.FLIP_FRONT_UP), Pair(0.5, Pose.FLIP_FRONT_WRIST), Pair(0.5, Pose.FRONT_DRIVE_POSE))//, Pose.FLIP_INTAKE_TO_FRONT_WRIST, Pose.FRONT_DRIVE_POSE)
-    } else if (Intake.wristAngle > 75.0.degrees || Arm.wristPosition.x > 10.0) {
+    } else if (Intake.wristAngle > 75.0.degrees || Arm.wristPosition.x > 10.0 || overrideFront == false) {
         println("Flipping to BACK")
         animateThroughPoses(Pair(0.5, Pose.FRONT_DRIVE_POSE_CENTER), Pair(0.5, Pose.FLIP_BACK_UP), Pair(0.5, Pose.FLIP_BACK_WRIST), Pair(0.5, Pose.BACK_DRIVE_POSE))//, Pose.FLIP_INTAKE_TO_BACK_WRIST, Pose.BACK_DRIVE_POSE)
+    } else {
+        println("Don't know which side to flip")
     }
 }
 
@@ -368,7 +372,7 @@ suspend fun scoreObject(pieceNumber: Int = NodeDeckHub.selectedNode.toInt()) = u
     println("in scoreObject")
     val isCone = FieldManager.getNodeIsCone(pieceNumber)
     val nodeLevel = FieldManager.nodeList[pieceNumber]?.level
-    if (Arm.wristPosition.x < -15.0 && (nodeLevel != Level.LOW || !DriverStation.isAutonomous())) {
+    if (((nodeLevel == Level.MID || nodeLevel == Level.HIGH) && Arm.wristPosition.x < -15.0) || (nodeLevel == Level.LOW && Intake.wristAngle.asDegrees < -40.0 && !DriverStation.isAutonomous())) {
         Drive.maxTranslation = 0.5
         if (isCone) {
             if (Intake.coneToward) {
@@ -457,7 +461,7 @@ suspend fun afterScoreFlip(nodeLevel: Level?) = use(Arm, Intake) {
         }
         Level.LOW -> {
             animateThroughPoses(Pose.BACK_DRIVE_POSE)
-            flip()
+            flip(true)
         }
         else -> println("No level selected :(")
     }
@@ -578,3 +582,8 @@ suspend fun scoreObjectAuto(isCone: Boolean, pieceNumber: Int) = use(Arm, Intake
 //    toDrivePose()
 }
 
+suspend fun quickSpit() =use(Intake) {
+    Intake.intakeMotor.setPercentOutput(if (NodeDeckHub.isCone) Intake.CONE_TOWARD_SPIT else Intake.CUBE_SPIT)
+    delay(0.5)
+    Intake.intakeMotor.setPercentOutput(0.0)
+}

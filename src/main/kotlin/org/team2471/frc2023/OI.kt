@@ -9,6 +9,7 @@ import org.team2471.frc.lib.math.cube
 import org.team2471.frc.lib.math.deadband
 import org.team2471.frc.lib.math.squareWithSign
 import org.team2471.frc.lib.motion.following.xPose
+import org.team2471.frc.lib.units.degrees
 
 object OI : Subsystem("OI") {
     val driverController = XboxController(0)
@@ -63,7 +64,7 @@ object OI : Subsystem("OI") {
 //        driverController::b.whenTrue { Drive.dynamicGoToFeeder()}
         driverController::x.whenTrue { Drive.xPose() }
         driverController::b.whenTrue {
-            Intake.intakeMotor.setPercentOutput(if (NodeDeckHub.isCone) Intake.CONE_TOWARD_SPIT else Intake.CUBE_SPIT)
+            quickSpit()
         }
         driverController::leftBumper.whenTrue {
                 Drive.dynamicGoToScoreCheck()
@@ -99,6 +100,9 @@ object OI : Subsystem("OI") {
         operatorController::x.whenTrue {
             Arm.wristFrontOffset = Vector2(0.0, 0.0)
             Arm.wristBackOffset = Vector2(0.0, 0.0)
+            Intake.wristOffset = 0.0.degrees
+            Intake.pivotOffset = 0.0.degrees
+            println("Reset offsets")
         }
         ({operatorController.leftTrigger > 0.1}).whenTrue {
             safeAnimationCheck(PERSONINCONTROL.OPERATOR) {

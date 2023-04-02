@@ -28,15 +28,19 @@ object PoseEstimator {
     private val lastResetEntry = poseTable.getEntry("LastResetTime")
     private val startingPosEntry = poseTable.getEntry("Starting Pose Check")
     private val startingHeadingEntry = poseTable.getEntry("Starting Heading Check")
+    private val apriltagHeadingEntry = poseTable.getEntry("Apriltag Heading")
     private var offset = Vector2(0.0, 0.0)
     var headingOffset = 0.0.degrees
     private var lastZeroTimestamp = 0.0
     val currentPose
         get() = Drive.position - offset
+   // val heading
+     //   get() = (Drive.heading - headingOffset).wrap()
 
     init {
         kAprilEntry.setDouble(0.25)
         kHeadingEntry.setDouble(0.001)
+        apriltagHeadingEntry.setDouble(0.0)
         GlobalScope.launch(MeanlibDispatcher) {
             periodic {
                 startingHeadingEntry.setBoolean((FieldManager.isBlueAlliance && (Drive.heading > 179.0.degrees || Drive.heading < -179.0.degrees)) || (FieldManager.isRedAlliance && Drive.heading > -1.0.degrees && Drive.heading < 1.0.degrees))
@@ -61,7 +65,7 @@ object PoseEstimator {
         } else {
             try {
                 val kAprilFinal = (kApril ?: kAprilEntry.getDouble(0.5)) * if (numTarget < 2) 0.7 else 1.0
-                val kHeading = if (kotlin.math.abs(currentPose.y) > 5.0) kHeadingEntry.getDouble(0.001) else 0.0
+//                val kHeading = if (kotlin.math.abs(currentPose.y) > 15.0) kHeadingEntry.getDouble(0.001) else 0.0
                 val latencyPose = Drive.lookupPose(detection.timestamp)
                 if (DriverStation.isDisabled() && latencyPose == null && FieldManager.beforeFirstEnable){
                     val apriltagPose = Vector2(detection.pose.x, detection.pose.y)
@@ -72,9 +76,10 @@ object PoseEstimator {
                     val odomDiff = Drive.position - latencyPose.position
                     val headingDiff = Drive.heading - latencyPose.heading
                     val apriltagPose = Vector2(detection.pose.x, detection.pose.y) + odomDiff
-                    val apriltagHeading = detection.pose.rotation.degrees + headingDiff.asDegrees
+                    //val apriltagHeading = (-(detection.pose.rotation.degrees.degrees + headingDiff)).wrap180()
                     offset = offset * (1.0 - kAprilFinal) + (Drive.position - apriltagPose) * kAprilFinal
-                    headingOffset = (headingOffset.asDegrees * (1.0 - kHeading) + (Drive.heading.asDegrees - apriltagHeading) * kHeading).degrees
+                    //apriltagHeadingEntry.setDouble(apriltagHeading.asDegrees)
+                    //headingOffset = headingOffset * (1.0 - kHeading) + apriltagHeading.unWrap180(Drive.heading) * kHeading
                     val coercedOffsetX = offset.x.coerceIn(-FieldManager.fieldHalfInFeet.x + Drive.position.x, FieldManager.fieldHalfInFeet.x + Drive.position.x)
                     val coercedOffsetY = offset.y.coerceIn(-FieldManager.fieldHalfInFeet.y + Drive.position.y, FieldManager.fieldHalfInFeet.y + Drive.position.y)
                     val coercedOffset = Vector2(coercedOffsetX, coercedOffsetY)
@@ -83,6 +88,7 @@ object PoseEstimator {
                         DriverStation.reportWarning("PoseEstimator: Offset coerced onto field",false)
                         println("PoseEstimator: Offset coerced onto field")
                     }
+                    //println("Heading Offset: ${apriltagHeading.unWrap(Drive.heading)}")
 
                 //        println(offset)
                 }

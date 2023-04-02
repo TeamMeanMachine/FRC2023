@@ -93,15 +93,15 @@ object NodeDeckHub {
 
                     // println("NodeDeck updated, got position $selectedNode and piece ${color?.name}. Floor Color")
 
-                    when (color) {
-                        GamePiece.CONE -> SignalLights.flashYellow()        // YELLOW
-                        GamePiece.CUBE -> SignalLights.flashPurple()        // PURPLE
-                        GamePiece.BOTH -> {     // OH NO ITS A FLOOR REQUEST
-                            if (isFloorCone) SignalLights.flashYellow()     // YELLOW
-                            else SignalLights.flashPurple()                 // PURPLE
-                        }
-                        else -> {}
-                    }
+//                    when (color) {
+//                        GamePiece.CONE -> SignalLights.flashYellow()        // YELLOW
+//                        GamePiece.CUBE -> SignalLights.flashPurple()        // PURPLE
+//                        GamePiece.BOTH -> {     // OH NO ITS A FLOOR REQUEST
+//                            if (isFloorCone) SignalLights.flashYellow()     // YELLOW
+//                            else SignalLights.flashPurple()                 // PURPLE
+//                        }
+//                        else -> {}
+//                    }
                 }
                 lastNode = selectedNode;
                 lastFloorState = isFloorCone;

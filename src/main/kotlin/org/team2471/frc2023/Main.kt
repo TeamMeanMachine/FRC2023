@@ -61,7 +61,7 @@ object Robot : MeanlibRobot() {
         println("Activating AprilTags! Last Detection: ${AprilTag.lastDetection}")
         PoseEstimator
         println("Activating PoseEstimator! currentPose ${PoseEstimator.currentPose}")
-//        SignalLights
+
 //        MAPoseEstimator
         Arm
         println("Activating Arm! currentPosition ${Arm.wristPosition}")

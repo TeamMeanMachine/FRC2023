@@ -17,6 +17,9 @@ data class Pose(val wristPosition: Vector2, val wristAngle: Angle, val pivotAngl
         val current: Pose
             get() = Pose(Arm.wristPosition, Intake.wristAngle, Intake.pivotAngle)
         val START_POSE = Pose(Vector2(0.0, 9.0), -90.0.degrees, -90.0.degrees)
+//        val GROUND_INTAKE_FRONT_CONE = Pose(Vector2(22.0, 14.5), 90.0.degrees, -90.0.degrees)
+//        val GROUND_INTAKE_CONE_NEAR = Pose(Vector2(15.0, 9.0), 90.0.degrees, 0.0.degrees)
+//        val GROUND_INTAKE_CONE_FAR = Pose(Vector2(40.0, 11.0), 90.0.degrees, 0.0.degrees)   //112 y: 8.5
         val GROUND_INTAKE_FRONT_CONE = Pose(Vector2(18.0, 14.5), 90.0.degrees, -90.0.degrees)
         val GROUND_INTAKE_CONE_NEAR = Pose(Vector2(19.5, 6.0), 90.0.degrees, 0.0.degrees)
         val GROUND_INTAKE_CONE_FAR = Pose(Vector2(40.0, 12.5), 90.0.degrees, 0.0.degrees)
@@ -73,14 +76,21 @@ data class Pose(val wristPosition: Vector2, val wristAngle: Angle, val pivotAngl
     operator fun plus(otherPose: Pose) = Pose(wristPosition + otherPose.wristPosition, wristAngle + otherPose.wristAngle, pivotAngle + otherPose.pivotAngle)
 }
 
-suspend fun animateToPose(pose: Pose, minTime: Double = 0.0) = use(Arm, Intake) {
-  animateThroughPoses(Pair(minTime, pose))
+suspend fun animateToPose(pose: Pose, minTime: Double = 0.0, waituntilDone: Boolean = false) = use(Arm, Intake) {
+  animateThroughPoses(waituntilDone, Pair(minTime, pose))
 }
 
-suspend fun animateThroughPoses(vararg poses: Pose) {
-    animateThroughPoses(*poses.map{Pair(0.0, it)}.toTypedArray())
+suspend fun animateThroughPoses(waituntilDone: Boolean = false, vararg poses: Pose) {
+    animateThroughPoses(waituntilDone, *poses.map{Pair(0.0, it)}.toTypedArray())
 }
-suspend fun animateThroughPoses(vararg poses: Pair<Double, Pose>) = use(Arm, Intake) {
+suspend fun animateThroughPoses(vararg poses: Pose) {
+    animateThroughPoses(false, *poses.map{Pair(0.0, it)}.toTypedArray())
+}
+
+suspend fun animateThroughPoses(vararg poses: Pair<Double, Pose>) {
+    animateThroughPoses(false, *poses)
+}
+suspend fun animateThroughPoses(waituntilDone: Boolean = false, vararg poses: Pair<Double, Pose>) = use(Arm, Intake) {
     println("Starting animation through $poses")
     val path = Path2D("Path")
 
@@ -103,7 +113,7 @@ suspend fun animateThroughPoses(vararg poses: Pair<Double, Pose>) = use(Arm, Int
         val minTime = posePair.first
         val wristPosTime = (path.length - prevLength) / wristPosRate
         val wristTime = ((pose.wristAngle - previousPose.wristAngle).asDegrees.absoluteValue) / wristAngleRate
-        val pivotTime = (pose.pivotAngle - previousPose.pivotAngle).asDegrees / pivotRate
+        val pivotTime = ((pose.pivotAngle - previousPose.pivotAngle).asDegrees.absoluteValue) / pivotRate
         timeMap["minTime"] = minTime
         timeMap["wristPosTime"] = wristPosTime
         timeMap["wristTime"] = wristTime
@@ -154,5 +164,21 @@ suspend fun animateThroughPoses(vararg poses: Pair<Double, Pose>) = use(Arm, Int
         if (t > totalT) {
             this.stop()
         }
+    }
+
+    if (waituntilDone) {
+        timer.reset()
+        timer.start()
+        periodic {
+            println("waiting for error values shoulder: ${Arm.shoulderError.asDegrees.toInt()}   elbow: ${Arm.elbowError.asDegrees.toInt()} pivot:${Intake.pivotError.asDegrees.toInt()} wrist:${Intake.wristError.asDegrees.toInt()}}")
+          if ( (Arm.shoulderError.asDegrees.absoluteValue < 10.0
+                    && Arm.elbowError.asDegrees.absoluteValue < 10.0
+                    && Intake.pivotError.asDegrees.absoluteValue < 15.0
+                    && Intake.wristError.asDegrees.absoluteValue < 10.0)
+                    || timer.get() > 1.0 ) {
+              this.stop()
+          }
+        }
+        println("waited ${timer.get()} for the animation to finish")
     }
 }
