@@ -132,8 +132,8 @@ object FieldManager {
             val pOffset = when (p) {
                 0 -> Vector2(1.2, 0.8) //feet
                 1 -> Vector2(-0.6, 0.4)
-                2 -> Vector2(0.0, -1.0)
-                3 -> Vector2(0.8, -1.5)
+                2 -> Vector2(0.8, -1.4)
+                3 -> Vector2(0.0, -0.05)
                 4 -> Vector2(-0.2, 0.6)
                 6 -> Vector2(1.3, 1.5)
                 7 -> Vector2(0.0, 1.0)

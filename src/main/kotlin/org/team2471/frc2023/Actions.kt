@@ -110,11 +110,11 @@ suspend fun intakeFromGroundAuto(isCone: Boolean) = use(Arm, Intake) {
     timer2.start()
     var holdingTime = 25.0
     periodic {
-        if (timer2.get() > 1.0 || timer2.get() - holdingTime > 0.4) { //change 0.3 -> 0.4 untested
+        if (timer2.get() > 2.0 || timer2.get() - holdingTime > 0.4) {
             println("totalTime: ${timer2.get() > 1.0}  holdTime ${timer2.get() - holdingTime > 0.4}")
             this.stop()
         }
-        if (Intake.holdingObject && holdingTime == 25.0) {
+        if (Intake.holdingObject && holdingTime == 25.0 && timer2.get() > 0.15) {
             holdingTime = timer2.get()
         }
         if (!Intake.holdingObject) holdingTime = 25.0
@@ -313,9 +313,9 @@ suspend fun lineUpScoreCube(pieceNumber: Int = NodeDeckHub.selectedNode.toInt())
             Level.HIGH -> {
                 animateThroughPoses(
                     Pair(0.0, Pose.BACK_HIGH_SCORE_CONE_TOWARD_MID),
-                    Pair(0.0, Pose.BACK_HIGH_SCORE_CONE_TOWARD)
+                    Pair(0.0, Pose.BACK_HIGH_SCORE_CUBE)
                 )
-                autoArmToPose(Pose.BACK_HIGH_SCORE_CONE_TOWARD)
+                autoArmToPose(Pose.BACK_HIGH_SCORE_CUBE)
             }
             Level.MID -> {
                 animateToPose(Pose.BACK_MIDDLE_SCORE_CUBE)
@@ -378,7 +378,7 @@ suspend fun scoreObject(pieceNumber: Int = NodeDeckHub.selectedNode.toInt()) = u
             if (Intake.coneToward) {
                 when (nodeLevel) {
                     Level.HIGH -> {
-                        var midPose = Pose.current + Pose(Vector2(6.5, -4.5), 40.0.degrees, 0.0.degrees)
+                        var midPose = Pose.current + Pose(Vector2(6.5, -4.5), 50.0.degrees, 0.0.degrees)
                         animateToPose(midPose, 0.5)
                         Intake.intakeMotor.setPercentOutput(Intake.CONE_TOWARD_SPIT)
                         midPose += Pose(Vector2(8.5, 10.0), 0.0.degrees, 0.0.degrees)

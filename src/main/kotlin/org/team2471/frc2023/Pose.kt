@@ -17,12 +17,9 @@ data class Pose(val wristPosition: Vector2, val wristAngle: Angle, val pivotAngl
         val current: Pose
             get() = Pose(Arm.wristPosition, Intake.wristAngle, Intake.pivotAngle)
         val START_POSE = Pose(Vector2(0.0, 9.0), -90.0.degrees, -90.0.degrees)
-//        val GROUND_INTAKE_FRONT_CONE = Pose(Vector2(22.0, 14.5), 90.0.degrees, -90.0.degrees)
-//        val GROUND_INTAKE_CONE_NEAR = Pose(Vector2(15.0, 9.0), 90.0.degrees, 0.0.degrees)
-//        val GROUND_INTAKE_CONE_FAR = Pose(Vector2(40.0, 11.0), 90.0.degrees, 0.0.degrees)   //112 y: 8.5
         val GROUND_INTAKE_FRONT_CONE = Pose(Vector2(18.0, 14.5), 90.0.degrees, -90.0.degrees)
         val GROUND_INTAKE_CONE_NEAR = Pose(Vector2(19.5, 6.0), 90.0.degrees, 0.0.degrees)
-        val GROUND_INTAKE_CONE_FAR = Pose(Vector2(40.0, 12.5), 90.0.degrees, 0.0.degrees)
+        val GROUND_INTAKE_CONE_FAR = Pose(Vector2(40.0, 12.75), 90.0.degrees, 0.0.degrees)
         val GROUND_INTAKE_FRONT_CUBE = Pose(Vector2(18.0, 14.0), 90.0.degrees, -180.0.degrees)
         val GROUND_INTAKE_CUBE_NEAR = Pose(Vector2(18.0, -4.0), 75.0.degrees, -180.0.degrees)
         val GROUND_INTAKE_CUBE_FAR = Pose(Vector2(40.0, -4.0), 75.0.degrees, -180.0.degrees)
@@ -38,9 +35,10 @@ data class Pose(val wristPosition: Vector2, val wristAngle: Angle, val pivotAngl
         val BACK_MIDDLE_SCORE_CUBE = Pose(Vector2(-24.5, 31.5), -100.0.degrees, 0.0.degrees)
 
         val BACK_HIGH_SCORE_CONE_TOWARD_MID = Pose(Vector2(-28.0, 48.0), -90.0.degrees, 0.0.degrees)
-        val BACK_HIGH_SCORE_CONE_TOWARD = Pose(Vector2(-43.6, 42.5), -90.0.degrees, 0.0.degrees)
+        val BACK_HIGH_SCORE_CONE_TOWARD = Pose(Vector2(-43.0, 43.0), -90.0.degrees, 0.0.degrees)
         val BACK_HIGH_SCORE_CONE_AWAY_MID = Pose(Vector2(-29.0, 45.0), -180.0.degrees, -180.0.degrees)
-        val BACK_HIGH_SCORE_CONE_AWAY = Pose(Vector2(-43.5, 43.0), -180.0.degrees, -180.0.degrees)
+        val BACK_HIGH_SCORE_CONE_AWAY = Pose(Vector2(-43.0, 43.0), -180.0.degrees, -180.0.degrees)
+        val BACK_HIGH_SCORE_CUBE = Pose(Vector2(-43.0, 45.5), -90.0.degrees, 0.0.degrees)
 
         val BACK_START_POSE = Pose(Vector2(0.0, 9.0), -92.0.degrees, 0.0.degrees)
 

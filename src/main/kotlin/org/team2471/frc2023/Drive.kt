@@ -168,7 +168,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
     )
 
     override val carpetFlow = Vector2(0.0, 1.0)
-    override val kCarpet = 0.0234 //0.025 // how much downstream and upstream carpet directions affect the distance, for no effect, use  0.0 (2.5% more distance downstream)
+    override val kCarpet = 0.0234 // how much downstream and upstream carpet directions affect the distance, for no effect, use  0.0 (2.5% more distance downstream)
     override val kTread = 0.0 //.04 // how much of an effect treadWear has on distance (fully worn tread goes 4% less than full tread)  0.0 for no effect
 
     val autoPDController = PDConstantFController(0.015, 0.04, 0.05)
@@ -683,16 +683,9 @@ object Drive : Subsystem("Drive"), SwerveDrive {
             distance += 2.5
         }
         distance += (p3 - p2).length
-        val distFromObject = 55.0.inches.asFeet * if (FieldManager.isBlueAlliance) -1.0 else 1.0
-        var offset = Vector2(0.0, 0.0)
-        if (isBlueAlliance) {
-            offset = when (NodeDeckHub.startingPoint) {
-                StartingPoint.INSIDE -> Vector2(-6.inches.asFeet, -1.0.feet.asFeet)
-                else -> Vector2(0.0, 0.0)
-            }
-        }
-        val vectorOffset = Vector2(-goalHeading.sin(), -goalHeading.cos()) * distFromObject
-        val p4 = goalPosition + vectorOffset + offset
+        val distFromObject = 55.0.inches.asFeet
+        val vectorOffset = Vector2(-goalHeading.sin(), -goalHeading.cos() * if (FieldManager.isBlueAlliance) -1.0 else 1.0) * distFromObject
+        val p4 = goalPosition + vectorOffset
         distance += (p4 - p3).length
 
         val rate = rateCurve.getValue(distance) // ft per sec
