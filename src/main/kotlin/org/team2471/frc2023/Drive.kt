@@ -57,8 +57,8 @@ object Drive : Subsystem("Drive"), SwerveDrive {
     val useGyroEntry = table.getEntry("Use Gyro")
     val angleToNodeEntry = table.getEntry("Angle To Node")
 
-    val advantageSwerveStates = table.getEntry("SwerveStates")
-    val advantageSwerveTargets = table.getEntry("SwerveTargets")
+    val advantageSwerveStatesEntry = table.getEntry("SwerveStates")
+    val advantageSwerveTargetsEntry = table.getEntry("SwerveTargets")
     val rateCurve = MotionCurve()
 
     val fieldObject = Field2d()
@@ -236,18 +236,20 @@ object Drive : Subsystem("Drive"), SwerveDrive {
                 headingEntry.setDouble(heading.asDegrees)
                 val poseWPI = FieldManager.convertTMMtoWPI(x.feet, y.feet, heading)
                 poseEntry.setDoubleArray(doubleArrayOf(poseWPI.x, poseWPI.y, poseWPI.rotation.degrees))
-                absoluteAngle0Entry.setDouble((modules[0] as Module).absoluteAngle.asDegrees)
-                absoluteAngle1Entry.setDouble((modules[1] as Module).absoluteAngle.asDegrees)
-                absoluteAngle2Entry.setDouble((modules[2] as Module).absoluteAngle.asDegrees)
-                absoluteAngle3Entry.setDouble((modules[3] as Module).absoluteAngle.asDegrees)
+                if (FieldManager.homeField) {
+                    absoluteAngle0Entry.setDouble((modules[0] as Module).absoluteAngle.asDegrees)
+                    absoluteAngle1Entry.setDouble((modules[1] as Module).absoluteAngle.asDegrees)
+                    absoluteAngle2Entry.setDouble((modules[2] as Module).absoluteAngle.asDegrees)
+                    absoluteAngle3Entry.setDouble((modules[3] as Module).absoluteAngle.asDegrees)
 
-                motorPower0Entry.setDouble((modules[0] as Module).driveCurrent)
-                motorPower1Entry.setDouble((modules[1] as Module).driveCurrent)
-                motorPower2Entry.setDouble((modules[2] as Module).driveCurrent)
-                motorPower3Entry.setDouble((modules[3] as Module).driveCurrent)
+                    motorPower0Entry.setDouble((modules[0] as Module).driveCurrent)
+                    motorPower1Entry.setDouble((modules[1] as Module).driveCurrent)
+                    motorPower2Entry.setDouble((modules[2] as Module).driveCurrent)
+                    motorPower3Entry.setDouble((modules[3] as Module).driveCurrent)
 
-                advantageSwerveStates.setDoubleArray(stateArray)
-                advantageSwerveTargets.setDoubleArray(stateArray)
+                    advantageSwerveStatesEntry.setDoubleArray(stateArray)
+                    advantageSwerveTargetsEntry.setDoubleArray(stateArray)
+                }
 //                motorAngle0Entry.setDouble((modules[0] as Module).angle.wrap().asDegrees)
 //                motorAngle1Entry.setDouble((modules[1] as Module).angle.wrap().asDegrees)
 //                motorAngle2Entry.setDouble((modules[2] as Module).angle.wrap().asDegrees)
@@ -311,8 +313,9 @@ object Drive : Subsystem("Drive"), SwerveDrive {
 ////                if (error.asDegrees.absoluteValue > 90.0) error = (error - 180.0.degrees).wrap()
 //                turn = aimPDController.update(error.asDegrees)
 //            }
-            angleToNodeEntry.setDouble(angleToNode.asDegrees)
-
+            if (FieldManager.homeField) {
+                angleToNodeEntry.setDouble(angleToNode.asDegrees)
+            }
             drive(
                 OI.driveTranslation * maxTranslation,
                 turn * maxRotation,
@@ -448,20 +451,6 @@ object Drive : Subsystem("Drive"), SwerveDrive {
                 openLoopRamp(0.2)
             }
 
-            GlobalScope.launch {
-                val table = NetworkTableInstance.getDefault().getTable(name)
-                val pSwerveEntry = table.getEntry("Swerve P").apply {
-                    setPersistent()
-                    setDefaultDouble(0.0075)
-                }
-                val dSwerveEntry = table.getEntry("Swerve D").apply {
-                    setPersistent()
-                    setDefaultDouble(0.00075)
-                }
-                periodic {
-//                    println("position: $position")
-                }
-            }
         }
 
         override fun driveWithDistance(angle: Angle, distance: Length) {

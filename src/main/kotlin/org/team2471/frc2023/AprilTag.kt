@@ -29,14 +29,14 @@ object AprilTag {
     //private val frontPoseEstimatorEntry = pvTable.getEntry("Front Pose Estimator")
     //private val backPoseEstimatorEntry = pvTable.getEntry("Back Pose Estimator")
 
-    private val tag1Trajectory = pvTable.getEntry("Tag 1 Trajectory")
-    private val tag2Trajectory = pvTable.getEntry("Tag 2 Trajectory")
-    private val tag3Trajectory = pvTable.getEntry("Tag 3 Trajectory")
-    private val tag4Trajectory = pvTable.getEntry("Tag 4 Trajectory")
-    private val tag5Trajectory = pvTable.getEntry("Tag 5 Trajectory")
-    private val tag6Trajectory = pvTable.getEntry("Tag 6 Trajectory")
-    private val tag7Trajectory = pvTable.getEntry("Tag 7 Trajectory")
-    private val tag8Trajectory = pvTable.getEntry("Tag 8 Trajectory")
+    private val tag1TrajectoryEntry = pvTable.getEntry("Tag 1 Trajectory")
+    private val tag2TrajectoryEntry = pvTable.getEntry("Tag 2 Trajectory")
+    private val tag3TrajectoryEntry = pvTable.getEntry("Tag 3 Trajectory")
+    private val tag4TrajectoryEntry = pvTable.getEntry("Tag 4 Trajectory")
+    private val tag5TrajectoryEntry = pvTable.getEntry("Tag 5 Trajectory")
+    private val tag6TrajectoryEntry = pvTable.getEntry("Tag 6 Trajectory")
+    private val tag7TrajectoryEntry = pvTable.getEntry("Tag 7 Trajectory")
+    private val tag8TrajectoryEntry = pvTable.getEntry("Tag 8 Trajectory")
 
     private val aprilTagFieldLayout : AprilTagFieldLayout = AprilTagFieldLayout.loadFromResource(AprilTagFields.kDefaultField.m_resourceFile)
     private val validTags : List<Int> = aprilTagFieldLayout.tags.map { it.ID }
@@ -53,7 +53,8 @@ object AprilTag {
     private const val maxAmbiguity = 0.1
     private var lastPose = Pose2d(0.0,0.0, Rotation2d(0.0))
     private var lastDetectionTime = 0.0
-
+    private var singleTagMinY: Double = 17.35
+        get() = if (FieldManager.homeField) singleTagMinYEntry.getDouble((FieldManager.chargeFromCenterY + FieldManager.chargingStationDepth).asFeet) else 17.35
 
 
     val lastDetection: AprilDetection
@@ -79,36 +80,51 @@ object AprilTag {
 //                if (DriverStation.isDisabled()  && (camFront == null || frontPoseEstimator == null || camBack == null || backPoseEstimator == null)) {
 //                    resetCameras()
 //                    }
-                aprilTagStartupCheckEntry.setBoolean(camFront != null && camBack != null && frontPoseEstimator != null && backPoseEstimator != null)
+                if (FieldManager.homeField ){
+                    aprilTagStartupCheckEntry.setBoolean(camFront != null && camBack != null && frontPoseEstimator != null && backPoseEstimator != null)
+                }
+
 //                frontPoseEstimator.referencePose = Pose3d(Pose2d(PoseEstimator.currentPose.toWPIField(), Rotation2d(Drive.heading.asRadians)))
 //                backPoseEstimator.referencePose = Pose3d(Pose2d(PoseEstimator.currentPose.toWPIField(), Rotation2d(Drive.heading.asRadians)))
                 try {
                     val frontCamSelected = useFrontCam()
-                    frontCamSelectedEntry.setBoolean(frontCamSelected)
+                    if (FieldManager.homeField){
+                        frontCamSelectedEntry.setBoolean(frontCamSelected)
+                    }
+
                     var maybePose: Pose2d?
                     var numTarget: Int
                     if (frontCamSelected) {
                         maybePose = frontPoseEstimator?.let { camFront?.let { it1 -> getEstimatedGlobalPose(it1, it) } }
                         numTarget = camFront?.latestResult?.targets?.count() ?: 0
-                        addTargetsToTable(camFront?.latestResult?.targets)
+                        if (FieldManager.homeField) {
+                            addTargetsToTable(camFront?.latestResult?.targets)
+
+                        }
                     } else {
                         maybePose = backPoseEstimator?.let { camBack?.let { it1 -> getEstimatedGlobalPose(it1, it) } }
                         numTarget = camBack?.latestResult?.targets?.count() ?: 0
-                        addTargetsToTable(camBack?.latestResult?.targets)
+                        if (FieldManager.homeField) {
+                            addTargetsToTable(camBack?.latestResult?.targets)
+                        }
                        // for (target in camBack?.latestResult?.targets!!) {
                             //addTargetToTable(target.fiducialId, target.bestCameraToTarget)
                        // }
                     }
                     if (maybePose != null) {
-                        seesAprilTagEntry.setBoolean(numTarget > 0)
-    //                        println("MaybePose: $maybePose")
-                        advantagePoseEntry.setDoubleArray(
-                            doubleArrayOf(
-                                maybePose.x,
-                                maybePose.y,
-                                maybePose.rotation.degrees
+                        if (FieldManager.homeField) {
+
+
+                            seesAprilTagEntry.setBoolean(numTarget > 0)
+                            //                        println("MaybePose: $maybePose")
+                            advantagePoseEntry.setDoubleArray(
+                                doubleArrayOf(
+                                    maybePose.x,
+                                    maybePose.y,
+                                    maybePose.rotation.degrees
+                                )
                             )
-                        )
+                        }
                         lastPose = maybePose
 
                         PoseEstimator.addVision(lastDetection, numTarget)
@@ -157,12 +173,15 @@ object AprilTag {
 //                println("newPose: $newPose")
          if (newPose?.isPresent == true) {
             val result = newPose.get()
-            detectedDepthYEntry.setDouble(result.estimatedPose.toPose2d().toTMMField().y)
-            if (validTargets.count() < 2 && result.estimatedPose.toPose2d().toTMMField().y.absoluteValue < singleTagMinYEntry.getDouble((FieldManager.chargeFromCenterY + FieldManager.chargingStationDepth).asFeet)) {
+            if (FieldManager.homeField){
+                detectedDepthYEntry.setDouble(result.estimatedPose.toPose2d().toTMMField().y)
+
+            }
+            if (validTargets.count() < 2 && result.estimatedPose.toPose2d().toTMMField().y.absoluteValue < singleTagMinY) {
 
 //                println("AprilTag: Single target too far away ${result.estimatedPose.toPose2d().toTMMField().y.absoluteValue} vs ${(FieldManager.chargeFromCenterY + FieldManager.chargingStationDepth).asFeet}")
-                return null
-            }
+                    return null
+                }
 //            println("Valid target found ${validTargets.count()}")
             lastDetectionTime = result.timestampSeconds
             return result.estimatedPose.toPose2d()
@@ -215,16 +234,18 @@ object AprilTag {
 
     private fun addTargetToTable(tagID: Int, tagPos: Transform3d?) {
 
+
         val tagTrajectory = when (tagID) {
-            1 -> tag1Trajectory
-            2 -> tag2Trajectory
-            3 -> tag3Trajectory
-            4 -> tag4Trajectory
-            5 -> tag5Trajectory
-            6 -> tag6Trajectory
-            7 -> tag7Trajectory
-            8 -> tag8Trajectory
-            else -> tag1Trajectory
+                1 -> tag1TrajectoryEntry
+                2 -> tag2TrajectoryEntry
+                3 -> tag3TrajectoryEntry
+                4 -> tag4TrajectoryEntry
+                5 -> tag5TrajectoryEntry
+                6 -> tag6TrajectoryEntry
+                7 -> tag7TrajectoryEntry
+                8 -> tag8TrajectoryEntry
+                else -> tag1TrajectoryEntry
+
         }
 
         if (tagPos == null) {

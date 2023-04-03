@@ -86,7 +86,9 @@ object Arm : Subsystem("Arm") {
 //            }
 
             field = temp.asDegrees.coerceIn(SHOULDER_BOTTOM, SHOULDER_TOP).degrees
-            shoulderSetpointEntry.setDouble(field.asDegrees)
+            if (FieldManager.homeField) {
+                shoulderSetpointEntry.setDouble(field.asDegrees)
+            }
             shoulderMotor.setPositionSetpoint(field.asDegrees, sFeedForward)
             shoulderFollowerMotor.setPositionSetpoint(field.asDegrees, sFeedForward)
         }
@@ -116,7 +118,9 @@ object Arm : Subsystem("Arm") {
     var elbowSetpoint: Angle = elbowAngle
         set(value) {
             field = value.asDegrees.coerceIn(ELBOW_BOTTOM, ELBOW_TOP).degrees
-            elbowSetpointEntry.setDouble(field.asDegrees)
+            if(FieldManager.homeField) {
+                elbowSetpointEntry.setDouble(field.asDegrees)
+            }
             elbowMotor.setPositionSetpoint(field.asDegrees, eFeedForward)
         }
     val shoulderIsZeroed
@@ -311,11 +315,11 @@ object Arm : Subsystem("Arm") {
 
             var shoulderDirection = LinearFilter.movingAverage(3)
             var previousShoulderSensor = false
-
-            shoulderSetpointEntry.setDouble(shoulderAngle.asDegrees)
-            elbowSetpointEntry.setDouble(elbowAngle.asDegrees)
-
-            println("shoulderFollower: ${shoulderFollowerEntry.getDouble(0.0)}")
+            if(FieldManager.homeField) {
+                shoulderSetpointEntry.setDouble(shoulderAngle.asDegrees)
+                elbowSetpointEntry.setDouble(elbowAngle.asDegrees)
+            }
+            //println("shoulderFollower: ${shoulderFollowerEntry.getDouble(0.0)}")
             periodic {
 
                 elbowAngleCheck.setBoolean(elbowAngle.asDegrees.absoluteValue < 10)
@@ -334,17 +338,22 @@ object Arm : Subsystem("Arm") {
 //
 //                pose3d = Pose3d(0.0,0.0,0.0, Rotation3d(0.0, 0.0, elbowAngle.asDegrees))
 //                elbowPose.setValue(pose3d)
-
-                wristPositionXEntry.setDouble(wristPosition.x)
-                wristPositionYEntry.setDouble(wristPosition.y)
+                if (FieldManager.homeField) {
+                    wristPositionXEntry.setDouble(wristPosition.x)
+                    wristPositionYEntry.setDouble(wristPosition.y)
+                }
                 val (ikShoulder, ikElbow) = inverseKinematics(wristPosition)
-                shoulderIKEntry.setDouble(ikShoulder.asDegrees)
-                elbowIKEntry.setDouble(ikElbow.asDegrees)
+                if (FieldManager.homeField) {
+                    shoulderIKEntry.setDouble(ikShoulder.asDegrees)
+                    elbowIKEntry.setDouble(ikElbow.asDegrees)
+                }
                 shoulderFollowerEntry.setDouble(shoulderMotor.position)
                 shoulderIsZeroedEntry.setBoolean(shoulderIsZeroed)
                 val (fkX, fkY) = forwardKinematics(shoulderAngle, elbowAngle)
-                xFKEntry.setDouble(fkX)
-                yFKENtry.setDouble(fkY)
+                if (FieldManager.homeField) {
+                    xFKEntry.setDouble(fkX)
+                    yFKENtry.setDouble(fkY)
+                }
                 shoulderTicksEntry.setDouble(shoulderTicks.toDouble())
                 elbowTicksEntry.setDouble(elbowTicks.toDouble())
 

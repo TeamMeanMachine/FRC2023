@@ -79,7 +79,9 @@ object Intake : Subsystem("Intake") {
             field = value.asDegrees.coerceIn(wristMin.asDegrees, wristMax.asDegrees).degrees
 //            println("field: ${round(field.asDegrees,1)}     offset: ${round(wristOffset.asDegrees, 1)}")
             wristMotor.setPositionSetpoint((field + wristOffset).asDegrees)
-            wristSetpointEntry.setDouble((field + wristOffset).asDegrees)
+            if (FieldManager.homeField) {
+                wristSetpointEntry.setDouble((field + wristOffset).asDegrees)
+            }
         }
 
     val pivotAnalogAngle: Angle
@@ -106,7 +108,9 @@ object Intake : Subsystem("Intake") {
                 field = value
             }
             setPivotPower()
-            pivotSetpointEntry.setDouble(field.asDegrees)
+            if (FieldManager.homeField) {
+                pivotSetpointEntry.setDouble(field.asDegrees)
+            }
         }
     val pivotPDController = PDController(0.100, 0.001) //0.1, 0.001  //0.03, 0.04)   //0.35, 0.03
     var prevPFeedForward = 0.0
@@ -198,25 +202,26 @@ object Intake : Subsystem("Intake") {
         wristSetpoint = wristAngle
         GlobalScope.launch(MeanlibDispatcher) {
             var tempPivot: Angle
-
-            wristSetpointEntry.setDouble(wristAngle.asDegrees)
-            pivotSetpointEntry.setDouble(pivotAngle.asDegrees)
-            coneHoldPowerEntry.setDouble(HOLD_CONE)
-            coneDetectEntry.setInteger(DETECT_CONE.toLong())
-            cubeHoldPowerEntry.setDouble(HOLD_CUBE)
-            cubeDetectEntry.setInteger(DETECT_CUBE.toLong())
-
+            if(FieldManager.homeField) {
+                wristSetpointEntry.setDouble(wristAngle.asDegrees)
+                pivotSetpointEntry.setDouble(pivotAngle.asDegrees)
+                coneHoldPowerEntry.setDouble(HOLD_CONE)
+                coneDetectEntry.setInteger(DETECT_CONE.toLong())
+                cubeHoldPowerEntry.setDouble(HOLD_CUBE)
+                cubeDetectEntry.setInteger(DETECT_CUBE.toLong())
+            }
 //            coneMaxBlockCount.setInteger(20)
 //            coneMinArea.setInteger(20)
 //            coneMinBlockY.setInteger(100)
 
             periodic {
-
-                wristEntry.setDouble(wristAngle.asDegrees)
-                pivotEntry.setDouble(pivotAngle.asDegrees)
-                pivotSetpointEntry.setDouble(pivotSetpoint.asDegrees)
-                pErrorEntry.setDouble(pivotSetpoint.asDegrees - pivotAngle.asDegrees)
-                pFeedEntry.setDouble(pFeedForward)
+                if (FieldManager.homeField) {
+                    wristEntry.setDouble(wristAngle.asDegrees)
+                    pivotEntry.setDouble(pivotAngle.asDegrees)
+                    pivotSetpointEntry.setDouble(pivotSetpoint.asDegrees)
+                    pErrorEntry.setDouble(pivotSetpoint.asDegrees - pivotAngle.asDegrees)
+                    pFeedEntry.setDouble(pFeedForward)
+                }
 //                val coneOrientation = coneUp()
 //                coneFacingUp = coneDebouncer.calculate(coneOrientation == true)
 //
@@ -232,8 +237,9 @@ object Intake : Subsystem("Intake") {
                 pivotOffset -= pivot.degrees
                 wristOffset += wrist.degrees
                 wristSetpoint += 0.0.degrees
-
-                intakeCurrentEntry.setDouble(intakeMotor.current) //intake bad
+                if (FieldManager.homeField) {
+                    intakeCurrentEntry.setDouble(intakeMotor.current) //intake bad
+                }
                 setPivotPower()
 
                 prevWristAngle = wristAngle

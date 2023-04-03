@@ -30,6 +30,7 @@ object PoseEstimator {
     private val startingHeadingEntry = poseTable.getEntry("Starting Heading Check")
     private val apriltagHeadingEntry = poseTable.getEntry("Apriltag Heading")
     private var offset = Vector2(0.0, 0.0)
+    private var kAprilValue: Double = 0.3
     var headingOffset = 0.0.degrees
     private var lastZeroTimestamp = 0.0
     val currentPose
@@ -38,7 +39,9 @@ object PoseEstimator {
      //   get() = (Drive.heading - headingOffset).wrap()
 
     init {
-        kAprilEntry.setDouble(0.3)
+        if(FieldManager.homeField) {
+            kAprilEntry.setDouble(kAprilValue)
+        }
         kHeadingEntry.setDouble(0.001)
         apriltagHeadingEntry.setDouble(0.0)
         GlobalScope.launch(MeanlibDispatcher) {
@@ -64,7 +67,7 @@ object PoseEstimator {
             return
         } else {
             try {
-                val kAprilFinal = (kApril ?: kAprilEntry.getDouble(0.5)) * if (numTarget < 2) 0.7 else 1.0
+                val kAprilFinal = ((kApril ?: (kAprilValue * if (numTarget < 2) 0.7 else 1.0)))
 //                val kHeading = if (kotlin.math.abs(currentPose.y) > 15.0) kHeadingEntry.getDouble(0.001) else 0.0
                 val latencyPose = Drive.lookupPose(detection.timestamp)
                 if (DriverStation.isDisabled() && latencyPose == null && FieldManager.beforeFirstEnable){
@@ -99,7 +102,8 @@ object PoseEstimator {
     fun zeroOffset() {
         lastZeroTimestamp = Timer.getFPGATimestamp()
         offset = Vector2(0.0, 0.0)
-        lastResetEntry.setDouble(lastZeroTimestamp)
-
+        if (FieldManager.homeField) {
+            lastResetEntry.setDouble(lastZeroTimestamp)
+        }
     }
 }
