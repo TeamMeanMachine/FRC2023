@@ -362,10 +362,12 @@ suspend fun flip(overrideFront: Boolean? = null) = use(Arm, Intake) {
     println("overrideFront: $overrideFront")
     if (Intake.wristAngle < -75.0.degrees || Arm.wristPosition.x < -10.0 || overrideFront == true) {
         println("Flipping to FRONT")
-        animateThroughPoses(Pair(0.5, Pose.BACK_DRIVE_POSE_CENTER), Pair(0.5, Pose.FLIP_FRONT_UP), Pair(0.5, Pose.FLIP_FRONT_WRIST), Pair(0.5, Pose.FRONT_DRIVE_POSE))//, Pose.FLIP_INTAKE_TO_FRONT_WRIST, Pose.FRONT_DRIVE_POSE)
+        animateThroughPoses(true, Pose.BACK_DRIVE_POSE_CENTER, Pose.FLIP_FRONT_UP, Pose.FLIP_FRONT_WRIST, Pose.FRONT_DRIVE_POSE )
+      //  animateThroughPoses(Pair(0.5, Pose.BACK_DRIVE_POSE_CENTER), Pair(0.5, Pose.FLIP_FRONT_UP), Pair(0.5, Pose.FLIP_FRONT_WRIST), Pair(0.5, Pose.FRONT_DRIVE_POSE))//, Pose.FLIP_INTAKE_TO_FRONT_WRIST, Pose.FRONT_DRIVE_POSE)
     } else if (Intake.wristAngle > 75.0.degrees || Arm.wristPosition.x > 10.0 || overrideFront == false) {
         println("Flipping to BACK")
-        animateThroughPoses(Pair(0.5, Pose.FRONT_DRIVE_POSE_CENTER), Pair(0.5, Pose.FLIP_BACK_UP), Pair(0.5, Pose.FLIP_BACK_WRIST), Pair(0.5, Pose.BACK_DRIVE_POSE))//, Pose.FLIP_INTAKE_TO_BACK_WRIST, Pose.BACK_DRIVE_POSE)
+        animateThroughPoses(true, Pose.FRONT_DRIVE_POSE_CENTER, Pose.FLIP_BACK_UP, Pose.FLIP_BACK_WRIST, Pose.BACK_DRIVE_POSE)
+        //animateThroughPoses(Pair(0.5, Pose.FRONT_DRIVE_POSE_CENTER), Pair(0.5, Pose.FLIP_BACK_UP), Pair(0.5, Pose.FLIP_BACK_WRIST), Pair(0.5, Pose.BACK_DRIVE_POSE))//, Pose.FLIP_INTAKE_TO_BACK_WRIST, Pose.BACK_DRIVE_POSE)
     } else {
         println("Don't know which side to flip")
     }
