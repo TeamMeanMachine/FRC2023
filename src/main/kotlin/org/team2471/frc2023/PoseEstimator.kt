@@ -35,6 +35,7 @@ object PoseEstimator {
     private var lastZeroTimestamp = 0.0
     val currentPose
         get() = Drive.position - offset
+    var preEnableHadTarget = false
    // val heading
      //   get() = (Drive.heading - headingOffset).wrap()
 
@@ -53,7 +54,9 @@ object PoseEstimator {
                 val combinedWPIField = FieldManager.convertTMMtoWPI(currentPose.x.feet, currentPose.y.feet, Drive.heading)
                 advantagePoseEntry.setDoubleArray(doubleArrayOf(combinedWPIField.x,  combinedWPIField.y, combinedWPIField.rotation.degrees))
                 offsetEntry.setDoubleArray(doubleArrayOf(offset.x, offset.y))
-
+                if (DriverStation.isDisabled() && FieldManager.beforeFirstEnable && !preEnableHadTarget){
+                    Drive.position = FieldManager.startingPosition
+                }
 //                val maPose = MAPoseEstimator.latestPose
 //                maAdvantagePoseEntry.setDoubleArray(doubleArrayOf(maPose.x, maPose.y, maPose.rotation.degrees))
 
@@ -72,6 +75,7 @@ object PoseEstimator {
                 val latencyPose = Drive.lookupPose(detection.timestamp)
                 if (DriverStation.isDisabled() && latencyPose == null && FieldManager.beforeFirstEnable){
                     val apriltagPose = Vector2(detection.pose.x, detection.pose.y)
+                    preEnableHadTarget = true
                     Drive.position = apriltagPose
                     Drive.heading = detection.pose.rotation.radians.radians
                 }

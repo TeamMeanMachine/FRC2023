@@ -110,7 +110,7 @@ dependencies {
 // in order to make them all available at runtime. Also adding the manifest so WPILib
 // knows where to look for our Robot Class.
 jar {
-    dependsOn(':meanlib')
+    dependsOn(':meanlib:jar')
     from { configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it)}}
     manifest GradleRIOPlugin.javaManifest(ROBOT_MAIN_CLASS)
 
