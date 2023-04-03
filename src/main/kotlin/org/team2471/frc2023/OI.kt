@@ -1,6 +1,7 @@
 package org.team2471.frc2023
 
 import edu.wpi.first.wpilibj.DriverStation
+import org.jetbrains.kotlin.gradle.utils.`is`
 import org.team2471.frc.lib.coroutines.delay
 import org.team2471.frc.lib.framework.Subsystem
 import org.team2471.frc.lib.input.*
@@ -98,10 +99,12 @@ object OI : Subsystem("OI") {
             }
         }
         operatorController::x.whenTrue {
-            Arm.wristFrontOffset = Vector2(0.0, 0.0)
-            Arm.wristBackOffset = Vector2(0.0, 0.0)
-            Intake.wristOffset = 0.0.degrees
-            Intake.pivotOffset = 0.0.degrees
+            resetArmVars()
+//            Arm.wristFrontOffset = Vector2(0.0, 0.0)
+//            Arm.wristBackOffset = Vector2(0.0, 0.0)
+//            Intake.wristOffset = 0.0.degrees
+//            Intake.pivotOffset = 0.0.degrees
+//            Arm.isFlipping = false
             println("Reset offsets")
         }
         ({operatorController.leftTrigger > 0.1}).whenTrue {
