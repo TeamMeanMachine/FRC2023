@@ -210,19 +210,22 @@ suspend fun groundBackToDrive(isCone: Boolean) {
     OI.driverController.rumble = 0.0
     OI.operatorController.rumble = 0.0
     Intake.intakeMotor.setPercentOutput(if (Intake.holdingObject) (if (isCone) Intake.HOLD_CONE else Intake.HOLD_CUBE) else 0.0)
-    if (!DriverStation.isAutonomous()) {
-        Arm.isFlipping = true
-    }
-    if (Intake.holdingObject) {
-        if (isCone) {
-            animateThroughPoses(Pose.GROUND_TO_DRIVE_SAFE_CONE, Pose.GROUND_TO_DRIVE_SAFE, Pose.BACK_DRIVE_POSE)
-        } else {
-            animateThroughPoses(Pose.GROUND_TO_DRIVE_SAFE_CUBE, Pose.GROUND_TO_DRIVE_SAFE, Pose.BACK_DRIVE_POSE)
+    try {
+        if (!DriverStation.isAutonomous()) {
+            Arm.isFlipping = true
         }
-    } else {
-        animateThroughPoses(Pose.FRONT_DRIVE_POSE)
+        if (Intake.holdingObject) {
+            if (isCone) {
+                animateThroughPoses(Pose.GROUND_TO_DRIVE_SAFE_CONE, Pose.GROUND_TO_DRIVE_SAFE, Pose.BACK_DRIVE_POSE)
+            } else {
+                animateThroughPoses(Pose.GROUND_TO_DRIVE_SAFE_CUBE, Pose.GROUND_TO_DRIVE_SAFE, Pose.BACK_DRIVE_POSE)
+            }
+        } else {
+            animateThroughPoses(Pose.FRONT_DRIVE_POSE)
+        }
+    } finally {
+        Arm.isFlipping = false
     }
-    Arm.isFlipping = false
 }
 
 suspend fun backScoreToward(isCone: Boolean = NodeDeckHub.isCone, pieceNumber: Int = NodeDeckHub.selectedNode.toInt()) = use(Arm, Intake) {
@@ -488,11 +491,14 @@ suspend fun toBackDrivePose() = use(Arm, Intake) {
     Drive.maxTranslation = 1.0
 }
 
-suspend fun  resetArmVars() = use(Arm, Intake) {
+suspend fun resetArmVars() {
+    Arm.wristFrontOffset = Vector2(0.0, 0.0)
+    Arm.wristBackOffset = Vector2(0.0, 0.0)
     Intake.wristOffset = 0.0.degrees
     Intake.pivotOffset = 0.0.degrees
     Arm.wristCenterOffset = Vector2(0.0, 0.0)
     Arm.isFlipping = false
+    OI.controlledBy = OI.PERSONINCONTROL.NONE
     if (!Intake.holdingObject) Intake.intakeMotor.setPercentOutput(0.0)
 }
 
