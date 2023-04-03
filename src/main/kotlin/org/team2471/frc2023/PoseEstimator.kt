@@ -38,7 +38,7 @@ object PoseEstimator {
      //   get() = (Drive.heading - headingOffset).wrap()
 
     init {
-        kAprilEntry.setDouble(0.25)
+        kAprilEntry.setDouble(0.3)
         kHeadingEntry.setDouble(0.001)
         apriltagHeadingEntry.setDouble(0.0)
         GlobalScope.launch(MeanlibDispatcher) {

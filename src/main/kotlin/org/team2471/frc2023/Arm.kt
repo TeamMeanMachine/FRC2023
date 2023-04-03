@@ -259,7 +259,7 @@ object Arm : Subsystem("Arm") {
             coastMode()
             inverted(false)
             pid {
-                p(0.0000018)
+                p(0.000002)  //0.0000018
                 d(0.000001)
             }
             currentLimit(0, 60, 0)
@@ -270,7 +270,7 @@ object Arm : Subsystem("Arm") {
             coastMode()
             inverted(false)
             pid {
-                p(0.0000018)
+                p(0.000002)
                 d(0.000001)
             }
             currentLimit(0, 60, 0)
@@ -280,7 +280,7 @@ object Arm : Subsystem("Arm") {
             feedbackCoefficient = 360.0 / 42.0 / 75.0
             coastMode()
             pid {
-                p(0.000018) //0.0000055
+                p(0.000022) //0.0000055
                 d(0.000004)
             }
             currentLimit(0, 60, 0)

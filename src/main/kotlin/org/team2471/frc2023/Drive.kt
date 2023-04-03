@@ -306,11 +306,11 @@ object Drive : Subsystem("Drive"), SwerveDrive {
             }
             val useGyro2 = useGyroEntry.getBoolean(true) && !DriverStation.isAutonomous()
 
-            if (autoAim) {
-                var error = (angleToNode - heading).wrap()
-//                if (error.asDegrees.absoluteValue > 90.0) error = (error - 180.0.degrees).wrap()
-                turn = aimPDController.update(error.asDegrees)
-            }
+//            if (autoAim) {
+//                var error = (angleToNode - heading).wrap()
+////                if (error.asDegrees.absoluteValue > 90.0) error = (error - 180.0.degrees).wrap()
+//                turn = aimPDController.update(error.asDegrees)
+//            }
             angleToNodeEntry.setDouble(angleToNode.asDegrees)
 
             drive(
@@ -660,7 +660,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         newPath.addHeadingPoint(time, finalHeading)
         Drive.driveAlongPath(newPath) { abortPath() }
     }
-    suspend fun dynamicGoToGamePieceOnFloor(goalPosition: Vector2, goalHeading: Angle,  startingSide: StartingPoint = NodeDeckHub.startingPoint)  {
+    suspend fun dynamicGoToGamePieceOnFloor(goalPosition: Vector2, goalHeading: Angle,  startingSide: StartingPoint = NodeDeckHub.startingPoint, isCone: Boolean)  {
         val newPath = Path2D("GoTo GamePiece")
         var distance = 0.0
         println("position: ${Drive.position}, ${Drive.combinedPosition}")
@@ -699,9 +699,9 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         println("** heading: $currentHeading  Goal Heading: $goalHeading final heading $finalHeading **")
         val minSpin = 4.0/180.0 * (currentHeading - finalHeading.degrees).wrap().asDegrees.absoluteValue
         println("printing minimum spin time: $minSpin")
-        time = maxOf(time,minSpin)
+        time = maxOf(time,minSpin) * if (isCone) 0.85 else 1.0
         newPath.addEasePoint(0.0,0.0)
-        newPath.addEasePointSlopeAndMagnitude(time, 1.0, 0.0, 1.8)
+        newPath.addEasePointSlopeAndMagnitude(time, 1.0, 0.0, 2.0)
         println("$p1currentPose, $p2safePointClose, $p3safePointFar, $p4goalPosition, finalH: $finalHeading")
         newPath.addHeadingPoint(0.0, currentHeading.asDegrees)
 //        newPath.addHeadingPoint(safeDistance / rate, heading.asDegrees)

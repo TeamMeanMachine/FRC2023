@@ -203,7 +203,7 @@ object AutoChooser {
                 Intake.intakeMotor.setPercentOutput(Intake.CUBE_SPIT)
                 delay(0.8)
                 parallel ({
-                    if (!NodeDeckHub.chargeInAuto) Drive.dynamicGoToGamePieceOnFloor(FieldManager.getClosestGamePieceOnField(), gamePieceAngles[0].degrees)
+                    if (!NodeDeckHub.chargeInAuto) Drive.dynamicGoToGamePieceOnFloor(FieldManager.getClosestGamePieceOnField(), gamePieceAngles[0].degrees, isCone = false)
                 }, {
                     Intake.intakeMotor.setPercentOutput(0.0)
                     flip()
@@ -262,16 +262,17 @@ object AutoChooser {
     suspend fun nodeDeckPiece(pickupHeading: Angle, nodeID: Int, finishWithPiece: Boolean, prevPiece: Int) = use(Intake, Drive, Arm) {
         val nextGamePiece = FieldManager.getClosestGamePieceOnField()
         println("nodedeck auto path to game piece: $nextGamePiece")
+        val isCone = FieldManager.nodeList[nodeID]?.coneOrCube == GamePiece.CONE
         parallel({
             delay(0.3)
-            Drive.dynamicGoToGamePieceOnFloor(nextGamePiece, pickupHeading)
+            Drive.dynamicGoToGamePieceOnFloor(nextGamePiece, pickupHeading, isCone = isCone)
         }, {
             scoreObject(prevPiece)
             println("before toFrontDrivePose")
             afterScoreFlip(FieldManager.nodeList[nodeID]?.level)
             delay(0.25)
             println("before intakeFromGround")
-            intakeFromGroundAuto(FieldManager.nodeList[nodeID]?.coneOrCube == GamePiece.CONE)
+            intakeFromGroundAuto(isCone)
         })
         println("finished goToGamePiece")
         val scoringNode = FieldManager.getNode(nodeID)
@@ -322,6 +323,6 @@ object AutoChooser {
     private suspend fun spitAndRunAuto() {
         Intake.intakeMotor.setPercentOutput(Intake.CUBE_SPIT)
         Drive.driveToPoints()
-        Drive.dynamicGoToGamePieceOnFloor(FieldManager.getClosestGamePieceOnField(), if (FieldManager.isRedAlliance) 0.0.degrees else 180.0.degrees)
+//        Drive.dynamicGoToGamePieceOnFloor(FieldManager.getClosestGamePieceOnField(), if (FieldManager.isRedAlliance) 0.0.degrees else 180.0.degrees)
     }
 }

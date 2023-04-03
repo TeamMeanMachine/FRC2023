@@ -166,7 +166,7 @@ object Intake : Subsystem("Intake") {
             feedbackCoefficient = 261.0 / 1273.0 * 202.0 / 360.0  //last one is fudge factor
             coastMode()
             pid {
-                p(0.00001)
+                p(0.00014) //00002
             }
             currentLimit(0, 60, 0)
             burnSettings()
@@ -195,6 +195,7 @@ object Intake : Subsystem("Intake") {
         pivotCurve.storeValue(185.0, 0.0)
 
         wristMotor.setRawOffset(-90.0)
+        wristSetpoint = wristAngle
         GlobalScope.launch(MeanlibDispatcher) {
             var tempPivot: Angle
 
@@ -347,7 +348,7 @@ suspend fun Intake.pivotTest() = use(this) {
 fun setPivotPower() {
     val pError = (Intake.pivotSetpoint + Intake.pivotOffset - Intake.pivotAngle).wrap().asDegrees
     val openLoopPower = Intake.pivotPDController.update(pError).coerceIn(-1.0, 1.0)
-    if ((Intake.pivotSetpoint.asDegrees - Intake.pivotAngle.asDegrees).absoluteValue > 20.0) println("pivotError: ${round(pError, 1)}    openLoopPower: ${round(openLoopPower, 1)}")
+    if ((Intake.pivotSetpoint.asDegrees - Intake.pivotAngle.asDegrees).absoluteValue > 40.0) println("pivotError: ${round(pError, 1)}    openLoopPower: ${round(openLoopPower, 1)}")
     val power = openLoopPower + Intake.pFeedForward
     Intake.pivotMotor.setPercentOutput(power)
 }
