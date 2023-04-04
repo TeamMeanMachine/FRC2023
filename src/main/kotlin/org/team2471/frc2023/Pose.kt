@@ -31,7 +31,7 @@ data class Pose(val wristPosition: Vector2, val wristAngle: Angle, val pivotAngl
         val BACK_MIDDLE_SCORE_CONE_AWAY_MID = Pose(Vector2(-25.0, 29.0), -180.0.degrees, -180.0.degrees)
         val BACK_MIDDLE_SCORE_CONE_AWAY = Pose(Vector2(-28.5, 28.5), -180.0.degrees, -180.0.degrees)
         val BACK_MIDDLE_SCORE_CONE_TOWARD_MID = Pose(Vector2(-22.0, 20.0), -80.0.degrees, 0.0.degrees)
-        val BACK_MIDDLE_SCORE_CONE_TOWARD = Pose(Vector2(-26.0, 23.0), -90.0.degrees, 0.0.degrees)
+        val BACK_MIDDLE_SCORE_CONE_TOWARD = Pose(Vector2(-26.0, 29.75), -90.0.degrees, 0.0.degrees)
         val BACK_MIDDLE_SCORE_CUBE_MID = Pose(Vector2(-16.0, 32.0), -90.0.degrees, 0.0.degrees)
         val BACK_MIDDLE_SCORE_CUBE = Pose(Vector2(-20.0, 28.0), -90.0.degrees, 0.0.degrees)
 
