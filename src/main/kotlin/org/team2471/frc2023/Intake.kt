@@ -160,7 +160,7 @@ object Intake : Subsystem("Intake") {
         get() = cubeDetectEntry.getInteger(13.toLong()).toInt()
     const val CONE_TOWARD_SPIT = 0.6
     const val CONE_AWAY_SPIT = 1.0
-    const val CUBE_SPIT = -0.20 // was at -0.25
+    const val CUBE_SPIT = -0.25
 
     init {
 //        initializePixy()

@@ -442,7 +442,7 @@ suspend fun scoreObject(pieceNumber: Int = NodeDeckHub.selectedNode.toInt()) = u
                 Level.MID -> animateToPose(Pose.current + Pose(Vector2(12.0, 12.0), 0.0.degrees, 0.0.degrees), 0.3)
                 Level.HIGH -> {
                     if (DriverStation.isAutonomous()) delay(0.4)
-                    animateToPose(Pose.current + Pose(Vector2(16.0, 1.0), 0.0.degrees, 0.0.degrees), 0.3)
+                    animateToPose(Pose.current + Pose(Vector2(23.0, 6.0), 0.0.degrees, 0.0.degrees), 0.4)
                 }
                 else -> println("Currently can't score there.")
             }

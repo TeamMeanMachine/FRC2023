@@ -12,7 +12,7 @@ import kotlin.math.absoluteValue
 
 object FieldManager {
 
-    var homeField = true
+    var homeField = false
 
     val fieldDimensionsInMeters = Vector2(26.29.feet.asMeters,54.27.feet.asMeters) // field diagram & json is 26.29, 54.27 but includes side walls and barriers
     val fieldCenterOffsetInMeters = fieldDimensionsInMeters/2.0
