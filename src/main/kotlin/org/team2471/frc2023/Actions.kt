@@ -390,9 +390,9 @@ suspend fun scoreObject(pieceNumber: Int = NodeDeckHub.selectedNode.toInt()) = u
                         var midPose = Pose.current + Pose(Vector2(4.0, -3.5), 50.0.degrees, 0.0.degrees)
                         animateToPose(midPose, 0.2,  true)
                         Intake.intakeMotor.setPercentOutput(Intake.CONE_TOWARD_SPIT)
-                        midPose += Pose(Vector2(12.0, 14.0), 0.0.degrees, 0.0.degrees)
+                        midPose += Pose(Vector2(12.0, 16.0), 0.0.degrees, 0.0.degrees)
                         animateToPose(midPose, 0.1)
-                        midPose += Pose(Vector2(18.0, 20.0), 0.0.degrees, 0.0.degrees)
+                        midPose += Pose(Vector2(18.0, 22.0), 0.0.degrees, 0.0.degrees)
                         animateToPose(midPose)
                     }
                     Level.MID -> {
