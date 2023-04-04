@@ -41,6 +41,7 @@ object Intake : Subsystem("Intake") {
     val pivotEntry = table.getEntry("Pivot Angle")
     val pivotAnalogEntry = table.getEntry("Pivot Analog Angle")
     val pivotSetpointEntry = table.getEntry("Pivot Setpoint")
+    val pivotSensorEntry = table.getEntry("Pivot sensor")
     val intakeCurrentEntry = table.getEntry("Intake Currrent")
     val pFeedEntry = table.getEntry("P Feed Forward")
     val pErrorEntry = table.getEntry("Pivot Error")
@@ -85,7 +86,7 @@ object Intake : Subsystem("Intake") {
         }
 
     val pivotAnalogAngle: Angle
-        get() = ((pivotSensor.value - if (isCompBot) 913.0 else 536.0).degrees / 4096.0 * 360.0).wrap() //third arm previous ticks: 2116.0
+        get() = ((pivotSensor.value - if (isCompBot) 913.0 else 417.0).degrees / 4096.0 * 360.0).wrap() //third arm previous ticks: 2116.0
     var pivotOffset: Angle = 0.0.degrees
 
     val pivotAngle: Angle
@@ -153,7 +154,10 @@ object Intake : Subsystem("Intake") {
     var HOLD_CONE = -0.2 //change default instead
         get() = coneHoldPowerEntry.getDouble(-0.17).coerceIn(-0.5, 0.0) //coerce to prevent too large values in shuffleboard
     var HOLD_CUBE = 0.1 //change default instead
-        get() = cubeHoldPowerEntry.getDouble(0.1).coerceIn(0.0, 0.5) //coerce to prevent too large values in shuffleboard
+     get() =  if(isCompBot) cubeHoldPowerEntry.getDouble(0.1).coerceIn(0.0, 0.5)//coerce to prevent too large values in shuffleboard
+    else {
+         cubeHoldPowerEntry.getDouble(0.12).coerceIn(0.0, 0.5)
+     }
     var DETECT_CONE = 20
         get() = coneDetectEntry.getInteger(20.toLong()).toInt()
     var DETECT_CUBE = 13
@@ -202,9 +206,10 @@ object Intake : Subsystem("Intake") {
         wristSetpoint = wristAngle
         GlobalScope.launch(MeanlibDispatcher) {
             var tempPivot: Angle
-            if(FieldManager.homeField) {
+            if (FieldManager.homeField) {
                 wristSetpointEntry.setDouble(wristAngle.asDegrees)
                 pivotSetpointEntry.setDouble(pivotAngle.asDegrees)
+                pivotSensorEntry.setInteger(pivotSensor.value.toLong())
                 coneHoldPowerEntry.setDouble(HOLD_CONE)
                 coneDetectEntry.setInteger(DETECT_CONE.toLong())
                 cubeHoldPowerEntry.setDouble(HOLD_CUBE)
@@ -219,6 +224,7 @@ object Intake : Subsystem("Intake") {
                     wristEntry.setDouble(wristAngle.asDegrees)
                     pivotEntry.setDouble(pivotAngle.asDegrees)
                     pivotSetpointEntry.setDouble(pivotSetpoint.asDegrees)
+                    pivotSensorEntry.setInteger(pivotSensor.value.toLong())
                     pErrorEntry.setDouble(pivotSetpoint.asDegrees - pivotAngle.asDegrees)
                     pFeedEntry.setDouble(pFeedForward)
                 }

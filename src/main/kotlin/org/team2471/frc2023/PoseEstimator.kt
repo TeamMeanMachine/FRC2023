@@ -65,7 +65,7 @@ object PoseEstimator {
     }
     fun addVision(detection: AprilDetection, numTarget: Int, kApril: Double? = null) {
         //Ignoring Vision data if timestamp is before the last zero
-        if (detection.timestamp < (lastZeroTimestamp + 0.5)) { // || Drive.position == Vector2(0.0,0.0)) {
+        if (detection.timestamp < (lastZeroTimestamp + 0.3)) { // || Drive.position == Vector2(0.0,0.0)) {
             println("Ignoring update during reset") // and initialization ...")
             return
         } else {

@@ -100,6 +100,8 @@ object OI : Subsystem("OI") {
         }
         operatorController::x.whenTrue {
             resetArmVars()
+            Arm.wristFrontOffset = Vector2(0.0, 0.0)
+            Arm.wristBackOffset = Vector2(0.0, 0.0)
 //            Arm.wristFrontOffset = Vector2(0.0, 0.0)
 //            Arm.wristBackOffset = Vector2(0.0, 0.0)
 //            Intake.wristOffset = 0.0.degrees
