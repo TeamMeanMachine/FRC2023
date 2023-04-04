@@ -461,7 +461,7 @@ suspend fun scoreObject(pieceNumber: Int = NodeDeckHub.selectedNode.toInt()) = u
 suspend fun afterScoreFlip(nodeLevel: Level?) = use(Arm, Intake) {
     println("going to drive pos after score. nodeLevel: $nodeLevel")
     when (nodeLevel) {
-        Level.HIGH -> animateThroughPoses(true, Pair(0.0, Pose.HIGH_SCORE_TO_PREFLIP), Pair(0.0, Pose.SCORE_TO_FLIP), Pair(0.0, Pose.FRONT_DRIVE_POSE))
+        Level.HIGH -> animateThroughPoses(!Robot.isCompBot, Pair(0.0, Pose.HIGH_SCORE_TO_PREFLIP), Pair(0.0, Pose.SCORE_TO_FLIP), Pair(0.0, Pose.FRONT_DRIVE_POSE))
         Level.MID -> {
             if (NodeDeckHub.isCone) {
                 animateThroughPoses(Pose.MIDDLE_SCORE_CONE_TO_PREFLIP, Pose.SCORE_TO_FLIP, Pose.FRONT_DRIVE_POSE)
