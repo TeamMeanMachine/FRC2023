@@ -365,7 +365,7 @@ suspend fun flip(overrideFront: Boolean? = null) = use(Arm, Intake) {
     println("overrideFront: $overrideFront")
     if (Intake.wristAngle < -75.0.degrees || Arm.wristPosition.x < -10.0 || overrideFront == true) {
         println("Flipping to FRONT")
-        animateThroughPoses(true, Pose.BACK_DRIVE_POSE_CENTER, Pose.FLIP_FRONT_UP, Pose.FLIP_FRONT_WRIST, Pose.FRONT_DRIVE_POSE )
+        animateThroughPoses(true, Pose.BACK_DRIVE_POSE_CENTER, Pose.FLIP_FRONT_UP, Pose.FLIP_FRONT_WRIST, Pose.FRONT_DRIVE_POSE)
       //  animateThroughPoses(Pair(0.5, Pose.BACK_DRIVE_POSE_CENTER), Pair(0.5, Pose.FLIP_FRONT_UP), Pair(0.5, Pose.FLIP_FRONT_WRIST), Pair(0.5, Pose.FRONT_DRIVE_POSE))//, Pose.FLIP_INTAKE_TO_FRONT_WRIST, Pose.FRONT_DRIVE_POSE)
     } else if (Intake.wristAngle > 75.0.degrees || Arm.wristPosition.x > 10.0 || overrideFront == false) {
         println("Flipping to BACK")
@@ -387,11 +387,11 @@ suspend fun scoreObject(pieceNumber: Int = NodeDeckHub.selectedNode.toInt()) = u
             if (Intake.coneToward) {
                 when (nodeLevel) {
                     Level.HIGH -> {
-                        var midPose = Pose.current + Pose(Vector2(3.5, -4.5), 50.0.degrees, 0.0.degrees)
-                        animateToPose(midPose, 0.5,  true)
+                        var midPose = Pose.current + Pose(Vector2(4.0, -3.5), 50.0.degrees, 0.0.degrees)
+                        animateToPose(midPose, 0.2,  true)
                         Intake.intakeMotor.setPercentOutput(Intake.CONE_TOWARD_SPIT)
                         midPose += Pose(Vector2(12.0, 14.0), 0.0.degrees, 0.0.degrees)
-                        animateToPose(midPose, 0.4)
+                        animateToPose(midPose, 0.1)
                         midPose += Pose(Vector2(18.0, 20.0), 0.0.degrees, 0.0.degrees)
                         animateToPose(midPose)
                     }
@@ -410,15 +410,15 @@ suspend fun scoreObject(pieceNumber: Int = NodeDeckHub.selectedNode.toInt()) = u
             } else { // cone away
                 when (nodeLevel) {
                     Level.HIGH -> {
-                        var midPose = Pose.current + Pose(Vector2(3.0, -7.0), 50.0.degrees, 0.0.degrees)
-                        animateToPose(midPose, 0.5)
+                        var midPose = Pose.current + Pose(Vector2(5.0, -7.0), 50.0.degrees, 0.0.degrees)
+                        animateToPose(midPose, 0.4)
                         Intake.intakeMotor.setPercentOutput(Intake.CONE_AWAY_SPIT)
                         if (!DriverStation.isAutonomous()) {
-                            midPose += Pose(Vector2(7.5, 14.0), 0.0.degrees, 0.0.degrees)
+                            midPose += Pose(Vector2(6.5, 14.0), 0.0.degrees, 0.0.degrees)
                             val midPose2 = midPose + Pose(Vector2(16.0, 17.0), 0.0.degrees, 0.0.degrees)
                             animateThroughPoses(midPose, midPose2)
                         } else {
-                            midPose += Pose(Vector2(9.0, 16.0), 0.0.degrees, 0.0.degrees)
+                            midPose += Pose(Vector2(6.0, 16.5), 0.0.degrees, 0.0.degrees)
                             animateToPose(midPose)
                         }
                     }
@@ -442,7 +442,7 @@ suspend fun scoreObject(pieceNumber: Int = NodeDeckHub.selectedNode.toInt()) = u
                 Level.MID -> animateToPose(Pose.current + Pose(Vector2(12.0, 12.0), 0.0.degrees, 0.0.degrees), 0.3)
                 Level.HIGH -> {
                     if (DriverStation.isAutonomous()) delay(0.4)
-                    animateToPose(Pose.current + Pose(Vector2(14.0, 0.0), 0.0.degrees, 0.0.degrees), 0.3)
+                    animateToPose(Pose.current + Pose(Vector2(16.0, 1.0), 0.0.degrees, 0.0.degrees), 0.3)
                 }
                 else -> println("Currently can't score there.")
             }

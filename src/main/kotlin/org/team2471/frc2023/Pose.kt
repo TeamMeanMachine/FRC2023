@@ -19,7 +19,7 @@ data class Pose(val wristPosition: Vector2, val wristAngle: Angle, val pivotAngl
         val START_POSE = Pose(Vector2(0.0, 9.0), -90.0.degrees, -90.0.degrees)
         val GROUND_INTAKE_FRONT_CONE = Pose(Vector2(22.0, 16.0), 90.0.degrees, -90.0.degrees)
         val GROUND_INTAKE_CONE_NEAR = Pose(Vector2(19.5, 6.0), 90.0.degrees, 0.0.degrees)
-        val GROUND_INTAKE_CONE_FAR = Pose(Vector2(40.0, 10.25), 90.0.degrees, 0.0.degrees)
+        val GROUND_INTAKE_CONE_FAR = Pose(Vector2(40.0, 11.0), 90.0.degrees, 0.0.degrees)
         val GROUND_INTAKE_FRONT_CUBE = Pose(Vector2(18.0, 14.0), 90.0.degrees, -180.0.degrees)
         val GROUND_INTAKE_CUBE_NEAR = Pose(Vector2(18.0, -4.0), 75.0.degrees, -180.0.degrees)
         val GROUND_INTAKE_CUBE_FAR = Pose(Vector2(40.0, -4.0), 75.0.degrees, -180.0.degrees)
@@ -29,9 +29,9 @@ data class Pose(val wristPosition: Vector2, val wristAngle: Angle, val pivotAngl
         val BACK_LOW_SCORE_CUBE = Pose(Vector2(-3.0, 9.0), -90.0.degrees, 0.0.degrees)
 
         val BACK_MIDDLE_SCORE_CONE_AWAY_MID = Pose(Vector2(-25.0, 29.0), -180.0.degrees, -180.0.degrees)
-        val BACK_MIDDLE_SCORE_CONE_AWAY = Pose(Vector2(-28.5, 29.0), -180.0.degrees, -180.0.degrees)
+        val BACK_MIDDLE_SCORE_CONE_AWAY = Pose(Vector2(-28.5, 28.5), -180.0.degrees, -180.0.degrees)
         val BACK_MIDDLE_SCORE_CONE_TOWARD_MID = Pose(Vector2(-22.0, 20.0), -80.0.degrees, 0.0.degrees)
-        val BACK_MIDDLE_SCORE_CONE_TOWARD = Pose(Vector2(-26.0, 25.75), -90.0.degrees, 0.0.degrees)
+        val BACK_MIDDLE_SCORE_CONE_TOWARD = Pose(Vector2(-26.0, 23.0), -90.0.degrees, 0.0.degrees)
         val BACK_MIDDLE_SCORE_CUBE_MID = Pose(Vector2(-16.0, 32.0), -90.0.degrees, 0.0.degrees)
         val BACK_MIDDLE_SCORE_CUBE = Pose(Vector2(-20.0, 28.0), -90.0.degrees, 0.0.degrees)
 
@@ -53,10 +53,10 @@ data class Pose(val wristPosition: Vector2, val wristAngle: Angle, val pivotAngl
         val FLIP_INTAKE_TO_BACK_WRIST = Pose(Vector2(-28.0, 26.0), -90.0.degrees, 0.0.degrees)
         val FLIP_INTAKE_TO_FRONT_POSE = Pose(Vector2(28.0, 20.0), -90.0.degrees, -90.0.degrees)
         val FLIP_INTAKE_TO_FRONT_WRIST = Pose(Vector2(28.0, 20.0), 90.0.degrees, -180.0.degrees)
-        val FLIP_FRONT_UP = Pose(Vector2(-2.0, 14.0), -90.0.degrees, -90.0.degrees)
-        val FLIP_FRONT_WRIST = Pose(Vector2(-2.0, 14.5), 90.0.degrees, -90.0.degrees)
-        val FLIP_BACK_UP =  Pose(Vector2(2.0, 14.0), 90.0.degrees, -90.0.degrees)
-        val FLIP_BACK_WRIST =  Pose(Vector2(3.5, 15.0), -90.0.degrees, -90.0.degrees)
+        val FLIP_FRONT_UP = Pose(Vector2(-2.0, 12.0), -90.0.degrees, -90.0.degrees)
+        val FLIP_FRONT_WRIST = Pose(Vector2(-2.0, 12.0), 90.0.degrees, -90.0.degrees)
+        val FLIP_BACK_UP =  Pose(Vector2(1.0, 15.0), 90.0.degrees, -90.0.degrees)
+        val FLIP_BACK_WRIST =  Pose(Vector2(1.0, 15.0), -90.0.degrees, -90.0.degrees)
 
         val HIGH_SCORE_TO_PREFLIP
             get() = Pose(Vector2(-27.0, 42.5), current.wristAngle, current.pivotAngle)
@@ -95,7 +95,7 @@ suspend fun animateThroughPoses(waituntilDone: Boolean = false, vararg poses: Pa
     val path = Path2D("Path")
 
     val pivotRate = 400.0 // deg per second
-    val wristPosRate = 160.0  //  inches per second
+    val wristPosRate = 140.0  //  inches per second
     val wristAngleRate = 360.0 // deg per second
     val times = ArrayList<Double>(poses.size)
     val previousPose = Pose.current
@@ -107,9 +107,10 @@ suspend fun animateThroughPoses(waituntilDone: Boolean = false, vararg poses: Pa
     pivotCurve.storeValue(0.0, previousPose.pivotAngle.asDegrees)
     wristCurve.storeValue(0.0, previousPose.wristAngle.asDegrees)
 
+    var prevLength = 0.0
     for (posePair in poses) {
-        var prevLength = path.length
         val pose = posePair.second
+        path.addVector2(pose.wristPosition)
         val minTime = posePair.first
         val wristPosTime = (path.length - prevLength) / wristPosRate
         val wristTime = ((pose.wristAngle - previousPose.wristAngle).asDegrees.absoluteValue) / wristAngleRate
@@ -125,11 +126,11 @@ suspend fun animateThroughPoses(waituntilDone: Boolean = false, vararg poses: Pa
         //val secondMaxName = timeMap.filter {it.value == secondMaxTime}.keys.first()
         println("you can save $timeSavings by tuning $maxName")
         println(" ${pose.toString()} min time: ${round(minTime, 2)},  wrist pos time: ${round(wristPosTime, 2)}, wrist time: ${round(wristTime, 2)} , pivot time: ${round(pivotTime, 2)}")
-        path.addVector2(pose.wristPosition)
         times.add(maxTime)
         val currentTime = times.sum()
         pivotCurve.storeValue(currentTime, pose.pivotAngle.asDegrees)
         wristCurve.storeValue(currentTime, pose.wristAngle.asDegrees)
+        prevLength = path.length
     }
 
     println("times: $times")

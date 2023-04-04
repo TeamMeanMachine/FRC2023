@@ -333,6 +333,7 @@ object Arm : Subsystem("Arm") {
                 shoulderEntry.setDouble(shoulderAngle.asDegrees)
                 elbowEntry.setDouble(elbowAngle.asDegrees)
 
+
 //                var pose3d = Pose3d(0.0,0.0,0.0, Rotation3d(0.0, 0.0, shoulderAngle.asDegrees))
 //                shoulderPose.setValue(pose3d)
 //

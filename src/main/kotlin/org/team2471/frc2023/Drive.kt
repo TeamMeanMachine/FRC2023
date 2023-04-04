@@ -26,7 +26,9 @@ import org.team2471.frc.lib.motion_profiling.Path2D
 import org.team2471.frc.lib.motion_profiling.following.SwerveParameters
 import org.team2471.frc.lib.units.*
 import org.team2471.frc2023.FieldManager.isBlueAlliance
+import org.team2471.frc2023.FieldManager.isRedAlliance
 import org.team2471.frc2023.FieldManager.reflectFieldByAlliance
+import java.sql.Driver
 import kotlin.math.absoluteValue
 import kotlin.math.sign
 
@@ -686,15 +688,19 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         var finalHeading = if (FieldManager.isBlueAlliance) ((if (currentHeading < 0.0.degrees) -180 else 180) - goalHeading.asDegrees) else goalHeading.asDegrees
         finalHeading = finalHeading.degrees.unWrap(currentHeading).asDegrees
         println("** heading: $currentHeading  Goal Heading: $goalHeading final heading $finalHeading **")
-        val minSpin = 4.0/180.0 * (currentHeading - finalHeading.degrees).wrap().asDegrees.absoluteValue
+        val cableSideHeading = 20.0 * if (NodeDeckHub.startingPoint == StartingPoint.OUTSIDE && isCone) (if (isRedAlliance) -1.0 else 1.0) else 0.0
+        val minSpin = 4.0/180.0 * (cableSideHeading + ((currentHeading + cableSideHeading.degrees) - finalHeading.degrees).wrap().asDegrees.absoluteValue)
         println("printing minimum spin time: $minSpin")
-        time = maxOf(time,minSpin) * if (isCone) 0.85 else 1.0
+        time = maxOf(time,minSpin) * if (isCone) 1.5 else 1.0
         newPath.addEasePoint(0.0,0.0)
         newPath.addEasePointSlopeAndMagnitude(time, 1.0, 0.0, 2.0)
         println("$p1currentPose, $p2safePointClose, $p3safePointFar, $p4goalPosition, finalH: $finalHeading")
         newPath.addHeadingPoint(0.0, currentHeading.asDegrees)
 //        newPath.addHeadingPoint(safeDistance / rate, heading.asDegrees)
         println("Initial Heading: ${currentHeading.asDegrees}")
+        newPath.addHeadingPoint(time * 0.2, currentHeading.asDegrees + cableSideHeading)
+        newPath.addHeadingPoint(time * 0.6, currentHeading.asDegrees + cableSideHeading)
+        newPath.addHeadingPoint(time * 0.9, finalHeading)
         newPath.addHeadingPoint(time, finalHeading)
         println("Time: $time  Final Heading: $finalHeading")
         Drive.driveAlongPath(newPath){ abortPath() }
