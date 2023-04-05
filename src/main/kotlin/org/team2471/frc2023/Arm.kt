@@ -53,6 +53,7 @@ object Arm : Subsystem("Arm") {
     val shoulderAngleCheck = table.getEntry("Shoulder Angle Check")
     val deltaValueEntry = table.getEntry("Delta Value")
     val elbowMotorCurrentEntry = table.getEntry("Elbow Motor Current")
+    val elbowMotorPositionEntry = table.getEntry("Elbow Motor Position")
     val nodeAngleEntry = table.getEntry("Robot Angle")
     val wristFrontOffsetEntry = table.getEntry("Front Wrist Offset")
     val wristBackOffsetEntry = table.getEntry("Back Wrist Offset")
@@ -206,7 +207,7 @@ object Arm : Subsystem("Arm") {
     var wristPosition = forwardKinematics(shoulderAngle, elbowAngle)
         set (position) {
             field = position
-            var clampedPosition = position + if (position.x.absoluteValue < 10.0) Vector2(0.0, 0.0) else wristPosOffset
+            var clampedPosition = position + wristPosOffset
 
             //clamp
             clampedPosition.x = clampedPosition.x.coerceIn(-REACH_LIMIT, REACH_LIMIT)
@@ -230,8 +231,6 @@ object Arm : Subsystem("Arm") {
             }
         }
 
-//    val actualWristPosition
-//        get() = forwardKinematics(shoulderAngle, elbowAngle)
     var wristPosOffset
         get() = if (wristPosition.x > 7.0) wristFrontOffset else if (wristPosition.x < -7.0) wristBackOffset else wristCenterOffset
         set(value) {
@@ -342,6 +341,7 @@ object Arm : Subsystem("Arm") {
                 if (FieldManager.homeField) {
                     wristPositionXEntry.setDouble(wristPosition.x)
                     wristPositionYEntry.setDouble(wristPosition.y)
+                    elbowMotorPositionEntry.setDouble(elbowMotor.position - elbowAngle.asDegrees)
                 }
                 val (ikShoulder, ikElbow) = inverseKinematics(wristPosition)
                 if (FieldManager.homeField) {
@@ -364,7 +364,7 @@ object Arm : Subsystem("Arm") {
                 )
                 move *= 10.0 * 0.02   // d = r * t  where rate is inches per second and time is 1/50 second
 
-//                wristPosOffset += move
+                wristPosOffset += move
 
 //                println("wristPosOffset: $wristPosOffset")
                 wristPosition += Vector2(0.0, 0.0)

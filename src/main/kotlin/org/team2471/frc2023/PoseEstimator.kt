@@ -56,7 +56,7 @@ object PoseEstimator {
                 offsetEntry.setDoubleArray(doubleArrayOf(offset.x, offset.y))
                 if (DriverStation.isDisabled() && FieldManager.beforeFirstEnable && !preEnableHadTarget){
                     Drive.position = FieldManager.startingPosition
-
+                    Drive.heading = if (FieldManager.isBlueAlliance) 180.0.degrees else 0.0.degrees
                 }
 //                val maPose = MAPoseEstimator.latestPose
 //                maAdvantagePoseEntry.setDoubleArray(doubleArrayOf(maPose.x, maPose.y, maPose.rotation.degrees))

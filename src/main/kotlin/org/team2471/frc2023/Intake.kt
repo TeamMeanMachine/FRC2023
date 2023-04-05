@@ -61,7 +61,6 @@ object Intake : Subsystem("Intake") {
     val coneHoldPowerEntry = table.getEntry("Cone Hold Power")
     val holdingObjectEntry = table.getEntry("Holding Object")
 
-
     val wristAngle: Angle
         get() {
 //            return wristMotor.position.degrees
@@ -150,19 +149,19 @@ object Intake : Subsystem("Intake") {
 
     const val INTAKE_POWER = 1.0
     const val INTAKE_CONE = -1.0
-    const val INTAKE_CUBE = 0.55
+    const val INTAKE_CUBE = 0.70
     var HOLD_CONE = -0.2 //change default instead
         get() = coneHoldPowerEntry.getDouble(-0.17).coerceIn(-0.5, 0.0) //coerce to prevent too large values in shuffleboard
     var HOLD_CUBE = 0.1 //change default instead
-     get() =  if(isCompBot) cubeHoldPowerEntry.getDouble(0.1).coerceIn(0.0, 0.5)//coerce to prevent too large values in shuffleboard
-    else {
-         cubeHoldPowerEntry.getDouble(0.12).coerceIn(0.0, 0.5)
-     }
+        get() =  if(isCompBot) cubeHoldPowerEntry.getDouble(0.1).coerceIn(0.0, 0.5)//coerce to prevent too large values in shuffleboard
+                    else {
+                        cubeHoldPowerEntry.getDouble(0.12).coerceIn(0.0, 0.5)
+                    }
     var DETECT_CONE = 20
 //        get() = coneDetectEntry.getInteger(20.toLong()).toInt()
     var DETECT_CUBE = 13
 //        get() = cubeDetectEntry.getInteger(13.toLong()).toInt()
-    const val CONE_TOWARD_SPIT = 0.6
+    const val CONE_TOWARD_SPIT = 1.0
     const val CONE_AWAY_SPIT = 1.0
     const val CUBE_SPIT = -0.25
 
@@ -171,7 +170,7 @@ object Intake : Subsystem("Intake") {
         wristMotor.restoreFactoryDefaults()
         intakeMotor.restoreFactoryDefaults() //intake bad
         wristMotor.config(20) {
-            feedbackCoefficient = 261.0 / 1273.0 * 199.0 / 360.0  //last one is fudge factor
+            feedbackCoefficient = 261.0 / 1273.0 * 196.0 / 360.0  //last one is fudge factor
             coastMode()
             pid {
                 p(0.00014) //00002
@@ -207,23 +206,22 @@ object Intake : Subsystem("Intake") {
         GlobalScope.launch(MeanlibDispatcher) {
             var tempPivot: Angle
             if (FieldManager.homeField) {
-                wristSetpointEntry.setDouble(wristAngle.asDegrees)
-                pivotSetpointEntry.setDouble(pivotAngle.asDegrees)
+                wristSetpointEntry.setDouble(wristSetpoint.asDegrees)
+                pivotSetpointEntry.setDouble(pivotSetpoint.asDegrees)
                 pivotSensorEntry.setInteger(pivotSensor.value.toLong())
                 coneHoldPowerEntry.setDouble(HOLD_CONE)
                 coneDetectEntry.setInteger(DETECT_CONE.toLong())
                 cubeHoldPowerEntry.setDouble(HOLD_CUBE)
                 cubeDetectEntry.setInteger(DETECT_CUBE.toLong())
-            }
+           }
 //            coneMaxBlockCount.setInteger(20)
 //            coneMinArea.setInteger(20)
 //            coneMinBlockY.setInteger(100)
-
             periodic {
                 holdingObject = linearFilter.calculate(intakeMotor.current) > if (NodeDeckHub.isCone) DETECT_CONE else DETECT_CUBE
+                wristEntry.setDouble(wristAngle.asDegrees)
+                pivotEntry.setDouble(pivotAngle.asDegrees)
                 if (FieldManager.homeField) {
-                    wristEntry.setDouble(wristAngle.asDegrees)
-                    pivotEntry.setDouble(pivotAngle.asDegrees)
                     pivotSetpointEntry.setDouble(pivotSetpoint.asDegrees)
                     pivotSensorEntry.setInteger(pivotSensor.value.toLong())
                     pErrorEntry.setDouble(pivotSetpoint.asDegrees - pivotAngle.asDegrees)

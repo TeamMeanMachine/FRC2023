@@ -13,7 +13,7 @@ import kotlin.math.absoluteValue
 object FieldManager {
 
     val aprilTagTest = false
-    var homeField = false
+    var homeField = true
 
     val fieldDimensionsInMeters = Vector2(26.29.feet.asMeters,54.27.feet.asMeters) // field diagram & json is 26.29, 54.27 but includes side walls and barriers
     val fieldCenterOffsetInMeters = fieldDimensionsInMeters/2.0
@@ -135,7 +135,7 @@ object FieldManager {
             val pOffset = when (p) {
                 0 -> Vector2(1.2, 0.8) //feet
                 1 -> Vector2(-0.6, 0.4)
-                2 -> Vector2(0.8, -1.4)
+                2 -> Vector2(0.3, -1.9)
                 3 -> Vector2(0.0, -0.05)
                 4 -> Vector2(-0.2, 0.6)
                 6 -> Vector2(1.3, 1.5)

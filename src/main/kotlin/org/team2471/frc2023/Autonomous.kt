@@ -181,7 +181,7 @@ object AutoChooser {
         }
     }
     suspend fun nodeDeckAuto() = use(Drive, Intake, Arm) {
-        Intake.coneToward = false
+        Intake.coneToward = true
         AprilTag.resetCameras()
         if (FieldManager.nodeList[NodeDeckHub.firstAutoPiece]?.level?.equals(Level.LOW) == true) Intake.intakeMotor.setPercentOutput(Intake.CUBE_SPIT) else Intake.intakeMotor.setPercentOutput(Intake.HOLD_CONE)
         var gamePieceAngles = when (NodeDeckHub.startingPoint) {
@@ -325,4 +325,81 @@ object AutoChooser {
         Drive.driveToPoints()
 //        Drive.dynamicGoToGamePieceOnFloor(FieldManager.getClosestGamePieceOnField(), if (FieldManager.isRedAlliance) 0.0.degrees else 180.0.degrees)
     }
+
+//    suspend fun highConeAndCubesAuto() = use(Drive, Intake, Arm){
+//        Intake.coneToward = true
+//        AprilTag.resetCameras()
+//        if (FieldManager.nodeList[NodeDeckHub.firstAutoPiece]?.level?.equals(Level.LOW) == true) Intake.intakeMotor.setPercentOutput(Intake.CUBE_SPIT) else Intake.intakeMotor.setPercentOutput(Intake.HOLD_CONE)
+//        var gamePieceAngles = when (NodeDeckHub.startingPoint) {
+//            StartingPoint.INSIDE -> doubleArrayOf(0.0, -30.0, -45.0)
+//            StartingPoint.MIDDLE -> doubleArrayOf(0.0, 30.0, -30.0)
+//            StartingPoint.OUTSIDE -> doubleArrayOf(0.0, 30.0, 45.0)
+//        }
+//        FieldManager.resetClosestGamePieceOnField()
+//        if ((Drive.position - FieldManager.startingPosition).length > 0.2) {
+//            println("forcing position .. we are off by more than 0.2 feet")
+//            Drive.position = FieldManager.startingPosition
+//            println("position: ${Drive.position}")
+//            PoseEstimator.zeroOffset()
+//        }
+//        Drive.zeroGyro()
+//        println("position: ${Drive.position}, ${Drive.combinedPosition}")
+//        if (NodeDeckHub.amountOfAutoPieces > 0) {
+//            if (FieldManager.nodeList[NodeDeckHub.firstAutoPiece]?.level?.equals(Level.LOW) == true) { //spit and run--special case
+//                Intake.intakeMotor.setPercentOutput(Intake.CUBE_SPIT)
+//                delay(0.8)
+//                parallel ({
+//                    if (!NodeDeckHub.chargeInAuto) Drive.dynamicGoToGamePieceOnFloor(FieldManager.getClosestGamePieceOnField(), gamePieceAngles[0].degrees, isCone = false)
+//                }, {
+//                    Intake.intakeMotor.setPercentOutput(0.0)
+//                    flip()
+//                })
+//            } else {
+//                backScoreToward(true, NodeDeckHub.firstAutoPiece)
+//                if (NodeDeckHub.amountOfAutoPieces == 1) scoreObject(NodeDeckHub.firstAutoPiece)
+//                if (NodeDeckHub.amountOfAutoPieces > 1) {
+//                    nodeDeckPiece(gamePieceAngles[0].degrees, NodeDeckHub.secondAutoPiece, NodeDeckHub.amountOfAutoPieces == 2 && NodeDeckHub.finishWithPiece, NodeDeckHub.firstAutoPiece)
+//                    if (NodeDeckHub.amountOfAutoPieces == 2) scoreObject(NodeDeckHub.secondAutoPiece)
+//                    if (NodeDeckHub.amountOfAutoPieces > 2) {
+//                        nodeDeckPiece(gamePieceAngles[1].degrees, NodeDeckHub.thirdAutoPiece,  NodeDeckHub.amountOfAutoPieces == 3 && NodeDeckHub.finishWithPiece, NodeDeckHub.secondAutoPiece)
+//                        if (NodeDeckHub.amountOfAutoPieces == 3) scoreObject(NodeDeckHub.thirdAutoPiece)
+//                        if (NodeDeckHub.amountOfAutoPieces > 3) {
+//                            nodeDeckPiece(gamePieceAngles[2].degrees, NodeDeckHub.fourthAutoPiece,  NodeDeckHub.amountOfAutoPieces == 4 && NodeDeckHub.finishWithPiece, NodeDeckHub.thirdAutoPiece)
+//                        } else {
+//                            afterScoreFlip(FieldManager.nodeList[NodeDeckHub.thirdAutoPiece]?.level)
+//                        }
+//                    } else {
+//                        afterScoreFlip(FieldManager.nodeList[NodeDeckHub.secondAutoPiece]?.level)
+//                    }
+//                } else {
+//                    afterScoreFlip(FieldManager.nodeList[NodeDeckHub.firstAutoPiece]?.level)
+//                }
+//            }
+//        } else {
+////            flip()
+//        }
+//        println("charge: ${NodeDeckHub.chargeInAuto}")
+//        if (NodeDeckHub.chargeInAuto) {
+//            if (NodeDeckHub.amountOfAutoPieces == 0) {
+//                Drive.driveToPoints(Drive.combinedPosition, Drive.combinedPosition + Vector2(0.0, FieldManager.reflectFieldByAlliance(-0.25)))
+//                delay(2.0)
+//            }
+//            parallel({
+////                Drive.dynamicGoToChargeCenter()
+//                val chargeX = when(NodeDeckHub.startingPoint) {
+//                    StartingPoint.OUTSIDE -> -1
+//                    StartingPoint.INSIDE -> 1
+//                    StartingPoint.MIDDLE -> 0
+//                }
+//                val chargeDestination = Vector2(FieldManager.centerOfChargeX + (Drive.robotHalfWidth.asFeet * 1.7 * chargeX), FieldManager.reflectFieldByAlliance(15.25))
+//                Drive.driveToPointsPercentSpeed(0.5, Drive.combinedPosition, Vector2(chargeDestination.x, FieldManager.reflectFieldByAlliance(8.0 + Drive.robotHalfWidth.asFeet)))
+//                Drive.driveToPointsPercentSpeed(0.5, Drive.combinedPosition, chargeDestination)
+//                Drive.autoBalance()
+//            }, {
+////                toDrivePose()
+//            })
+//        } else {
+////            toDrivePose()
+//        }
+//    }
 }
