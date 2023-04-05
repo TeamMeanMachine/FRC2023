@@ -5,6 +5,7 @@ import edu.wpi.first.math.filter.LinearFilter
 import edu.wpi.first.networktables.NetworkTableInstance
 import edu.wpi.first.wpilibj.AnalogInput
 import edu.wpi.first.wpilibj.DigitalInput
+import edu.wpi.first.wpilibj.DriverStation
 //import io.github.pseudoresonance.pixy2api.Pixy2
 //import io.github.pseudoresonance.pixy2api.Pixy2CCC
 //import io.github.pseudoresonance.pixy2api.links.SPILink
@@ -86,7 +87,7 @@ object Intake : Subsystem("Intake") {
         }
 
     val pivotAnalogAngle: Angle
-        get() = ((pivotSensor.value - if (isCompBot) 913.0 else 417.0).degrees / 4096.0 * 360.0).wrap() //third arm previous ticks: 2116.0
+        get() = ((pivotSensor.value - if (isCompBot) 913.0 else 2096.0).degrees / 4096.0 * 360.0).wrap() //third arm previous ticks: 2116.0
     var pivotOffset: Angle = 0.0.degrees
 
     val pivotAngle: Angle
@@ -140,7 +141,6 @@ object Intake : Subsystem("Intake") {
         get() = round(140.0 + Arm.elbowAngle.asDegrees, 4).degrees
     var linearFilter = LinearFilter.movingAverage(10)
     var holdingObject: Boolean = false
-        get() = linearFilter.calculate(intakeMotor.current) > if (NodeDeckHub.isCone) DETECT_CONE else DETECT_CUBE
 
     var holdDetectedTime = -5.0
 
@@ -159,9 +159,9 @@ object Intake : Subsystem("Intake") {
          cubeHoldPowerEntry.getDouble(0.12).coerceIn(0.0, 0.5)
      }
     var DETECT_CONE = 20
-        get() = coneDetectEntry.getInteger(20.toLong()).toInt()
+//        get() = coneDetectEntry.getInteger(20.toLong()).toInt()
     var DETECT_CUBE = 13
-        get() = cubeDetectEntry.getInteger(13.toLong()).toInt()
+//        get() = cubeDetectEntry.getInteger(13.toLong()).toInt()
     const val CONE_TOWARD_SPIT = 0.6
     const val CONE_AWAY_SPIT = 1.0
     const val CUBE_SPIT = -0.25
@@ -220,6 +220,7 @@ object Intake : Subsystem("Intake") {
 //            coneMinBlockY.setInteger(100)
 
             periodic {
+                holdingObject = linearFilter.calculate(intakeMotor.current) > if (NodeDeckHub.isCone) DETECT_CONE else DETECT_CUBE
                 if (FieldManager.homeField) {
                     wristEntry.setDouble(wristAngle.asDegrees)
                     pivotEntry.setDouble(pivotAngle.asDegrees)
@@ -360,7 +361,7 @@ suspend fun Intake.pivotTest() = use(this) {
 fun setPivotPower() {
     val pError = (Intake.pivotSetpoint + Intake.pivotOffset - Intake.pivotAngle).wrap().asDegrees
     val openLoopPower = Intake.pivotPDController.update(pError).coerceIn(-1.0, 1.0)
-    if ((Intake.pivotSetpoint.asDegrees - Intake.pivotAngle.asDegrees).absoluteValue > 40.0) println("pivotError: ${round(pError, 1)}    openLoopPower: ${round(openLoopPower, 1)}")
+    if ((Intake.pivotSetpoint.asDegrees - Intake.pivotAngle.asDegrees).absoluteValue > 40.0 && DriverStation.isEnabled()) println("pivotError: ${round(pError, 1)}    openLoopPower: ${round(openLoopPower, 1)}")
     val power = openLoopPower + Intake.pFeedForward
     Intake.pivotMotor.setPercentOutput(power)
 }

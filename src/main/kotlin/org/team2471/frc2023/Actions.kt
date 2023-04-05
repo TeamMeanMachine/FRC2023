@@ -180,10 +180,10 @@ suspend fun intakeFromGround(isCone: Boolean = NodeDeckHub.isCone) = use(Arm, In
                     periodic {//rumble if holding object
                         if (Intake.holdingObject && tInitialHold == -1.0) {
                             tInitialHold = timer.get()
-                            rumbleTimer = timer.get() + 1.0
-                            if (!DriverStation.isAutonomous()) {
-                                OI.driverController.rumble = 0.3
-                                OI.operatorController.rumble = 0.3
+                            rumbleTimer = timer.get() + 2.0
+                            if (!DriverStation.isAutonomous() && timer.get() > 0.2) {
+                                OI.driverController.rumble = 1.0
+                                OI.operatorController.rumble = 1.0
                             }
                         }
                         if (!Intake.holdingObject) tInitialHold = -1.0
@@ -199,6 +199,8 @@ suspend fun intakeFromGround(isCone: Boolean = NodeDeckHub.isCone) = use(Arm, In
             }
         } finally {//move back to drive pos
             Drive.maxTranslation = 1.0
+
+            // don't flip if we don't have an object
             groundBackToDrive(isCone)
         }
     } else {
@@ -219,6 +221,11 @@ suspend fun groundBackToDrive(isCone: Boolean) {
                 animateThroughPoses(Pose.GROUND_TO_DRIVE_SAFE_CONE, Pose.GROUND_TO_DRIVE_SAFE, Pose.BACK_DRIVE_POSE)
             } else {
                 animateThroughPoses(Pose.GROUND_TO_DRIVE_SAFE_CUBE, Pose.GROUND_TO_DRIVE_SAFE, Pose.BACK_DRIVE_POSE)
+            }
+            delay(0.2)
+            if (!Intake.holdingObject) {
+                println("Flipping to front, Cone Drop Detected")
+                flip(true)
             }
         } else {
             animateThroughPoses(Pose.FRONT_DRIVE_POSE)

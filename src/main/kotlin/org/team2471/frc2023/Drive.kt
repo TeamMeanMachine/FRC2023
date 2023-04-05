@@ -37,47 +37,47 @@ object Drive : Subsystem("Drive"), SwerveDrive {
     val robotHalfWidth = (32.0/2.0).inches
     val table = NetworkTableInstance.getDefault().getTable(name)
     val navXGyroEntry = table.getEntry("NavX Gyro")
-    val limitingFactor : Double
-        get() = 1.0
+//    val limitingFactor : Double
+//        get() = 1.0
     val odometer0Entry = table.getEntry("Odometer 0")
     val odometer1Entry = table.getEntry("Odometer 1")
     val odometer2Entry = table.getEntry("Odometer 2")
     val odometer3Entry = table.getEntry("Odometer 3")
-    val absoluteAngle0Entry = table.getEntry("Analog Angle 0")
-    val absoluteAngle1Entry = table.getEntry("Analog Angle 1")
-    val absoluteAngle2Entry = table.getEntry("Analog Angle 2")
-    val absoluteAngle3Entry = table.getEntry("Analog Angle 3")
+//    val absoluteAngle0Entry = table.getEntry("Analog Angle 0")
+//    val absoluteAngle1Entry = table.getEntry("Analog Angle 1")
+//    val absoluteAngle2Entry = table.getEntry("Analog Angle 2")
+//    val absoluteAngle3Entry = table.getEntry("Analog Angle 3")
 //    val motorAngle0Entry = table.getEntry("Motor Angle 0")
 //    val motorAngle1Entry = table.getEntry("Motor Angle 1")
 //    val motorAngle2Entry = table.getEntry("Motor Angle 2")
 //    val motorAngle3Entry = table.getEntry("Motor Angle 3")
 
-    val motorPower0Entry = table.getEntry("Motor Power 0")
-    val motorPower1Entry = table.getEntry("Motor Power 1")
-    val motorPower2Entry = table.getEntry("Motor Power 2")
-    val motorPower3Entry = table.getEntry("Motor Power 3")
+//    val motorPower0Entry = table.getEntry("Motor Power 0")
+//    val motorPower1Entry = table.getEntry("Motor Power 1")
+//    val motorPower2Entry = table.getEntry("Motor Power 2")
+//    val motorPower3Entry = table.getEntry("Motor Power 3")
     val useGyroEntry = table.getEntry("Use Gyro")
     val angleToNodeEntry = table.getEntry("Angle To Node")
 
-    val advantageSwerveStatesEntry = table.getEntry("SwerveStates")
-    val advantageSwerveTargetsEntry = table.getEntry("SwerveTargets")
+//    val advantageSwerveStatesEntry = table.getEntry("SwerveStates")
+//    val advantageSwerveTargetsEntry = table.getEntry("SwerveTargets")
     val rateCurve = MotionCurve()
 
-    val fieldObject = Field2d()
-    val fieldDimensions = Vector2(26.9375.feet.asMeters,54.0.feet.asMeters)
-    val fieldCenterOffset = fieldDimensions/2.0
-    val stateArray : DoubleArray
-        get() {
-            val dblArray = DoubleArray(8)
-            var i = 0
-            for (mod in modules) {
-                dblArray[i] = mod.speed
-                i++
-                dblArray[i] = mod.angle.asDegrees
-                i++
-            }
-            return dblArray
-        }
+//    val fieldObject = Field2d()
+//    val fieldDimensions = Vector2(26.9375.feet.asMeters,54.0.feet.asMeters)
+//    val fieldCenterOffset = fieldDimensions/2.0
+//    val stateArray : DoubleArray
+//        get() {
+//            val dblArray = DoubleArray(8)
+//            var i = 0
+//            for (mod in modules) {
+//                dblArray[i] = mod.speed
+//                i++
+//                dblArray[i] = mod.angle.asDegrees
+//                i++
+//            }
+//            return dblArray
+//        }
 //    val targetArray : DoubleArray
 //        get() {
 //            val dblArray = DoubleArray(8)
@@ -209,8 +209,8 @@ object Drive : Subsystem("Drive"), SwerveDrive {
 
             SmartDashboard.setPersistent("Use Gyro")
             SmartDashboard.setPersistent("Gyro Type")
-            SmartDashboard.putData("Field", fieldObject)
-            SmartDashboard.setPersistent("Field")
+//            SmartDashboard.putData("Field", fieldObject)
+//            SmartDashboard.setPersistent("Field")
 
             navXGyroEntry.setBoolean(true)
             rateCurve.setMarkBeginOrEndKeysToZeroSlope(false)
@@ -238,20 +238,18 @@ object Drive : Subsystem("Drive"), SwerveDrive {
                 headingEntry.setDouble(heading.asDegrees)
                 val poseWPI = FieldManager.convertTMMtoWPI(x.feet, y.feet, heading)
                 poseEntry.setDoubleArray(doubleArrayOf(poseWPI.x, poseWPI.y, poseWPI.rotation.degrees))
-                if (FieldManager.homeField) {
-                    absoluteAngle0Entry.setDouble((modules[0] as Module).absoluteAngle.asDegrees)
-                    absoluteAngle1Entry.setDouble((modules[1] as Module).absoluteAngle.asDegrees)
-                    absoluteAngle2Entry.setDouble((modules[2] as Module).absoluteAngle.asDegrees)
-                    absoluteAngle3Entry.setDouble((modules[3] as Module).absoluteAngle.asDegrees)
-
-                    motorPower0Entry.setDouble((modules[0] as Module).driveCurrent)
-                    motorPower1Entry.setDouble((modules[1] as Module).driveCurrent)
-                    motorPower2Entry.setDouble((modules[2] as Module).driveCurrent)
-                    motorPower3Entry.setDouble((modules[3] as Module).driveCurrent)
-
-                    advantageSwerveStatesEntry.setDoubleArray(stateArray)
-                    advantageSwerveTargetsEntry.setDoubleArray(stateArray)
-                }
+//                if (FieldManager.homeField) {
+//                    absoluteAngle0Entry.setDouble((modules[0] as Module).absoluteAngle.asDegrees)
+//                    absoluteAngle1Entry.setDouble((modules[1] as Module).absoluteAngle.asDegrees)
+//                    absoluteAngle2Entry.setDouble((modules[2] as Module).absoluteAngle.asDegrees)
+//                    absoluteAngle3Entry.setDouble((modules[3] as Module).absoluteAngle.asDegrees)
+//
+//                    motorPower0Entry.setDouble((modules[0] as Module).driveCurrent)
+//                    motorPower1Entry.setDouble((modules[1] as Module).driveCurrent)
+//                    motorPower2Entry.setDouble((modules[2] as Module).driveCurrent)
+//                    motorPower3Entry.setDouble((modules[3] as Module).driveCurrent)
+//
+//                }
 //                motorAngle0Entry.setDouble((modules[0] as Module).angle.wrap().asDegrees)
 //                motorAngle1Entry.setDouble((modules[1] as Module).angle.wrap().asDegrees)
 //                motorAngle2Entry.setDouble((modules[2] as Module).angle.wrap().asDegrees)

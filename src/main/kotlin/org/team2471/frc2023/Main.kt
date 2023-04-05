@@ -58,7 +58,7 @@ object Robot : MeanlibRobot() {
         NodeDeckHub
         println("Activating NodeDeckHub! startingPoint ${NodeDeckHub.startingPoint.name}")
         AprilTag
-        println("Activating AprilTags! Last Detection: ${AprilTag.lastDetection}")
+        println("Activating AprilTags! Last Detection: ${AprilTag.lastBackDetection}")
         PoseEstimator
         println("Activating PoseEstimator! currentPose ${PoseEstimator.currentPose}")
 
@@ -100,7 +100,7 @@ object Robot : MeanlibRobot() {
 
     override suspend fun test()  {
         println("test mode begin. Hi.")
-        Arm.feedForwardTest()
+        Intake.intakeTest()
 //        Drive.setAngleOffsets()
     }
 
