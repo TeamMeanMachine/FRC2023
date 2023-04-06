@@ -202,7 +202,7 @@ object Arm : Subsystem("Arm") {
     const val HEIGHT_LIMIT = 50.0
     const val FLOOR_HEIGHT = -5.0
     const val ROBOT_COVER_HEIGHT = 9.0
-    const val ROBOT_HALF_WIDTH = 36.0 / 2.0
+    const val ROBOT_HALF_WIDTH = 35.0 / 2.0
 
     var wristPosition = forwardKinematics(shoulderAngle, elbowAngle)
         set (position) {

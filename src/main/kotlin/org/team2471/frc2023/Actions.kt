@@ -406,7 +406,7 @@ suspend fun scoreObject(pieceNumber: Int = NodeDeckHub.selectedNode.toInt()) = u
                 }
                 Level.HIGH -> {
                     println("Cube High")
-                    animateToPose(Pose.current + Pose(Vector2(19.0, 12.0), 0.0.degrees, 0.0.degrees))
+                    animateToPose(Pose.current + Pose(Vector2(19.0, 14.0), 0.0.degrees, 0.0.degrees))
                 }
                 else -> println("Currently can't score there.")
             }
