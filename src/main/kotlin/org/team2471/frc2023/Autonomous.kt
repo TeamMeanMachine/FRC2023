@@ -183,7 +183,7 @@ object AutoChooser {
     suspend fun nodeDeckAuto() = use(Drive, Intake, Arm) {
         Intake.coneToward = true
         AprilTag.resetCameras()
-        if (FieldManager.nodeList[NodeDeckHub.firstAutoPiece]?.level?.equals(Level.LOW) == true) Intake.intakeMotor.setPercentOutput(Intake.CUBE_SPIT) else Intake.intakeMotor.setPercentOutput(Intake.HOLD_CONE)
+        if (FieldManager.nodeList[NodeDeckHub.firstAutoPiece]?.level?.equals(Level.LOW) == true) Intake.intakeMotor.setPercentOutput(Intake.CUBE_SPIT) else if (FieldManager.nodeList[NodeDeckHub.firstAutoPiece]?.coneOrCube == GamePiece.CONE) Intake.intakeMotor.setPercentOutput(Intake.HOLD_CONE) else Intake.intakeMotor.setPercentOutput(Intake.HOLD_CUBE)
         var gamePieceAngles = when (NodeDeckHub.startingPoint) {
             StartingPoint.INSIDE -> doubleArrayOf(0.0, -30.0, -45.0)
             StartingPoint.MIDDLE -> doubleArrayOf(0.0, 30.0, -30.0)
@@ -206,10 +206,10 @@ object AutoChooser {
                     if (!NodeDeckHub.chargeInAuto) Drive.dynamicGoToGamePieceOnFloor(FieldManager.getClosestGamePieceOnField(), gamePieceAngles[0].degrees, isCone = false)
                 }, {
                     Intake.intakeMotor.setPercentOutput(0.0)
-                    flip()
+//                    flip()
                 })
             } else {
-                backScoreToward(true, NodeDeckHub.firstAutoPiece)
+                backScoreToward(FieldManager.nodeList[NodeDeckHub.firstAutoPiece]?.coneOrCube == GamePiece.CONE, NodeDeckHub.firstAutoPiece)
                 if (NodeDeckHub.amountOfAutoPieces == 1) scoreObject(NodeDeckHub.firstAutoPiece)
                 if (NodeDeckHub.amountOfAutoPieces > 1) {
                     nodeDeckPiece(gamePieceAngles[0].degrees, NodeDeckHub.secondAutoPiece, NodeDeckHub.amountOfAutoPieces == 2 && NodeDeckHub.finishWithPiece, NodeDeckHub.firstAutoPiece)
@@ -234,7 +234,7 @@ object AutoChooser {
         }
         println("charge: ${NodeDeckHub.chargeInAuto}")
         if (NodeDeckHub.chargeInAuto) {
-            if (NodeDeckHub.amountOfAutoPieces == 0) {
+            if (NodeDeckHub.amountOfAutoPieces < 2) {
                 Drive.driveToPoints(Drive.combinedPosition, Drive.combinedPosition + Vector2(0.0, FieldManager.reflectFieldByAlliance(-0.25)))
                 delay(2.0)
             }
@@ -250,6 +250,7 @@ object AutoChooser {
                 Drive.driveToPointsPercentSpeed(0.5, Drive.combinedPosition, chargeDestination)
                 Drive.autoBalance()
             }, {
+                if (FieldManager.nodeList[NodeDeckHub.firstAutoPiece]?.level?.equals(Level.LOW) != true) flip()
 //                toDrivePose()
             })
         } else {

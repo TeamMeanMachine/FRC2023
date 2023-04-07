@@ -212,13 +212,13 @@ object Arm : Subsystem("Arm") {
             //clamp
             clampedPosition.x = clampedPosition.x.coerceIn(-REACH_LIMIT, REACH_LIMIT)
             clampedPosition.y = clampedPosition.y.coerceIn(FLOOR_HEIGHT, HEIGHT_LIMIT)
-            if (clampedPosition.x.absoluteValue < ROBOT_HALF_WIDTH) {  // over top of robot
-                clampedPosition.y = max(clampedPosition.y, ROBOT_COVER_HEIGHT)
-                clampedPosition.y = min(
-                    clampedPosition.y,
-                    (HEIGHT_LIMIT / ROBOT_HALF_WIDTH) * clampedPosition.x.absoluteValue + ROBOT_COVER_HEIGHT
-                )
-            }
+//            if (clampedPosition.x.absoluteValue < ROBOT_HALF_WIDTH) {  // over top of robot
+//                clampedPosition.y = max(clampedPosition.y, ROBOT_COVER_HEIGHT)
+//                clampedPosition.y = min(
+//                    clampedPosition.y,
+//                    (HEIGHT_LIMIT / ROBOT_HALF_WIDTH) * clampedPosition.x.absoluteValue + ROBOT_COVER_HEIGHT
+//                )
+//            }
 
             //set shoulder/angle setpoints
             val (shoulder, elbow) = inverseKinematics(clampedPosition)
@@ -247,10 +247,12 @@ object Arm : Subsystem("Arm") {
         println("Arm init")
         autoArmEntry.setBoolean(false)
         if (!shoulderTicksOffsetEntry.exists()) {
-            shoulderTicksOffsetEntry.setDouble(2409.0)
+            shoulderTicksOffsetEntry.setDouble(shoulderEncoder.value.toDouble())
+            println("Shoulder didn't exist")
         }
         if (!elbowTicksOffsetEntry.exists()) {
-            elbowTicksOffsetEntry.setDouble(2410.0)
+            elbowTicksOffsetEntry.setDouble(elbowEncoder.value.toDouble())
+            println("Elbow didn't exist")
         }
         shoulderTicksOffsetEntry.setPersistent()
         elbowTicksOffsetEntry.setPersistent()
@@ -311,6 +313,8 @@ object Arm : Subsystem("Arm") {
             elbowCurve.storeValue(40.0, 0.18)
             elbowCurve.storeValue(90.0, 0.19)
             elbowCurve.storeValue(110.0, 0.23)
+
+            elbowTicksOffsetEntry.setDouble(elbowEncoder.value.toDouble())
 
             var shoulderDirection = LinearFilter.movingAverage(3)
             var previousShoulderSensor = false

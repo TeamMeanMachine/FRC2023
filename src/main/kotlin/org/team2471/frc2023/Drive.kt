@@ -689,7 +689,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         val cableSideHeading = 20.0 * if (NodeDeckHub.startingPoint == StartingPoint.OUTSIDE && isCone) (if (isRedAlliance) -1.0 else 1.0) else 0.0
         val minSpin = 4.0/180.0 * (cableSideHeading + ((currentHeading + cableSideHeading.degrees) - finalHeading.degrees).wrap().asDegrees.absoluteValue)
         println("printing minimum spin time: $minSpin")
-        time = maxOf(time,minSpin) * if (isCone) 1.5 else 1.0
+        time = maxOf(time,minSpin) * if (startingSide == StartingPoint.OUTSIDE) 1.5 else 1.0
         newPath.addEasePoint(0.0,0.0)
         newPath.addEasePointSlopeAndMagnitude(time, 1.0, 0.0, 2.0)
         println("$p1currentPose, $p2safePointClose, $p3safePointFar, $p4goalPosition, finalH: $finalHeading")
