@@ -150,7 +150,7 @@ object Intake : Subsystem("Intake") {
     const val INTAKE_POWER = 1.0
     const val INTAKE_CONE = -1.0
     const val INTAKE_CUBE = 0.70
-    var HOLD_CONE = -0.2 //change default instead
+    var HOLD_CONE = -0.3 //change default instead
         get() = coneHoldPowerEntry.getDouble(-0.17).coerceIn(-0.5, 0.0) //coerce to prevent too large values in shuffleboard
     var HOLD_CUBE = 0.1 //change default instead
         get() =  if(isCompBot) cubeHoldPowerEntry.getDouble(0.1).coerceIn(0.0, 0.5)//coerce to prevent too large values in shuffleboard
@@ -163,7 +163,7 @@ object Intake : Subsystem("Intake") {
 //        get() = cubeDetectEntry.getInteger(13.toLong()).toInt()
     const val CONE_TOWARD_SPIT = 1.0
     const val CONE_AWAY_SPIT = 1.0
-    const val CUBE_SPIT = -0.25
+    const val CUBE_SPIT = -0.2
 
     init {
 //        initializePixy()

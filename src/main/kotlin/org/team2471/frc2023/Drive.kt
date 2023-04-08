@@ -484,7 +484,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         var prevPitch = gyro.getPitch()
         val goalHeading = if (isBlueAlliance) 180.0 else 0.0
         periodic {
-            if (gyro.getPitch().absoluteValue > 2.5 && !testBalanced) {
+            if (gyro.getPitch().absoluteValue > 3.0 && !testBalanced) {
                 //println("pitched")
 
                 var error = (goalHeading.degrees - heading).wrap()
@@ -493,7 +493,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
                 // plus a proportional part so that the power is higher when steep and less as it flattens.
                 drive(Vector2(0.0, gyro.getPitch().sign * 0.125), turn, fieldCentric = false)
 
-                if ((gyro.getPitch() - prevPitch).absoluteValue > 0.25) {
+                if ((gyro.getPitch() - prevPitch).absoluteValue > 0.23) {
                     println("I'm leveling")
                     drive(Vector2(0.0, 0.0), 0.0)
                     xPose()
@@ -504,7 +504,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
                 prevPitch = gyro.getPitch()
             }
             else if (testBalanced && holdTimer.get() > 1.0) {
-                if (gyro.getPitch().absoluteValue < 2.5 ) {
+                if (gyro.getPitch().absoluteValue < 3.0 ) {
                     println("balanced for more then 1 second. stopping autoBalance...")
                     this.stop()
                 } else {

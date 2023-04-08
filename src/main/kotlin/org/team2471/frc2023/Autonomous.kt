@@ -236,7 +236,7 @@ object AutoChooser {
         if (NodeDeckHub.chargeInAuto) {
             if (NodeDeckHub.amountOfAutoPieces < 2) {
                 Drive.driveToPoints(Drive.combinedPosition, Drive.combinedPosition + Vector2(0.0, FieldManager.reflectFieldByAlliance(-0.25)))
-                delay(2.0)
+                delay(1.0)
             }
             parallel({
 //                Drive.dynamicGoToChargeCenter()
@@ -251,7 +251,6 @@ object AutoChooser {
                 Drive.autoBalance()
             }, {
                 if (FieldManager.nodeList[NodeDeckHub.firstAutoPiece]?.level?.equals(Level.LOW) != true) flip()
-//                toDrivePose()
             })
         } else {
 //            toDrivePose()
@@ -265,7 +264,7 @@ object AutoChooser {
         println("nodedeck auto path to game piece: $nextGamePiece")
         val isCone = FieldManager.nodeList[nodeID]?.coneOrCube == GamePiece.CONE
         parallel({
-            delay(0.3)
+            delay(0.9)
             Drive.dynamicGoToGamePieceOnFloor(nextGamePiece, pickupHeading, isCone = isCone)
         }, {
             scoreObject(prevPiece)

@@ -240,8 +240,8 @@ suspend fun backScoreAway(isCone: Boolean = NodeDeckHub.isCone, pieceNumber: Int
                 }
                 Level.MID -> {
                     animateThroughPoses(
-                        Pair(0.2, Pose.BACK_MIDDLE_SCORE_CONE_AWAY_MID),
-                        Pair(0.2, Pose.BACK_MIDDLE_SCORE_CONE_AWAY)
+                        Pair(0.4, Pose.BACK_MIDDLE_SCORE_CONE_AWAY_MID),
+                        Pair(0.4, Pose.BACK_MIDDLE_SCORE_CONE_AWAY)
                     )
                     autoArmToPose(Pose.BACK_MIDDLE_SCORE_CONE_AWAY)
                 }
@@ -395,6 +395,7 @@ suspend fun scoreObject(pieceNumber: Int = NodeDeckHub.selectedNode.toInt()) = u
                 }
             }
         } else {
+            if (DriverStation.isAutonomous()) delay(0.3)
             Intake.intakeMotor.setPercentOutput(Intake.CUBE_SPIT)
             when (nodeLevel) {
                 Level.LOW -> {
@@ -403,11 +404,11 @@ suspend fun scoreObject(pieceNumber: Int = NodeDeckHub.selectedNode.toInt()) = u
                 }
                 Level.MID -> {
                     println("Cube Mid")
-                    animateToPose(Pose.current + Pose(Vector2(10.0, 9.0), 0.0.degrees, 0.0.degrees), 0.8)
+                    animateToPose(Pose.current + Pose(Vector2(12.0, 9.0), 0.0.degrees, 0.0.degrees), 0.8)
                 }
                 Level.HIGH -> {
                     println("Cube High")
-                    animateToPose(Pose.current + Pose(Vector2(24.0, 14.0), 0.0.degrees, 0.0.degrees), 0.8)
+                    animateToPose(Pose.current + Pose(Vector2(26.0, 15.0), 0.0.degrees, 0.0.degrees), 0.8)
                 }
                 else -> println("Currently can't score there.")
             }
