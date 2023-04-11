@@ -10,6 +10,7 @@ import org.team2471.frc.lib.coroutines.parallel
 //import org.team2471.bunnybots2022.Drive
 import org.team2471.frc.lib.framework.use
 import org.team2471.frc.lib.math.Vector2
+import org.team2471.frc.lib.motion.following.drive
 import org.team2471.frc.lib.motion.following.driveAlongPath
 import org.team2471.frc.lib.motion_profiling.Autonomi
 import org.team2471.frc.lib.units.Angle
@@ -201,6 +202,7 @@ object AutoChooser {
         if (NodeDeckHub.amountOfAutoPieces > 0) {
             if (FieldManager.nodeList[NodeDeckHub.firstAutoPiece]?.level?.equals(Level.LOW) == true) { //spit and run--special case
                 Intake.intakeMotor.setPercentOutput(Intake.CUBE_SPIT)
+                Drive.drive(Vector2(0.0,0.0), 0.0)
                 delay(0.8)
                 parallel ({
                     if (!NodeDeckHub.chargeInAuto) Drive.dynamicGoToGamePieceOnFloor(FieldManager.getClosestGamePieceOnField(), gamePieceAngles[0].degrees, isCone = false)
@@ -234,10 +236,10 @@ object AutoChooser {
         }
         println("charge: ${NodeDeckHub.chargeInAuto}")
         if (NodeDeckHub.chargeInAuto) {
-            if (NodeDeckHub.amountOfAutoPieces < 2) {
-                Drive.driveToPoints(Drive.combinedPosition, Drive.combinedPosition + Vector2(0.0, FieldManager.reflectFieldByAlliance(-0.25)))
-                delay(1.0)
-            }
+//            if (NodeDeckHub.amountOfAutoPieces < 2) {
+//                Drive.driveToPoints(Drive.combinedPosition, Drive.combinedPosition + Vector2(0.0, FieldManager.reflectFieldByAlliance(-0.25)))
+//                delay(1.0)
+//            }
             parallel({
 //                Drive.dynamicGoToChargeCenter()
                 val chargeX = when(NodeDeckHub.startingPoint) {
@@ -246,7 +248,8 @@ object AutoChooser {
                     StartingPoint.MIDDLE -> 0
                 }
                 val chargeDestination = Vector2(FieldManager.centerOfChargeX + (Drive.robotHalfWidth.asFeet * 1.7 * chargeX), FieldManager.reflectFieldByAlliance(15.25))
-                Drive.driveToPointsPercentSpeed(0.5, Drive.combinedPosition, Vector2(chargeDestination.x, FieldManager.reflectFieldByAlliance(8.0 + Drive.robotHalfWidth.asFeet)))
+                Drive.driveToPointsPercentSpeed(0.5, Drive.combinedPosition, Vector2(chargeDestination.x, FieldManager.reflectFieldByAlliance(7.0 + Drive.robotHalfWidth.asFeet)))
+                delay(0.2)
                 Drive.driveToPointsPercentSpeed(0.5, Drive.combinedPosition, chargeDestination)
                 Drive.autoBalance()
             }, {

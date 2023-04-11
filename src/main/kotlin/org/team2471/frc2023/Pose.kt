@@ -20,7 +20,7 @@ data class Pose(val wristPosition: Vector2, val wristAngle: Angle, val pivotAngl
         val GROUND_INTAKE_FRONT_CONE = if(Robot.isCompBot) Pose(Vector2(22.0, 16.0), 90.0.degrees, -90.0.degrees) else Pose(Vector2(22.0, 17.0), 90.0.degrees, -90.0.degrees)
         val GROUND_INTAKE_CONE_NEAR = Pose(Vector2(19.5, 6.0), 90.0.degrees, 0.0.degrees)
         val GROUND_INTAKE_CONE_FAR = Pose(Vector2(40.0, 10.5), 90.0.degrees, 0.0.degrees)
-        val GROUND_INTAKE_FRONT_CUBE = Pose(Vector2(22.0, 16.0), 90.0.degrees, -180.0.degrees)
+        val GROUND_INTAKE_FRONT_CUBE = Pose(Vector2(22.0, 18.0), 90.0.degrees, -180.0.degrees)
         val GROUND_INTAKE_CUBE_NEAR = Pose(Vector2(15.6, -6.0), 75.0.degrees, -180.0.degrees)
         val GROUND_INTAKE_CUBE_FAR = Pose(Vector2(40.0, -3.0), 75.0.degrees, -180.0.degrees)
 
@@ -29,16 +29,16 @@ data class Pose(val wristPosition: Vector2, val wristAngle: Angle, val pivotAngl
         val BACK_LOW_SCORE_CUBE = Pose(Vector2(-3.0, 9.0), -90.0.degrees, 0.0.degrees)
 
         val BACK_MIDDLE_SCORE_CONE_AWAY_MID = Pose(Vector2(-25.0, 29.0), -180.0.degrees, -180.0.degrees)
-        val BACK_MIDDLE_SCORE_CONE_AWAY = Pose(Vector2(-28.5, 28.5), -180.0.degrees, -180.0.degrees)
+        val BACK_MIDDLE_SCORE_CONE_AWAY = Pose(Vector2(-26.5, 28.25), -180.0.degrees, -180.0.degrees)
         val BACK_MIDDLE_SCORE_CONE_TOWARD_MID = Pose(Vector2(-22.0, 20.0), -80.0.degrees, 0.0.degrees)
-        val BACK_MIDDLE_SCORE_CONE_TOWARD = Pose(Vector2(-25.0, 28.75), -90.0.degrees, 0.0.degrees)
+        val BACK_MIDDLE_SCORE_CONE_TOWARD = Pose(Vector2(-24.25, 28.75), -90.0.degrees, 0.0.degrees)
         val BACK_MIDDLE_SCORE_CUBE_MID = Pose(Vector2(-16.0, 32.0), -90.0.degrees, 0.0.degrees)
         val BACK_MIDDLE_SCORE_CUBE = Pose(Vector2(-20.0, 30.0), -90.0.degrees, 0.0.degrees)
 
         val BACK_HIGH_SCORE_CONE_TOWARD_MID = Pose(Vector2(-28.0, 48.0), -90.0.degrees, 0.0.degrees)
-        val BACK_HIGH_SCORE_CONE_TOWARD = Pose(Vector2(-39.0, 42.5), -90.0.degrees, 0.0.degrees)
+        val BACK_HIGH_SCORE_CONE_TOWARD = Pose(Vector2(-38.5, 42.5), -90.0.degrees, 0.0.degrees)
         val BACK_HIGH_SCORE_CONE_AWAY_MID = Pose(Vector2(-29.0, 45.0),-180.0.degrees, -180.0.degrees)
-        val BACK_HIGH_SCORE_CONE_AWAY = if(Robot.isCompBot) Pose(Vector2(-41.0, 42.0), -180.0.degrees, -180.0.degrees) else Pose(Vector2(-42.0, 45.0), -180.0.degrees, -180.0.degrees)
+        val BACK_HIGH_SCORE_CONE_AWAY = if(Robot.isCompBot) Pose(Vector2(-40.0, 42.0), -180.0.degrees, -180.0.degrees) else Pose(Vector2(-42.0, 45.0), -180.0.degrees, -180.0.degrees)
         val BACK_HIGH_SCORE_CUBE_MID = Pose(Vector2(-18.0, 42.0), -90.0.degrees, 0.0.degrees)
         val BACK_HIGH_SCORE_CUBE = Pose(Vector2(-32.25, 43.0), -90.0.degrees, 0.0.degrees)
 
@@ -55,8 +55,8 @@ data class Pose(val wristPosition: Vector2, val wristAngle: Angle, val pivotAngl
         val FLIP_INTAKE_TO_FRONT_WRIST = Pose(Vector2(28.0, 20.0), 90.0.degrees, -180.0.degrees)
         val FLIP_FRONT_UP = Pose(Vector2(-1.0, 17.0), -90.0.degrees, -90.0.degrees)
         val FLIP_FRONT_WRIST = Pose(Vector2(-1.0, 17.0), 90.0.degrees, -90.0.degrees)
-        val FLIP_BACK_UP =  Pose(Vector2(1.0, 16.0), 90.0.degrees, -90.0.degrees)
-        val FLIP_BACK_WRIST =  Pose(Vector2(1.0, 16.0), -90.0.degrees, -90.0.degrees)
+        val FLIP_BACK_UP =  Pose(Vector2(1.0, 17.0), 90.0.degrees, -90.0.degrees)
+        val FLIP_BACK_WRIST =  Pose(Vector2(1.0, 17.0), -90.0.degrees, -90.0.degrees)
 
         val HIGH_SCORE_TO_PREFLIP
             get() = Pose(Vector2(-15.0, 50.0), current.wristAngle, current.pivotAngle)

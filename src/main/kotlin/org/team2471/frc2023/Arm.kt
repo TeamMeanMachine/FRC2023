@@ -245,6 +245,7 @@ object Arm : Subsystem("Arm") {
 
     init {
         println("Arm init")
+        println("please")
         autoArmEntry.setBoolean(false)
         if (!shoulderTicksOffsetEntry.exists()) {
             shoulderTicksOffsetEntry.setDouble(shoulderEncoder.value.toDouble())
