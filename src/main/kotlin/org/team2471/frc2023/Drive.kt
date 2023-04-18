@@ -59,6 +59,11 @@ object Drive : Subsystem("Drive"), SwerveDrive {
     val useGyroEntry = table.getEntry("Use Gyro")
     val angleToNodeEntry = table.getEntry("Angle To Node")
 
+    val demoModeEntry = table.getEntry("Demo Mode")
+
+    val demoMode : Boolean
+        get() = demoModeEntry.getBoolean(true)
+
 //    val advantageSwerveStatesEntry = table.getEntry("SwerveStates")
 //    val advantageSwerveTargetsEntry = table.getEntry("SwerveTargets")
     val rateCurve = MotionCurve()
