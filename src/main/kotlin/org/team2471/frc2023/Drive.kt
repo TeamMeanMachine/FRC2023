@@ -30,6 +30,8 @@ import org.team2471.frc2023.FieldManager.isRedAlliance
 import org.team2471.frc2023.FieldManager.reflectFieldByAlliance
 import java.sql.Driver
 import kotlin.math.absoluteValue
+import kotlin.math.max
+import kotlin.math.min
 import kotlin.math.sign
 
 @OptIn(DelicateCoroutinesApi::class)
@@ -60,9 +62,12 @@ object Drive : Subsystem("Drive"), SwerveDrive {
     val angleToNodeEntry = table.getEntry("Angle To Node")
 
     val demoModeEntry = table.getEntry("Demo Mode")
+    val demoSpeedLimitEntry = table.getEntry("Demo Speed Limit")
 
     val demoMode : Boolean
         get() = demoModeEntry.getBoolean(true)
+    val demoSpeedLimit: Double
+        get() = demoSpeedLimitEntry.getDouble(1.0)
 
 //    val advantageSwerveStatesEntry = table.getEntry("SwerveStates")
 //    val advantageSwerveTargetsEntry = table.getEntry("SwerveTargets")
@@ -184,8 +189,10 @@ object Drive : Subsystem("Drive"), SwerveDrive {
 //    var chargeMode = false
 
     var maxTranslation = 1.0
+        get() =  if (demoMode) min(field, demoSpeedLimit) else field
+
     var maxRotation = 1.0
-        get() = linearMap(0.05, 50.0, 1.0, 0.2, Arm.wristPosition.x.absoluteValue)
+        get() = linearMap(0.05, 50.0, if (demoMode) demoSpeedLimit else 1.0, 0.2, Arm.wristPosition.x.absoluteValue)
 
     const val MAX_INTAKE_TRANSLATION = 0.5
     const val MAX_SCORE_TRANSLATION = 0.3
@@ -211,6 +218,12 @@ object Drive : Subsystem("Drive"), SwerveDrive {
 
             val aimErrorEntry = table.getEntry("Aim Error")
             val useGyroEntry = table.getEntry("Use Gyro")
+
+            if (!demoModeEntry.exists()) {
+                println("demoModeEntry doesn't exist, creating and setting it to true")
+                demoModeEntry.setBoolean(true)
+                demoModeEntry.setPersistent()
+            }
 
             SmartDashboard.setPersistent("Use Gyro")
             SmartDashboard.setPersistent("Gyro Type")
