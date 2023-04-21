@@ -58,9 +58,10 @@ object OI : Subsystem("OI") {
         get() = operatorController.rightThumbstickY.deadband(0.25)
 
     init {
-//        driverController::y.whenTrue { println(FieldManager.nodeList[0]?.pos) }
-        driverController::back.whenTrue { Drive.zeroGyro();
-            Drive.initializeSteeringMotors() }
+        driverController::back.whenTrue {
+            Drive.zeroGyro();
+            Drive.initializeSteeringMotors()
+        }
         driverController::start.whenTrue { Drive.calibrateRobotPosition() }
 //        driverController::b.whenTrue { Drive.dynamicGoToFeeder()}
         driverController::x.whenTrue { Drive.xPose() }
@@ -68,9 +69,8 @@ object OI : Subsystem("OI") {
             quickSpit()
         }
         driverController::leftBumper.whenTrue {
-                Drive.dynamicGoToScoreCheck()
-            }
-
+            Drive.dynamicGoToScoreCheck()
+        }
         ({driveRightTrigger > 0.1}).whenTrue { //score testing time
             safeAnimationCheck(PERSONINCONTROL.DRIVER){
                 scoreObject()

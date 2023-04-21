@@ -593,11 +593,11 @@ object Drive : Subsystem("Drive"), SwerveDrive {
 
     suspend fun dynamicGoToScoreCheck() = use(Drive) {
         periodic {
-            if (!isHumanDriving || !OI.driverController.leftBumper) {
+            if (!isHumanDriving || !OI.driverController.leftBumper || demoMode) {
                 stop()
             }
         }
-        if (OI.driverController.leftBumper && !isHumanDriving) {
+        if (OI.driverController.leftBumper && !isHumanDriving && !demoMode) {
             OI.safeAnimationCheck(OI.PERSONINCONTROL.DRIVER) {
                 FieldManager.getSelectedNode()?.let { dynamicGoToScore(it.alignPosition) }
             }
