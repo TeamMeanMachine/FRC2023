@@ -8,6 +8,7 @@ import edu.wpi.first.wpilibj.RobotBase
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard
 import kotlinx.coroutines.DelicateCoroutinesApi
 import org.team2471.frc.lib.framework.MeanlibRobot
+import org.team2471.frc.lib.motion.following.demoMode
 import org.team2471.frc.lib.units.degrees
 import org.team2471.frc2023.testing.*
 import java.net.NetworkInterface
@@ -83,13 +84,17 @@ object Robot : MeanlibRobot() {
     }
 
     override suspend fun autonomous() {
-       initTimeMeasurement()
-        println("autonomous starting")
-        Drive.brakeMode()
-        Drive.aimPDController = Drive.autoPDController
-        println("autonomous Drive brakeMode ${totalTimeTaken()}")
-        AutoChooser.autonomous()
-        println("autonomous ending ${totalTimeTaken()}")
+        if (!Drive.demoMode) {
+            initTimeMeasurement()
+            println("autonomous starting")
+            Drive.brakeMode()
+            Drive.aimPDController = Drive.autoPDController
+            println("autonomous Drive brakeMode ${totalTimeTaken()}")
+            AutoChooser.autonomous()
+            println("autonomous ending ${totalTimeTaken()}")
+        } else {
+            println("CANNOT RUN AUTO IN DEMO MODE!!!!!! (you're welcome for not killing anyone)")
+        }
     }
 
     override suspend fun teleop() {

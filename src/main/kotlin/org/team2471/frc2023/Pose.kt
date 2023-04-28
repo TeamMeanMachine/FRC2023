@@ -5,6 +5,7 @@ import org.team2471.frc.lib.coroutines.periodic
 import org.team2471.frc.lib.framework.use
 import org.team2471.frc.lib.math.Vector2
 import org.team2471.frc.lib.math.round
+import org.team2471.frc.lib.motion.following.demoSpeed
 import org.team2471.frc.lib.motion_profiling.MotionCurve
 import org.team2471.frc.lib.motion_profiling.Path2D
 import org.team2471.frc.lib.motion_profiling.Path2DPoint
@@ -125,7 +126,7 @@ suspend fun animateThroughPoses(waituntilDone: Boolean = false, vararg poses: Pa
         timeMap["wristPosTime"] = wristPosTime
         timeMap["wristTime"] = wristTime
         timeMap["pivotTime"] = pivotTime
-        val maxTime = timeMap.values.max()
+        val maxTime = timeMap.values.max() / Drive.demoSpeed
         val secondMaxTime = timeMap.values.reversed()[1]
         val timeSavings = maxTime - secondMaxTime
         val maxName = timeMap.filter { it.value == maxTime }.keys.first()

@@ -8,11 +8,11 @@ import kotlinx.coroutines.launch
 import org.team2471.frc.lib.coroutines.MeanlibDispatcher
 import org.team2471.frc.lib.coroutines.periodic
 import org.team2471.frc.lib.math.Vector2
+import org.team2471.frc.lib.motion.following.demoMode
 import org.team2471.frc.lib.motion.following.lookupPose
 import org.team2471.frc.lib.units.degrees
 import org.team2471.frc.lib.units.feet
 import org.team2471.frc.lib.units.radians
-import org.team2471.frc2023.Drive.demoMode
 
 object PoseEstimator {
 
@@ -53,7 +53,7 @@ object PoseEstimator {
                 val combinedWPIField = FieldManager.convertTMMtoWPI(currentPose.x.feet, currentPose.y.feet, Drive.heading)
                 advantagePoseEntry.setDoubleArray(doubleArrayOf(combinedWPIField.x,  combinedWPIField.y, combinedWPIField.rotation.degrees))
                 offsetEntry.setDoubleArray(doubleArrayOf(offset.x, offset.y))
-                if (DriverStation.isDisabled() && FieldManager.beforeFirstEnable && !preEnableHadTarget && !demoMode){
+                if (DriverStation.isDisabled() && FieldManager.beforeFirstEnable && !preEnableHadTarget && !Drive.demoMode){
                     Drive.position = FieldManager.startingPosition
                     Drive.heading = if (FieldManager.isBlueAlliance) 180.0.degrees else 0.0.degrees
                 }
@@ -65,7 +65,7 @@ object PoseEstimator {
     }
     fun addVision(detection: AprilDetection, numTarget: Int, kApril: Double? = null) {
         //Ignoring Vision data if timestamp is before the last zero
-        if (!demoMode) {
+        if (!Drive.demoMode) {
             if (detection.timestamp < (lastZeroTimestamp + 0.3)) { // || Drive.position == Vector2(0.0,0.0)) {
                 println("Ignoring update during reset") // and initialization ...")
                 return

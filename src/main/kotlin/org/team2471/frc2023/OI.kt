@@ -9,6 +9,7 @@ import org.team2471.frc.lib.math.Vector2
 import org.team2471.frc.lib.math.cube
 import org.team2471.frc.lib.math.deadband
 import org.team2471.frc.lib.math.squareWithSign
+import org.team2471.frc.lib.motion.following.demoMode
 import org.team2471.frc.lib.motion.following.xPose
 import org.team2471.frc.lib.units.degrees
 
@@ -69,7 +70,9 @@ object OI : Subsystem("OI") {
             quickSpit()
         }
         driverController::leftBumper.whenTrue {
-            Drive.dynamicGoToScoreCheck()
+            if (!Drive.demoMode) {
+                Drive.dynamicGoToScoreCheck()
+            }
         }
         ({driveRightTrigger > 0.1}).whenTrue { //score testing time
             safeAnimationCheck(PERSONINCONTROL.DRIVER){

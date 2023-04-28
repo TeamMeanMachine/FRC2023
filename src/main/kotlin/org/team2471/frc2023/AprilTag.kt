@@ -4,7 +4,6 @@ import edu.wpi.first.apriltag.AprilTagFieldLayout
 import edu.wpi.first.apriltag.AprilTagFields
 import edu.wpi.first.math.geometry.*
 import edu.wpi.first.networktables.NetworkTableInstance
-import edu.wpi.first.wpilibj.DriverStation
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.photonvision.PhotonCamera
@@ -14,12 +13,13 @@ import org.photonvision.targeting.PhotonPipelineResult
 import org.photonvision.targeting.PhotonTrackedTarget
 import org.team2471.frc.lib.coroutines.periodic
 import org.team2471.frc.lib.units.*
-import kotlin.math.abs
 import kotlin.math.absoluteValue
 
 
 object AprilTag {
     private val pvTable = NetworkTableInstance.getDefault().getTable("photonvision")
+
+    private val aprilTagDemoEntry = pvTable.getEntry("AprilTag Demo Mode")
 
     private val advantagePoseFrontEntry = pvTable.getEntry("April Advantage Pose Front")
     private val advantagePoseBackEntry = pvTable.getEntry("April Advantage Pose Back")
@@ -60,6 +60,8 @@ object AprilTag {
     private var singleTagMinY: Double = 17.35
         get() = if (FieldManager.homeField) singleTagMinYEntry.getDouble((FieldManager.chargeFromCenterY + FieldManager.chargingStationDepth).asFeet) else 17.35
 
+    private var aprilDemo: Boolean = true
+        get() = aprilTagDemoEntry.getBoolean(true)
 
     val lastFrontDetection: AprilDetection
         get() = AprilDetection(lastFrontDetectionTime, lastFrontPose.toTMMField())
@@ -77,76 +79,78 @@ object AprilTag {
         Rotation3d(0.0.degrees.asRadians, -11.0.degrees.asRadians, 200.0.degrees.asRadians)
     )
     init {
+        aprilTagDemoEntry.setBoolean(false)
         singleTagMinYEntry.setDouble((FieldManager.chargeFromCenterY + FieldManager.chargingStationDepth).asFeet)
         resetCameras()
 //        frontPoseEstimator.setMultiTagFallbackStrategy(PhotonPoseEstimator.PoseStrategy.CLOSEST_TO_REFERENCE_POSE)
 //        backPoseEstimator.setMultiTagFallbackStrategy(PhotonPoseEstimator.PoseStrategy.CLOSEST_TO_REFERENCE_POSE)
         GlobalScope.launch {
             periodic {
-//                println("Apriltags Running")
-//                if (DriverStation.isDisabled()  && (camFront == null || frontPoseEstimator == null || camBack == null || backPoseEstimator == null)) {
-//                    resetCameras()
-//                    }
-                aprilTagStartupCheckEntry.setBoolean(camFront != null && camBack != null && frontPoseEstimator != null && backPoseEstimator != null)
+                if (!aprilDemo) {
+    //                println("Apriltags Running")
+    //                if (DriverStation.isDisabled()  && (camFront == null || frontPoseEstimator == null || camBack == null || backPoseEstimator == null)) {
+    //                    resetCameras()
+    //                    }
+                    aprilTagStartupCheckEntry.setBoolean(camFront != null && camBack != null && frontPoseEstimator != null && backPoseEstimator != null)
 
-//                frontPoseEstimator.referencePose = Pose3d(Pose2d(PoseEstimator.currentPose.toWPIField(), Rotation2d(Drive.heading.asRadians)))
-//                backPoseEstimator.referencePose = Pose3d(Pose2d(PoseEstimator.currentPose.toWPIField(), Rotation2d(Drive.heading.asRadians)))
-                try {
-                    //val frontCamSelected = useFrontCam()
+    //                frontPoseEstimator.referencePose = Pose3d(Pose2d(PoseEstimator.currentPose.toWPIField(), Rotation2d(Drive.heading.asRadians)))
+    //                backPoseEstimator.referencePose = Pose3d(Pose2d(PoseEstimator.currentPose.toWPIField(), Rotation2d(Drive.heading.asRadians)))
+                    try {
+                        //val frontCamSelected = useFrontCam()
 
-                    var maybePoseFront: Pose2d? =
-                        frontPoseEstimator?.let { camFront?.let { it1 -> getEstimatedGlobalPose(it1, it, true) } }
-                    var numTargetFront: Int = camFront?.latestResult?.targets?.count() ?: 0
-//                    if (FieldManager.homeField) {
-//                        addTargetsToTable(camFront?.latestResult?.targets)
-//                    }
-                    var maybePoseBack: Pose2d? =
-                        backPoseEstimator?.let { camBack?.let { it1 -> getEstimatedGlobalPose(it1, it, false) } }
-                    var numTargetBack: Int = camBack?.latestResult?.targets?.count() ?: 0
-//                    if (FieldManager.homeField) {
-//                        addTargetsToTable(camBack?.latestResult?.targets)
-//                    }
-                       // for (target in camBack?.latestResult?.targets!!) {
-                            //addTargetToTable(target.fiducialId, target.bestCameraToTarget)
-                       // }
+                        var maybePoseFront: Pose2d? =
+                            frontPoseEstimator?.let { camFront?.let { it1 -> getEstimatedGlobalPose(it1, it, true) } }
+                        var numTargetFront: Int = camFront?.latestResult?.targets?.count() ?: 0
+    //                    if (FieldManager.homeField) {
+    //                        addTargetsToTable(camFront?.latestResult?.targets)
+    //                    }
+                        var maybePoseBack: Pose2d? =
+                            backPoseEstimator?.let { camBack?.let { it1 -> getEstimatedGlobalPose(it1, it, false) } }
+                        var numTargetBack: Int = camBack?.latestResult?.targets?.count() ?: 0
+    //                    if (FieldManager.homeField) {
+    //                        addTargetsToTable(camBack?.latestResult?.targets)
+    //                    }
+                           // for (target in camBack?.latestResult?.targets!!) {
+                                //addTargetToTable(target.fiducialId, target.bestCameraToTarget)
+                           // }
 
-                    if (maybePoseFront != null) {
-                        if (FieldManager.aprilTagTest) {
+                        if (maybePoseFront != null) {
+                            if (FieldManager.aprilTagTest) {
 
-                            seesAprilTagEntry.setBoolean(numTargetFront > 0)
-                            //                        println("MaybePose: $maybePose")
-                            advantagePoseFrontEntry.setDoubleArray(
-                                doubleArrayOf(
-                                    maybePoseFront.x,
-                                    maybePoseFront.y,
-                                    maybePoseFront.rotation.degrees
+                                seesAprilTagEntry.setBoolean(numTargetFront > 0)
+                                //                        println("MaybePose: $maybePose")
+                                advantagePoseFrontEntry.setDoubleArray(
+                                    doubleArrayOf(
+                                        maybePoseFront.x,
+                                        maybePoseFront.y,
+                                        maybePoseFront.rotation.degrees
+                                    )
                                 )
-                            )
+                            }
+                            lastFrontPose = maybePoseFront
+                            PoseEstimator.addVision(lastFrontDetection, numTargetFront)
                         }
-                        lastFrontPose = maybePoseFront
-
-                        PoseEstimator.addVision(lastFrontDetection, numTargetFront)
-                    }
-                    if (maybePoseBack != null) {
-                        if (FieldManager.aprilTagTest) {
+                        if (maybePoseBack != null) {
+                            if (FieldManager.aprilTagTest) {
 
 
-                            seesAprilTagEntry.setBoolean(numTargetBack > 0)
-                            //                        println("MaybePose: $maybePose")
-                            advantagePoseBackEntry.setDoubleArray(
-                                doubleArrayOf(
-                                    maybePoseBack.x,
-                                    maybePoseBack.y,
-                                    maybePoseBack.rotation.degrees
+                                seesAprilTagEntry.setBoolean(numTargetBack > 0)
+                                //                        println("MaybePose: $maybePose")
+                                advantagePoseBackEntry.setDoubleArray(
+                                    doubleArrayOf(
+                                        maybePoseBack.x,
+                                        maybePoseBack.y,
+                                        maybePoseBack.rotation.degrees
+                                    )
                                 )
-                            )
-                        }
-                        lastBackPose = maybePoseBack
+                            }
+                            lastBackPose = maybePoseBack
 
-                        PoseEstimator.addVision(lastBackDetection, numTargetBack)
+                            PoseEstimator.addVision(lastBackDetection, numTargetBack)
+                        }
+                    } catch (ex:Exception) {
+    //                    println("Error in apriltag")
                     }
-                } catch (ex:Exception) {
-//                    println("Error in apriltag")
                 }
             }
         }
