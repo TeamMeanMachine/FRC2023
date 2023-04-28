@@ -14,6 +14,7 @@ import org.team2471.frc.lib.framework.Subsystem
 import org.team2471.frc.lib.math.Vector2
 import org.team2471.frc.lib.math.deadband
 import org.team2471.frc.lib.math.round
+import org.team2471.frc.lib.motion.following.demoMode
 import org.team2471.frc.lib.motion_profiling.MotionCurve
 import org.team2471.frc.lib.units.*
 import org.team2471.frc2023.Robot.isCompBot
@@ -59,6 +60,7 @@ object Arm : Subsystem("Arm") {
     val wristBackOffsetEntry = table.getEntry("Back Wrist Offset")
     val elbowTicksOffsetEntry = table.getEntry("Elbow Ticks Offset")
     val shoulderTicksOffsetEntry = table.getEntry("Shoulder Ticks Offset")
+    val demoReachLimitEntry = table.getEntry("Demo Reach Limit")
 
 
     val driverInControlEntry = table.getEntry("Driver in Control")
@@ -198,7 +200,7 @@ object Arm : Subsystem("Arm") {
         )
     }
 
-    const val REACH_LIMIT = 47.0
+    val REACH_LIMIT = if (Drive.demoMode) demoReachLimitEntry.getDouble(47.0) else 47.0
     const val HEIGHT_LIMIT = 50.0
     const val FLOOR_HEIGHT = -5.0
     const val ROBOT_COVER_HEIGHT = 9.0
@@ -254,6 +256,11 @@ object Arm : Subsystem("Arm") {
         if (!elbowTicksOffsetEntry.exists()) {
             elbowTicksOffsetEntry.setDouble(elbowEncoder.value.toDouble())
             println("Elbow didn't exist")
+        }
+        if (!demoReachLimitEntry.exists()) {
+            demoReachLimitEntry.setDouble(47.0)
+            demoReachLimitEntry.setPersistent()
+            println("Demo Reach Limit didn't exist. It is now 47.0")
         }
         shoulderTicksOffsetEntry.setPersistent()
         elbowTicksOffsetEntry.setPersistent()
