@@ -200,7 +200,9 @@ object Arm : Subsystem("Arm") {
         )
     }
 
-    val REACH_LIMIT = if (Drive.demoMode) demoReachLimitEntry.getDouble(47.0) else 47.0
+    val REACH_LIMIT: Double
+        get() = if (Drive.demoMode) demoReachLimitEntry.getDouble(47.0) else 47.0
+    
     const val HEIGHT_LIMIT = 50.0
     const val FLOOR_HEIGHT = -5.0
     const val ROBOT_COVER_HEIGHT = 9.0

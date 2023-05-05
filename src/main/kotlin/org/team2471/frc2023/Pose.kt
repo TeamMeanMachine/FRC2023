@@ -101,8 +101,8 @@ suspend fun animateThroughPoses(waituntilDone: Boolean = false, vararg poses: Pa
     val path = Path2D("Path")
 
     val pivotRate = 350.0 // deg per second
-    val wristPosRate = 120.0  //  inches per second
-    val wristAngleRate = 320.0 // deg per second
+    val wristPosRate = 100.0  //  inches per second
+    val wristAngleRate = 270.0 // deg per second
     val times = ArrayList<Double>(poses.size)
     val previousPose = Pose.current
     val timeMap = HashMap<String,Double>(poses.count())
@@ -129,9 +129,9 @@ suspend fun animateThroughPoses(waituntilDone: Boolean = false, vararg poses: Pa
         val maxTime = timeMap.values.max() / Drive.demoSpeed
         val secondMaxTime = timeMap.values.reversed()[1]
         val timeSavings = maxTime - secondMaxTime
-        val maxName = timeMap.filter { it.value == maxTime }.keys.first()
+//        val maxName = timeMap.filter { it.value == maxTime }.keys.first()
         //val secondMaxName = timeMap.filter {it.value == secondMaxTime}.keys.first()
-        println("you can save $timeSavings by tuning $maxName")
+//        println("you can save $timeSavings by tuning $maxName")
         println(" ${pose.toString()} min time: ${round(minTime, 2)},  wrist pos time: ${round(wristPosTime, 2)}, wrist time: ${round(wristTime, 2)} , pivot time: ${round(pivotTime, 2)}")
         times.add(maxTime)
         val currentTime = times.sum()

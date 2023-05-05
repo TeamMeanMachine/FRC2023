@@ -72,6 +72,8 @@ object OI : Subsystem("OI") {
         driverController::leftBumper.whenTrue {
             if (!Drive.demoMode) {
                 Drive.dynamicGoToScoreCheck()
+            } else {
+                println("In demo mode, i cannot do this")
             }
         }
         ({driveRightTrigger > 0.1}).whenTrue { //score testing time
