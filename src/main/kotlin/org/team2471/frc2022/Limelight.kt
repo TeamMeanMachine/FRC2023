@@ -314,30 +314,30 @@ object Limelight : Subsystem("Front Limelight") {
                 positionYEntry.setDouble(savePosition.y)
                 aimErrorEntry.setDouble(aimError)
 //                println("cam is connected = ${cam.isConnected}")
-                var results = cam.latestResult
-//                if (results.hasTargets()) {
-//                    println("has targets = ${results.targets.size}")
-//                    println("ids = ${results.targets[0].fiducialId}")
+//                var results = cam.latestResult
+////                if (results.hasTargets()) {
+////                    println("has targets = ${results.targets.size}")
+////                    println("ids = ${results.targets[0].fiducialId}")
+////                }
+//                //REMEMBER: THIS IS IN METRES FROM THE BOTTOM LEFT CORNER OF THE FIELD
+//                //val maybePose = getEstimatedGlobalPose()
+//
+//                val maybePose = customEstimatedPose()
+//                if (maybePose != null) {
+//                    val currentPose = maybePose.estimatedPose  //maybePose.get().estimatedPose
+//                    val tagX = currentPose.x
+//                    val tagY = currentPose.y
+//                    val tagRot = currentPose.rotation
+//                    photonPoseEstimator.setLastPose(currentPose)
+//                   // println("X: $tagX Y: $tagY")
+//                    pvX.setDouble(tagX)
+//                    pvY.setDouble(tagY)
+//                    tagPose.setDoubleArray(doubleArrayOf(tagX, tagY, tagRot.angle))
+////                    Drive.position = Vector2(curepos.get().estimatedPose.x.meters.asFeet - (13 + 3.5/12), curepos.get().estimatedPose.y.meters.asFeet - (26 + 0.5/12))
+////                    println(Vector2((26 + 0.5/12) - curepos.get().estimatedPose.x.meters.asFeet , curepos.get().estimatedPose.y.meters.asFeet - (13 + 3.5/12)))
 //                }
-                //REMEMBER: THIS IS IN METRES FROM THE BOTTOM LEFT CORNER OF THE FIELD
-                //val maybePose = getEstimatedGlobalPose()
-
-                val maybePose = customEstimatedPose()
-                if (maybePose != null) {
-                    val currentPose = maybePose.estimatedPose  //maybePose.get().estimatedPose
-                    val tagX = currentPose.x
-                    val tagY = currentPose.y
-                    val tagRot = currentPose.rotation
-                    photonPoseEstimator.setLastPose(currentPose)
-                   // println("X: $tagX Y: $tagY")
-                    pvX.setDouble(tagX)
-                    pvY.setDouble(tagY)
-                    tagPose.setDoubleArray(doubleArrayOf(tagX, tagY, tagRot.angle))
-//                    Drive.position = Vector2(curepos.get().estimatedPose.x.meters.asFeet - (13 + 3.5/12), curepos.get().estimatedPose.y.meters.asFeet - (26 + 0.5/12))
-//                    println(Vector2((26 + 0.5/12) - curepos.get().estimatedPose.x.meters.asFeet , curepos.get().estimatedPose.y.meters.asFeet - (13 + 3.5/12)))
-                }
-                Drive.position
-                Drive.heading
+//                Drive.position
+//                Drive.heading
 
 //                println("${curepos.x.meters.asInches} ${curepos.y.meters.asInches}")
 //                pvX.setDouble(curepos.)

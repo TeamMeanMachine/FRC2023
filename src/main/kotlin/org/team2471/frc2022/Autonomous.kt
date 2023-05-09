@@ -126,30 +126,38 @@ object AutoChooser {
 
     suspend fun autonomous() = use(Drive, name = "Autonomous") {
         println("Got into Auto fun autonomous. Hi. 888888888888888 ${Robot.recentTimeTaken()}")
+
         val selAuto = SmartDashboard.getString("Autos/selected", "no auto selected")
-        SmartDashboard.putString("autoStatus", "init")
-        println("Selected Auto = *****************   $selAuto ****************************  ${Robot.recentTimeTaken()}")
-        when (selAuto) {
-            "Tests" -> testAuto()
-            "Carpet Bias Test" -> carpetBiasTest()
-            "Right Side 5 Auto" -> right5v3()
-            "Straight Back Shoot Auto" -> straightBackShootAuto()
-            "Rotary" -> rotaryAuto()
-            else -> println("No function found for ---->$selAuto<-----  ${Robot.recentTimeTaken()}")
+        val demoSpeed = SmartDashboard.getNumber("DemoSpeed", 0.4)
+
+        if (demoSpeed == 1.0) {
+            SmartDashboard.putString("autoStatus", "init")
+            println("Selected Auto = *****************   $selAuto ****************************  ${Robot.recentTimeTaken()}")
+            when (selAuto) {
+                "Tests" -> testAuto()
+                "Carpet Bias Test" -> carpetBiasTest()
+                "Right Side 5 Auto" -> right5v3()
+                "Straight Back Shoot Auto" -> straightBackShootAuto()
+                "Rotary" -> rotaryAuto()
+                else -> println("No function found for ---->$selAuto<-----  ${Robot.recentTimeTaken()}")
+            }
+            SmartDashboard.putString("autoStatus", "complete")
+            println("finished autonomous  ${Robot.recentTimeTaken()}")
+        } else {
+            println("Auto is off because of demo")
         }
-        SmartDashboard.putString("autoStatus", "complete")
-        println("finished autonomous  ${Robot.recentTimeTaken()}")
     }
 
     private suspend fun testAuto() {
-        val testPath = SmartDashboard.getString("Tests/selected", "no test selected") // testAutoChooser.selected
-        if (testPath != null) {
-            val testAutonomous = autonomi["Tests"]
-            val path = testAutonomous?.get(testPath)
-            if (path != null) {
-                Drive.driveAlongPath(path, true)
-            }
-        }
+        //val testPath = SmartDashboard.getString("Tests/selected", "no test selected") // testAutoChooser.selected
+        //if (testPath != null) {
+            //val testAutonomous = autonomi["Tests"]
+            //val path = testAutonomous?.get(testPath)
+            //if (path != null) {
+                //Drive.driveAlongPath(path, true)
+            //}
+       //}
+        print("Auto Test")
     }
 
     suspend fun right5v3() = use(Drive, Shooter, Intake, Feeder) {
