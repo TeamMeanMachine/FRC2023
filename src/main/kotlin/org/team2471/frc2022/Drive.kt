@@ -384,7 +384,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
 //                if (error.asDegrees.absoluteValue > 90.0) error = (error - 180.0.degrees).wrap()
 //                turn = aimPDController.update(error.asDegrees)
 //            } //demo
-//            printEncoderValues()
+            //printEncoderValues()
 //            println("Motor = ${modules[3].angle.asDegrees} Analog = ${(modules[3] as Module).analogAngle.asDegrees}")
 
             headingSetpoint = OI.driverController.povDirection

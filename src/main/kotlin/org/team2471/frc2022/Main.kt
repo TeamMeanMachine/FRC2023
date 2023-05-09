@@ -28,7 +28,7 @@ object Robot : MeanlibRobot() {
                 }
                 println("FORMATTED---->$macString<-----")
 
-                isCompBot = (macString != "0-12847512372")
+//                isCompBot = (macString != "0-12847512372")
                 println("I am compbot = $isCompBot")
             }
         }

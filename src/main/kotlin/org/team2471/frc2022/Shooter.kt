@@ -158,7 +158,7 @@ object Shooter : Subsystem("Shooter") {
                 val tempPitch = frontPitchCurve.getValue(Limelight.distance.asFeet + distFlyOffset)
                 field = tempPitch
             } else {
-                field = 17.5
+                field = 32.0
             }
             // don't allow values outside of range even with offset
             field = field.coerceIn(PITCH_LOW - distFlyOffset, PITCH_HIGH - distFlyOffset)

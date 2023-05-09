@@ -57,14 +57,14 @@ object OI {
     init {
         driverController::back.whenTrue { Drive.zeroGyro(); Drive.initializeSteeringMotors(); Drive.position = Vector2(0.0, 0.0) }
         driverController::leftBumper.whenTrue { shootMode() }
-        driverController::x.whenTrue { Drive.position = Vector2(Drive.fieldCenterOffset.x.meters.asFeet - 17.5.inches.asFeet, -Drive.fieldCenterOffset.y.meters.asFeet + 17.5.inches.asFeet + 54.0.inches.asFeet) ; Drive.zeroGyro()}
+       //driverController::x.whenTrue { Drive.position = Vector2(Drive.fieldCenterOffset.x.meters.asFeet - 17.5.inches.asFeet, -Drive.fieldCenterOffset.y.meters.asFeet + 17.5.inches.asFeet + 54.0.inches.asFeet) ; Drive.zeroGyro()}
 
-        operatorController::start.whenTrue { climbPrep() }
-        operatorController::b.whenTrue { intake() }
-        operatorController::a.whenTrue { catch() }
+        //operatorController::start.whenTrue { climbPrep() }
+        driverController::b.whenTrue { intake() }
+        driverController::a.whenTrue { catch() }
 //        driverController::y.whileTrue { Drive.autoSteer() }
-        operatorController::x.whenTrue { powerSave() }
-        operatorController::back.whenTrue { Climb.zeroClimb() }
-        operatorController::rightBumper.whenTrue { clearFeeder() }
+        driverController::y.whenTrue { powerSave() }
+        //operatorController::back.whenTrue { Climb.zeroClimb() }
+        driverController::rightBumper.whenTrue { clearFeeder() }
     }
 }
