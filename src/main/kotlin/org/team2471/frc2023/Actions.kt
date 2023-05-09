@@ -10,6 +10,7 @@ import org.team2471.frc.lib.coroutines.suspendUntil
 import org.team2471.frc.lib.framework.use
 import org.team2471.frc.lib.math.Vector2
 import org.team2471.frc.lib.math.linearMap
+import org.team2471.frc.lib.motion.following.demoSpeed
 import org.team2471.frc.lib.motion_profiling.Path2D
 import org.team2471.frc.lib.units.*
 import org.team2471.frc.lib.util.Timer
@@ -100,7 +101,7 @@ suspend fun intakeFromGround(isCone: Boolean = NodeDeckHub.isCone) = use(Arm, In
 //            if (OI.operatorLeftTrigger < 0.05 && DriverStation.isTeleop()) {  // todo: should be able to early exit the animations above
 //                this.stop()
 //            }
-            val slewRateLimiter = SlewRateLimiter(10.0, -10.0, 0.0)
+            val slewRateLimiter = SlewRateLimiter(10.0 * Drive.demoSpeed, -10.0 * Drive.demoSpeed, 0.0)
 
             val timer = Timer()
             timer.start()
