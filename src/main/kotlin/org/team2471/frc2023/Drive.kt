@@ -1,6 +1,7 @@
 package org.team2471.frc2023
 
 import com.ctre.phoenix.sensors.CANCoder
+import edu.wpi.first.math.filter.LinearFilter
 import edu.wpi.first.networktables.NetworkTableEntry
 import edu.wpi.first.networktables.NetworkTableInstance
 import edu.wpi.first.wpilibj.*
@@ -64,6 +65,8 @@ object Drive : Subsystem("Drive"), SwerveDrive {
 //    val advantageSwerveStatesEntry = table.getEntry("SwerveStates")
 //    val advantageSwerveTargetsEntry = table.getEntry("SwerveTargets")
     val rateCurve = MotionCurve()
+    val demoLimitEntry = table.getEntry("Demo Mode Drive Limit")
+
 
 //    val fieldObject = Field2d()
 //    val fieldDimensions = Vector2(26.9375.feet.asMeters,54.0.feet.asMeters)
@@ -227,6 +230,8 @@ object Drive : Subsystem("Drive"), SwerveDrive {
             rateCurve.storeValue(1.0, 2.0)  // distance, rate
             rateCurve.storeValue(8.0, 6.0)  // distance, rate
 
+            demoLimitEntry.setDouble(1.0)
+
             //val defaultXYPos = doubleArrayOf(0.0,0.0)
 
       //      val robotHalfWidthFeet = robotHalfWidth.asFeet
@@ -248,6 +253,8 @@ object Drive : Subsystem("Drive"), SwerveDrive {
                 headingEntry.setDouble(heading.asDegrees)
                 val poseWPI = FieldManager.convertTMMtoWPI(x.feet, y.feet, heading)
                 poseEntry.setDoubleArray(doubleArrayOf(poseWPI.x, poseWPI.y, poseWPI.rotation.degrees))
+
+
 //                if (FieldManager.homeField) {
 //                    absoluteAngle0Entry.setDouble((modules[0] as Module).absoluteAngle.asDegrees)
 //                    absoluteAngle1Entry.setDouble((modules[1] as Module).absoluteAngle.asDegrees)
@@ -326,12 +333,28 @@ object Drive : Subsystem("Drive"), SwerveDrive {
             if (FieldManager.homeField) {
                 angleToNodeEntry.setDouble(angleToNode.asDegrees)
             }
+            if (!demoMode) {
             drive(
                 OI.driveTranslation * maxTranslation,
                 turn * maxRotation,
                 useGyro2,
                 useGyro2
             )
+            } else {
+                val limit = demoLimitEntry.getDouble(1.0)
+                val goalPos = Vector2(
+                    linearMap(-1.0, 1.0, -limit, limit, OI.driveTranslation.x),
+                    linearMap(-1.0, 1.0, -limit, limit, OI.driveTranslation.y)
+                )
+                val posDiff = (goalPos - position)// / 30.0
+                println(posDiff)
+                drive(
+                    posDiff,
+                    turn * maxRotation,
+                    useGyro2,
+                    useGyro2
+                )
+            }
             //println("heading=$heading useGyro=$useGyro2")
         }
     }
