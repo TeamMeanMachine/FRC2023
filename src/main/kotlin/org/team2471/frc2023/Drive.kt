@@ -161,6 +161,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
     var angleToNode: Angle = 0.0.degrees
     val demoBondingBox: Boolean
         get() = demoBoundingBoxEntry.getBoolean(false)
+    var prevDemoBox: Boolean = demoBondingBox
 
     override val parameters: SwerveParameters = SwerveParameters(
         gyroRateCorrection = 0.0,
@@ -338,28 +339,32 @@ object Drive : Subsystem("Drive"), SwerveDrive {
             if (FieldManager.homeField) {
                 angleToNodeEntry.setDouble(angleToNode.asDegrees)
             }
-            if (!demoMode) {
-            drive(
-                OI.driveTranslation * maxTranslation,
-                turn * maxRotation,
-                useGyro2,
-                useGyro2
-            )
-            } else if (demoBondingBox) {
+            if (demoBondingBox) {
+                if (!prevDemoBox){
+                    position = Vector2(0.0, 0.0)
+                }
                 val limit = demoLimitEntry.getDouble(1.0)
                 val goalPos = Vector2(
                     linearMap(-1.0, 1.0, -limit, limit, OI.driveTranslation.x),
                     linearMap(-1.0, 1.0, -limit, limit, OI.driveTranslation.y)
                 )
                 val posDiff = (goalPos - position)// / 30.0
-                println(posDiff)
+//                println(posDiff)
                 drive(
                     posDiff,
                     turn * maxRotation,
                     useGyro2,
                     useGyro2
                 )
+            } else {
+                drive(
+                    OI.driveTranslation * maxTranslation,
+                    turn * maxRotation,
+                    useGyro2,
+                    useGyro2
+                )
             }
+            prevDemoBox = demoBondingBox
             //println("heading=$heading useGyro=$useGyro2")
         }
     }

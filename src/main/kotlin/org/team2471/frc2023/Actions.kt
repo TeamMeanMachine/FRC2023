@@ -622,9 +622,13 @@ suspend fun backNod() =use(Arm, Intake) {
     if (Drive.demoMode) {
         animateThroughPoses(
             Pair(0.0, Pose.BACK_MIDDLE_SCORE_CONE_TOWARD_MID),
-            Pair(0.0, Pose.BACK_MIDDLE_SCORE_CONE_TOWARD),
-            Pair(0.0, Pose.BACK_NOD_DOWN_POSE),
             Pair(0.0, Pose.BACK_MIDDLE_SCORE_CONE_TOWARD)
+        )
+        animateThroughPoses(
+            Pair(0.3, Pose.BACK_NOD_DOWN_POSE),
+            Pair(0.3, Pose.BACK_MIDDLE_SCORE_CONE_TOWARD),
+            Pair(0.3, Pose.BACK_NOD_DOWN_POSE),
+            Pair(0.3, Pose.BACK_MIDDLE_SCORE_CONE_TOWARD)
         )
     }
 }
