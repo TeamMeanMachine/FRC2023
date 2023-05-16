@@ -1,11 +1,9 @@
 package org.team2471.frc2023
 
 import com.ctre.phoenix.sensors.CANCoder
-import edu.wpi.first.math.filter.LinearFilter
 import edu.wpi.first.networktables.NetworkTableEntry
 import edu.wpi.first.networktables.NetworkTableInstance
 import edu.wpi.first.wpilibj.*
-import edu.wpi.first.wpilibj.smartdashboard.Field2d
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
@@ -29,9 +27,7 @@ import org.team2471.frc.lib.units.*
 import org.team2471.frc2023.FieldManager.isBlueAlliance
 import org.team2471.frc2023.FieldManager.isRedAlliance
 import org.team2471.frc2023.FieldManager.reflectFieldByAlliance
-import java.sql.Driver
 import kotlin.math.absoluteValue
-import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sign
 
@@ -61,6 +57,8 @@ object Drive : Subsystem("Drive"), SwerveDrive {
 //    val motorPower3Entry = table.getEntry("Motor Power 3")
     val useGyroEntry = table.getEntry("Use Gyro")
     val angleToNodeEntry = table.getEntry("Angle To Node")
+    val demoBoundingBoxEntry = table.getEntry("Demo Bounding Box")
+    val demoAprilLookingAtEntry = table.getEntry("Demo Look At Tags")
 
 //    val advantageSwerveStatesEntry = table.getEntry("SwerveStates")
 //    val advantageSwerveTargetsEntry = table.getEntry("SwerveTargets")
@@ -161,6 +159,8 @@ object Drive : Subsystem("Drive"), SwerveDrive {
 
     var autoAim: Boolean = false
     var angleToNode: Angle = 0.0.degrees
+    val demoBondingBox: Boolean
+        get() = demoBoundingBoxEntry.getBoolean(false)
 
     override val parameters: SwerveParameters = SwerveParameters(
         gyroRateCorrection = 0.0,
@@ -198,6 +198,11 @@ object Drive : Subsystem("Drive"), SwerveDrive {
     init {
         println("drive init")
         initializeSteeringMotors()
+
+        if (!demoBoundingBoxEntry.exists()) {
+            demoBoundingBoxEntry.setBoolean(false)
+            demoBoundingBoxEntry.setPersistent()
+        }
 
         GlobalScope.launch(MeanlibDispatcher) {
 //            odometer0Entry.setPersistent()
@@ -340,7 +345,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
                 useGyro2,
                 useGyro2
             )
-            } else {
+            } else if (demoBondingBox) {
                 val limit = demoLimitEntry.getDouble(1.0)
                 val goalPos = Vector2(
                     linearMap(-1.0, 1.0, -limit, limit, OI.driveTranslation.x),
