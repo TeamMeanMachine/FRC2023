@@ -74,6 +74,9 @@ data class Pose(val wristPosition: Vector2, val wristAngle: Angle, val pivotAngl
         val GROUND_TO_DRIVE_SAFE_EMPTY = Pose(Vector2(35.0, 21.0), 90.0.degrees, -90.0.degrees)
 
         val AUTO_CLIMB_POSE = Pose(Vector2(0.0, 0.0), FRONT_DRIVE_POSE.wristAngle, FRONT_DRIVE_POSE.pivotAngle)
+
+        val BACK_NOD_DOWN_POSE = Pose(Vector2(-24.25, 28.75), -50.0.degrees, 0.0.degrees)
+
     }
 
     override fun toString(): String {

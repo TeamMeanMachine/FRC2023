@@ -69,6 +69,9 @@ object OI : Subsystem("OI") {
         driverController::b.whenTrue {
             quickSpit()
         }
+        driverController::a.whenTrue {
+            backNod()
+        }
         driverController::leftBumper.whenTrue {
             if (!Drive.demoMode) {
                 Drive.dynamicGoToScoreCheck()

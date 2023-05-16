@@ -201,7 +201,8 @@ object Arm : Subsystem("Arm") {
     }
 
     val REACH_LIMIT: Double
-        get() = if (Drive.demoMode) demoReachLimitEntry.getDouble(47.0) else 47.0
+//        CHanged because of ropes. need to change back if cables come
+        get() = if (Drive.demoMode) demoReachLimitEntry.getDouble(39.0) else 39.0
     
     const val HEIGHT_LIMIT = 50.0
     const val FLOOR_HEIGHT = -5.0
@@ -260,8 +261,9 @@ object Arm : Subsystem("Arm") {
             println("Elbow didn't exist")
         }
         if (!demoReachLimitEntry.exists()) {
-            demoReachLimitEntry.setDouble(47.0)
-            demoReachLimitEntry.setPersistent()
+//            Need to be changed with new cables
+            demoReachLimitEntry.setDouble(39.0)
+                 demoReachLimitEntry.setPersistent()
             println("Demo Reach Limit didn't exist. It is now 47.0")
         }
         shoulderTicksOffsetEntry.setPersistent()

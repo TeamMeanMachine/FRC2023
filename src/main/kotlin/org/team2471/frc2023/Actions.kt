@@ -10,6 +10,7 @@ import org.team2471.frc.lib.coroutines.suspendUntil
 import org.team2471.frc.lib.framework.use
 import org.team2471.frc.lib.math.Vector2
 import org.team2471.frc.lib.math.linearMap
+import org.team2471.frc.lib.motion.following.demoMode
 import org.team2471.frc.lib.motion.following.demoSpeed
 import org.team2471.frc.lib.motion_profiling.Path2D
 import org.team2471.frc.lib.units.*
@@ -615,4 +616,15 @@ suspend fun quickSpit() =use(Intake) {
     Intake.intakeMotor.setPercentOutput(if (NodeDeckHub.isCone) Intake.CONE_TOWARD_SPIT else Intake.CUBE_SPIT)
     delay(0.5)
     Intake.intakeMotor.setPercentOutput(0.0)
+}
+
+suspend fun backNod() =use(Arm, Intake) {
+    if (Drive.demoMode) {
+        animateThroughPoses(
+            Pair(0.0, Pose.BACK_MIDDLE_SCORE_CONE_TOWARD_MID),
+            Pair(0.0, Pose.BACK_MIDDLE_SCORE_CONE_TOWARD),
+            Pair(0.0, Pose.BACK_NOD_DOWN_POSE),
+            Pair(0.0, Pose.BACK_MIDDLE_SCORE_CONE_TOWARD)
+        )
+    }
 }
