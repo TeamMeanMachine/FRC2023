@@ -170,7 +170,7 @@ suspend fun groundBackToDrive(isCone: Boolean) {
             if (isCone) {
                 animateThroughPoses(Pose.GROUND_TO_DRIVE_SAFE_CONE, Pose.GROUND_TO_DRIVE_SAFE, Pose.BACK_DRIVE_POSE)
             } else {
-                animateThroughPoses(Pose.GROUND_TO_DRIVE_SAFE_CUBE, Pose.GROUND_TO_DRIVE_SAFE, Pose.BACK_DRIVE_POSE)
+                animateThroughPoses(/*Pose.GROUND_TO_DRIVE_SAFE_CUBE,*/ Pose.GROUND_TO_DRIVE_SAFE, Pose.BACK_DRIVE_POSE)
             }
             delay(0.2)
             if (!Intake.holdingObject) {
@@ -377,7 +377,7 @@ suspend fun scoreObject(pieceNumber: Int = NodeDeckHub.selectedNode.toInt()) = u
                         if (!DriverStation.isAutonomous()) {
                             midPose += Pose(Vector2(6.5, 14.0), 0.0.degrees, 0.0.degrees)
                             val midPose2 = midPose + Pose(Vector2(16.0, 17.0), 0.0.degrees, 0.0.degrees)
-                            animateThroughPoses(Pair(0.4, midPose), Pair(0.4, midPose2))
+                            animateThroughPoses(Pair(0.3, midPose), Pair(0.3, midPose2))
                         } else {
                             midPose += Pose(Vector2(6.0, 16.5), 0.0.degrees, 0.0.degrees)
                             animateToPose(midPose, 0.3)
@@ -385,9 +385,9 @@ suspend fun scoreObject(pieceNumber: Int = NodeDeckHub.selectedNode.toInt()) = u
                     }
                     Level.MID -> {
                         midPose = Pose.current + Pose(Vector2(7.0, -6.5), 40.0.degrees, 0.0.degrees)
-                        animateToPose(midPose, 1.0)
+                        animateToPose(midPose, 0.5)
                         Intake.intakeMotor.setPercentOutput(Intake.CONE_AWAY_SPIT)
-                        animateToPose(midPose + Pose(Vector2(6.0, -2.0), 10.0.degrees, 0.0.degrees), 0.5)
+                        animateToPose(midPose + Pose(Vector2(6.0, -2.0), 10.0.degrees, 0.0.degrees), 0.3)
                     }
                     Level.LOW -> {
                         Intake.intakeMotor.setPercentOutput(Intake.CONE_AWAY_SPIT)

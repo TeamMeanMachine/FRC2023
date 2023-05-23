@@ -68,9 +68,9 @@ data class Pose(val wristPosition: Vector2, val wristAngle: Angle, val pivotAngl
 
         val SCORE_TO_FLIP = Pose(Vector2(-10.0, 28.0), 90.0.degrees, -90.0.degrees)
 
-        val GROUND_TO_DRIVE_SAFE_CUBE = Pose(Vector2(38.0, 12.0), 80.0.degrees, -180.0.degrees)
-        val GROUND_TO_DRIVE_SAFE_CONE = Pose(Vector2(37.0, 24.0), 100.0.degrees, 0.0.degrees)
-        val GROUND_TO_DRIVE_SAFE  = Pose(Vector2(35.0, 21.0), -90.0.degrees, -90.0.degrees)
+        val GROUND_TO_DRIVE_SAFE_CUBE = Pose(Vector2(17.0, 9.0), 80.0.degrees, -180.0.degrees)
+        val GROUND_TO_DRIVE_SAFE_CONE = Pose(Vector2(23.0, 18.0), 100.0.degrees, 0.0.degrees)
+        val GROUND_TO_DRIVE_SAFE  = Pose(Vector2(17.0, 12.0), -90.0.degrees, -90.0.degrees)
         val GROUND_TO_DRIVE_SAFE_EMPTY = Pose(Vector2(35.0, 21.0), 90.0.degrees, -90.0.degrees)
 
         val AUTO_CLIMB_POSE = Pose(Vector2(0.0, 0.0), FRONT_DRIVE_POSE.wristAngle, FRONT_DRIVE_POSE.pivotAngle)
@@ -130,8 +130,8 @@ suspend fun animateThroughPoses(waituntilDone: Boolean = false, vararg poses: Pa
         timeMap["wristTime"] = wristTime
         timeMap["pivotTime"] = pivotTime
         val maxTime = timeMap.values.max() / Drive.demoSpeed
-        val secondMaxTime = timeMap.values.reversed()[1]
-        val timeSavings = maxTime - secondMaxTime
+//        val secondMaxTime = timeMap.values.reversed()[1]
+//        val timeSavings = maxTime - secondMaxTime
 //        val maxName = timeMap.filter { it.value == maxTime }.keys.first()
         //val secondMaxName = timeMap.filter {it.value == secondMaxTime}.keys.first()
 //        println("you can save $timeSavings by tuning $maxName")
