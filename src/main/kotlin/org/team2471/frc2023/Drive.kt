@@ -8,6 +8,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import org.photonvision.targeting.PhotonTrackedTarget
 import org.team2471.frc.lib.actuators.FalconID
 import org.team2471.frc.lib.actuators.MotorController
 import org.team2471.frc.lib.control.PDConstantFController
@@ -161,6 +162,8 @@ object Drive : Subsystem("Drive"), SwerveDrive {
     var angleToNode: Angle = 0.0.degrees
     val demoBondingBox: Boolean
         get() = demoBoundingBoxEntry.getBoolean(false)
+    val demoAprilLookingAt: Boolean
+        get() = demoAprilLookingAtEntry.getBoolean(false)
 
     override val parameters: SwerveParameters = SwerveParameters(
         gyroRateCorrection = 0.0,
@@ -204,6 +207,10 @@ object Drive : Subsystem("Drive"), SwerveDrive {
             demoBoundingBoxEntry.setPersistent()
         }
 
+
+        if (!demoAprilLookingAtEntry.exists()) {
+            demoAprilLookingAtEntry.setBoolean(false)
+        }
         GlobalScope.launch(MeanlibDispatcher) {
 //            odometer0Entry.setPersistent()
 //            odometer1Entry.setPersistent()
@@ -359,6 +366,33 @@ object Drive : Subsystem("Drive"), SwerveDrive {
                     useGyro2,
                     useGyro2
                 )
+            } else if (demoAprilLookingAt) {
+
+                    val tags = if (AprilTag.camFront?.latestResult?.hasTargets() == true) AprilTag.camFront!!.latestResult.getTargets() else null//AprilTag.getBestTarget()
+//                }
+//                catch (ex: Exception) {
+//                    print(ex.message)
+//                    tag = null
+//                }
+                if (tags != null) {
+                    for (tag in tags) {
+                        if (tag.fiducialId == 8) {
+                            val angleDiff = tag.yaw
+                            println("angleDiff: $angleDiff   heading: $heading")
+                            println((angleDiff - heading.asDegrees)/35.0)
+                            drive(
+                                Vector2(0.0, 0.0),
+                                (angleDiff - heading.asDegrees)/20.0,
+                                false,
+                                useGyro2
+                            )
+                        } else {
+                            println("tag is != 8")
+                        }
+                    }
+                } else {
+                    println("Tag is null")
+                }
             }
             //println("heading=$heading useGyro=$useGyro2")
         }
