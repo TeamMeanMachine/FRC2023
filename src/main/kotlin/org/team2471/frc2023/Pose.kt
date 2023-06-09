@@ -49,7 +49,7 @@ data class Pose(val wristPosition: Vector2, val wristAngle: Angle, val pivotAngl
         val BACK_DRIVE_POSE_CENTER = Pose(Vector2(0.0, 9.0), -92.0.degrees, -90.0.degrees)
 
         val FRONT_DRIVE_POSE = Pose(Vector2(-7.5, 10.5), 92.0.degrees, -90.0.degrees)
-        val BACK_DRIVE_POSE = Pose(Vector2(7.5, 10.5), -92.0.degrees, -90.0.degrees)
+        val BACK_DRIVE_POSE = Pose(Vector2(7.5, 11.5), -92.0.degrees, -90.0.degrees)
         val FLIP_INTAKE_TO_BACK_POSE = Pose(Vector2(-28.0, 26.0), 90.0.degrees, -90.0.degrees)
         val FLIP_INTAKE_TO_BACK_WRIST = Pose(Vector2(-28.0, 26.0), -90.0.degrees, 0.0.degrees)
         val FLIP_INTAKE_TO_FRONT_POSE = Pose(Vector2(28.0, 20.0), -90.0.degrees, -90.0.degrees)
@@ -69,8 +69,8 @@ data class Pose(val wristPosition: Vector2, val wristAngle: Angle, val pivotAngl
         val SCORE_TO_FLIP = Pose(Vector2(-10.0, 28.0), 90.0.degrees, -90.0.degrees)
 
         val GROUND_TO_DRIVE_SAFE_CUBE = Pose(Vector2(17.0, 9.0), 80.0.degrees, -180.0.degrees)
-        val GROUND_TO_DRIVE_SAFE_CONE = Pose(Vector2(23.0, 18.0), 100.0.degrees, 0.0.degrees)
-        val GROUND_TO_DRIVE_SAFE  = Pose(Vector2(17.0, 12.0), -90.0.degrees, -90.0.degrees)
+        val GROUND_TO_DRIVE_SAFE_CONE = Pose(Vector2(23.0, 20.0), 100.0.degrees, 0.0.degrees)
+        val GROUND_TO_DRIVE_SAFE  = Pose(Vector2(17.0, 22.0), -90.0.degrees, -90.0.degrees)
         val GROUND_TO_DRIVE_SAFE_EMPTY = Pose(Vector2(35.0, 21.0), 90.0.degrees, -90.0.degrees)
 
         val AUTO_CLIMB_POSE = Pose(Vector2(0.0, 0.0), FRONT_DRIVE_POSE.wristAngle, FRONT_DRIVE_POSE.pivotAngle)

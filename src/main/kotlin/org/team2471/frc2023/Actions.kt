@@ -168,9 +168,10 @@ suspend fun groundBackToDrive(isCone: Boolean) {
         }
         if (Intake.holdingObject) {
             if (isCone) {
-                animateThroughPoses(Pose.GROUND_TO_DRIVE_SAFE_CONE, Pose.GROUND_TO_DRIVE_SAFE, Pose.BACK_DRIVE_POSE)
+                animateToPose(Pose(Arm.wristPosition + Vector2(0.0, 12.0), Intake.wristAngle, Intake.pivotAngle))
+                animateThroughPoses(Pose.GROUND_TO_DRIVE_SAFE, Pose.BACK_DRIVE_POSE)
             } else {
-                animateThroughPoses(/*Pose.GROUND_TO_DRIVE_SAFE_CUBE,*/ Pose.GROUND_TO_DRIVE_SAFE, Pose.BACK_DRIVE_POSE)
+                animateThroughPoses(Pose.GROUND_TO_DRIVE_SAFE, Pose.BACK_DRIVE_POSE)
             }
             delay(0.2)
             if (!Intake.holdingObject) {
