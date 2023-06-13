@@ -316,6 +316,13 @@ object AprilTag {
             null
         }
     }
+    fun getAllTargets(): MutableList<PhotonTrackedTarget>? {
+        var tags = if (camFront?.latestResult?.hasTargets() == true) camFront?.latestResult?.targets else null
+//        if (camBack?.latestResult?.hasTargets() == true) {
+//            camBack?.latestResult?.targets?.let { tags?.addAll(it) }
+//        }
+        return tags
+    }
 
 //
 //    private fun customEstimatedPose(useFrontCam: Boolean): EstimatedRobotPose?{

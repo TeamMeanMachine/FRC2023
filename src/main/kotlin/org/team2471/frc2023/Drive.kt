@@ -8,7 +8,6 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import org.photonvision.targeting.PhotonTrackedTarget
 import org.team2471.frc.lib.actuators.FalconID
 import org.team2471.frc.lib.actuators.MotorController
 import org.team2471.frc.lib.control.PDConstantFController
@@ -368,7 +367,8 @@ object Drive : Subsystem("Drive"), SwerveDrive {
                 )
             } else if (demoAprilLookingAt) {
 
-                    val tags = if (AprilTag.camFront?.latestResult?.hasTargets() == true) AprilTag.camFront!!.latestResult.getTargets() else null//AprilTag.getBestTarget()
+                val tags = AprilTag.getAllTargets()
+
 //                }
 //                catch (ex: Exception) {
 //                    print(ex.message)
@@ -377,14 +377,16 @@ object Drive : Subsystem("Drive"), SwerveDrive {
                 if (tags != null) {
                     for (tag in tags) {
                         if (tag.fiducialId == 8) {
-                            val angleDiff = tag.yaw
-                            println("angleDiff: $angleDiff   heading: $heading")
-                            println((angleDiff - heading.asDegrees)/35.0)
+                            val tagYaw = tag.yaw.degrees
+
+                            val turn = tagYaw/35.0
+
+                            println("turn: ${turn.asDegrees}  heading: ${heading.asDegrees}   tagYaw: ${tagYaw}")
+
                             drive(
                                 Vector2(0.0, 0.0),
-                                (angleDiff - heading.asDegrees)/20.0,
-                                false,
-                                useGyro2
+                                turn.asDegrees,
+                                false
                             )
                         } else {
                             println("tag is != 8")
@@ -392,6 +394,11 @@ object Drive : Subsystem("Drive"), SwerveDrive {
                     }
                 } else {
                     println("Tag is null")
+                    drive(
+                        Vector2(0.0, 0.0),
+                        0.0,
+                        false
+                    )
                 }
             }
             //println("heading=$heading useGyro=$useGyro2")
