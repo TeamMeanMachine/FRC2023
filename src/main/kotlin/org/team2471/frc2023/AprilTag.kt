@@ -44,8 +44,8 @@ object AprilTag {
     private var detectedDepthYEntry = pvTable.getEntry("AprilTag Y")
     private var singleTagMinYEntry = pvTable.getEntry("SingleTag Min Y in Feet")
 
-    private var camFront: PhotonCamera? = null
-    private var camBack: PhotonCamera? = null
+    var camFront: PhotonCamera? = null
+    var camBack: PhotonCamera? = null
 
 
     private var frontPoseEstimator : PhotonPoseEstimator? = null
@@ -97,7 +97,6 @@ object AprilTag {
     //                backPoseEstimator.referencePose = Pose3d(Pose2d(PoseEstimator.currentPose.toWPIField(), Rotation2d(Drive.heading.asRadians)))
                     try {
                         //val frontCamSelected = useFrontCam()
-
                         var maybePoseFront: Pose2d? =
                             frontPoseEstimator?.let { camFront?.let { it1 -> getEstimatedGlobalPose(it1, it, true) } }
                         var numTargetFront: Int = camFront?.latestResult?.targets?.count() ?: 0
@@ -300,6 +299,34 @@ object AprilTag {
 
         }
 
+    }
+    fun getBestTarget(): PhotonTrackedTarget? {
+        return try {
+            val frontTarget = if (camFront?.latestResult?.hasTargets() == true) camFront?.latestResult?.bestTarget else null
+            val backTarget = if (camBack?.latestResult?.hasTargets() == true) camBack?.latestResult?.bestTarget else null
+            if (frontTarget != null && backTarget != null) {
+                if (frontTarget.poseAmbiguity > backTarget.poseAmbiguity) {
+                    frontTarget
+                } else {
+                    backTarget
+                }
+            } else frontTarget
+                ?: backTarget
+        } catch (ex: java.lang.Exception) {
+            null
+        }
+    }
+    fun getAimingTarget(): Pair<List<PhotonTrackedTarget>?, PhotonCamera?> {
+        var frontTags = if (camFront?.latestResult?.hasTargets() == true) camFront?.latestResult?.targets?.filter { it.fiducialId == 8 } else null
+        var backTags = if (camBack?.latestResult?.hasTargets() == true) camBack?.latestResult?.targets?.filter { it.fiducialId == 8 } else null
+
+        if (frontTags == null && backTags == null) {
+            return Pair(null, null)
+        }
+
+        val validCam = frontTags ?: backTags
+
+        return Pair(if (validCam == frontTags) frontTags else backTags, if (validCam == frontTags) camFront else camBack)
     }
 
 //

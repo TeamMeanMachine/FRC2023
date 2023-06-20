@@ -162,6 +162,8 @@ object Drive : Subsystem("Drive"), SwerveDrive {
     val demoBondingBox: Boolean
         get() = demoBoundingBoxEntry.getBoolean(false)
     var prevDemoBox: Boolean = demoBondingBox
+    val demoAprilLookingAt: Boolean
+        get() = demoAprilLookingAtEntry.getBoolean(false)
 
     override val parameters: SwerveParameters = SwerveParameters(
         gyroRateCorrection = 0.0,
@@ -205,6 +207,10 @@ object Drive : Subsystem("Drive"), SwerveDrive {
             demoBoundingBoxEntry.setPersistent()
         }
 
+
+        if (!demoAprilLookingAtEntry.exists()) {
+            demoAprilLookingAtEntry.setBoolean(false)
+        }
         GlobalScope.launch(MeanlibDispatcher) {
 //            odometer0Entry.setPersistent()
 //            odometer1Entry.setPersistent()
@@ -356,6 +362,38 @@ object Drive : Subsystem("Drive"), SwerveDrive {
                     useGyro2,
                     useGyro2
                 )
+            } else if (demoAprilLookingAt) {
+
+                val tags = AprilTag.getAimingTarget()
+                drive(
+                    OI.driveTranslation * maxTranslation,
+                    turn * maxRotation,
+                    useGyro2,
+                    useGyro2
+                )
+
+//                }
+//                catch (ex: Exception) {
+//                    print(ex.message)
+//                    tag = null
+//                }
+                if (tags.first != null && tags.second != null) {
+                    for (tag in tags.first!!) {
+                        val tagYaw = tag.yaw.degrees + if (tags.second == AprilTag.camBack) -23.0.degrees else 23.0.degrees
+
+                        val aimTurn = tagYaw / 35.0
+
+                        println("turn: ${aimTurn.asDegrees}  heading: ${heading.asDegrees}   tagYaw: ${tagYaw}   camera ${tags.second?.name}")
+
+                        drive(
+                            OI.driveTranslation * maxTranslation,
+                            aimTurn.asDegrees,
+                            false
+                        )
+                    }
+                } else {
+                    println("Tag is null")
+                }
             } else {
                 drive(
                     OI.driveTranslation * maxTranslation,
