@@ -316,12 +316,17 @@ object AprilTag {
             null
         }
     }
-    fun getAllTargets(): MutableList<PhotonTrackedTarget>? {
-        var tags = if (camFront?.latestResult?.hasTargets() == true) camFront?.latestResult?.targets else null
-//        if (camBack?.latestResult?.hasTargets() == true) {
-//            camBack?.latestResult?.targets?.let { tags?.addAll(it) }
-//        }
-        return tags
+    fun getAimingTarget(): Pair<List<PhotonTrackedTarget>?, PhotonCamera?> {
+        var frontTags = if (camFront?.latestResult?.hasTargets() == true) camFront?.latestResult?.targets?.filter { it.fiducialId == 8 } else null
+        var backTags = if (camBack?.latestResult?.hasTargets() == true) camBack?.latestResult?.targets?.filter { it.fiducialId == 8 } else null
+
+        if (frontTags == null && backTags == null) {
+            return Pair(null, null)
+        }
+
+        val validCam = frontTags ?: backTags
+
+        return Pair(if (validCam == frontTags) frontTags else backTags, if (validCam == frontTags) camFront else camBack)
     }
 
 //

@@ -344,14 +344,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
             if (FieldManager.homeField) {
                 angleToNodeEntry.setDouble(angleToNode.asDegrees)
             }
-            if (!demoMode) {
-            drive(
-                OI.driveTranslation * maxTranslation,
-                turn * maxRotation,
-                useGyro2,
-                useGyro2
-            )
-            } else if (demoBondingBox) {
+            if (demoBondingBox) {
                 val limit = demoLimitEntry.getDouble(1.0)
                 val goalPos = Vector2(
                     linearMap(-1.0, 1.0, -limit, limit, OI.driveTranslation.x),
@@ -367,39 +360,43 @@ object Drive : Subsystem("Drive"), SwerveDrive {
                 )
             } else if (demoAprilLookingAt) {
 
-                val tags = AprilTag.getAllTargets()
+                val tags = AprilTag.getAimingTarget()
+                drive(
+                    OI.driveTranslation * maxTranslation,
+                    turn * maxRotation,
+                    useGyro2,
+                    useGyro2
+                )
 
 //                }
 //                catch (ex: Exception) {
 //                    print(ex.message)
 //                    tag = null
 //                }
-                if (tags != null) {
-                    for (tag in tags) {
-                        if (tag.fiducialId == 8) {
-                            val tagYaw = tag.yaw.degrees
+                if (tags.first != null && tags.second != null) {
+                    for (tag in tags.first!!) {
+                        val tagYaw = tag.yaw.degrees + if (tags.second == AprilTag.camBack) -23.0.degrees else 23.0.degrees
 
-                            val turn = tagYaw/35.0
+                        val aimTurn = tagYaw / 35.0
 
-                            println("turn: ${turn.asDegrees}  heading: ${heading.asDegrees}   tagYaw: ${tagYaw}")
+                        println("turn: ${aimTurn.asDegrees}  heading: ${heading.asDegrees}   tagYaw: ${tagYaw}   camera ${tags.second?.name}")
 
-                            drive(
-                                Vector2(0.0, 0.0),
-                                turn.asDegrees,
-                                false
-                            )
-                        } else {
-                            println("tag is != 8")
-                        }
+                        drive(
+                            OI.driveTranslation * maxTranslation,
+                            aimTurn.asDegrees,
+                            false
+                        )
                     }
                 } else {
                     println("Tag is null")
-                    drive(
-                        Vector2(0.0, 0.0),
-                        0.0,
-                        false
-                    )
                 }
+            } else {
+                drive(
+                    OI.driveTranslation * maxTranslation,
+                    turn * maxRotation,
+                    useGyro2,
+                    useGyro2
+                )
             }
             //println("heading=$heading useGyro=$useGyro2")
         }
