@@ -1,6 +1,7 @@
 package org.team2471.frc2023
 
 import edu.wpi.first.math.filter.LinearFilter
+import edu.wpi.first.math.filter.SlewRateLimiter
 import edu.wpi.first.networktables.NetworkTableInstance
 import edu.wpi.first.wpilibj.AnalogInput
 import edu.wpi.first.wpilibj.DigitalInput
@@ -11,8 +12,10 @@ import org.team2471.frc.lib.actuators.SparkMaxID
 import org.team2471.frc.lib.coroutines.MeanlibDispatcher
 import org.team2471.frc.lib.coroutines.periodic
 import org.team2471.frc.lib.framework.Subsystem
+import org.team2471.frc.lib.framework.use
 import org.team2471.frc.lib.math.Vector2
 import org.team2471.frc.lib.math.deadband
+import org.team2471.frc.lib.math.linearMap
 import org.team2471.frc.lib.math.round
 import org.team2471.frc.lib.motion.following.demoMode
 import org.team2471.frc.lib.motion_profiling.MotionCurve
@@ -95,6 +98,7 @@ object Arm : Subsystem("Arm") {
             shoulderMotor.setPositionSetpoint(field.asDegrees, sFeedForward)
             shoulderFollowerMotor.setPositionSetpoint(field.asDegrees, sFeedForward)
         }
+    val pointingSlew = SlewRateLimiter(10.0, -10.0, 0.0)
     val sFeedForward: Double
         get() = shoulderCurve.getValue(shoulderAngle.asDegrees)
     val shoulderCurve = MotionCurve()
@@ -490,5 +494,21 @@ object Arm : Subsystem("Arm") {
 //    val shoulderIKDegrees = Math.toDegrees(shoulderIKRadians)
 //    val elbowIKDegrees = Math.toDegrees(elbowIKRadians)
 //    println("sh:$shoulderDegrees=$shoulderIKDegrees  el:$elbowDegrees=$elbowIKDegrees")
+    }
+    suspend fun pointToTag() = use(Arm) {
+        periodic {
+            if (!OI.operatorController.b){
+                stop()
+            }
+
+            val tags = AprilTag.getAimingTarget()
+            if (tags.first != null) {
+                for (tag in tags.first!!) {
+                    val  goalX = linearMap(-4.0, 16.0, 0.0, 10.0, tag.pitch.coerceIn(-4.0, 16.0))
+
+                    println(wristPosition + Vector2(pointingSlew.calculate(goalX), 0.0))
+                }
+            }
+        }
     }
 }

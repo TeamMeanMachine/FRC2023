@@ -388,7 +388,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
                         drive(
                             OI.driveTranslation * maxTranslation,
                             aimTurn.asDegrees,
-                            false
+                            true
                         )
                     }
                 } else {
