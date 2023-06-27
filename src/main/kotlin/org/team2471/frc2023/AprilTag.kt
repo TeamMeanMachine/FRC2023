@@ -329,6 +329,10 @@ object AprilTag {
         return Pair(if (validCam == frontTags) frontTags else backTags, if (validCam == frontTags) camFront else camBack)
     }
 
+//    fun getTarget(fiducialId: Int) :Pair<PhotonTrackedTarget, PhotonCamera>? {
+//
+//    }
+
 //
 //    private fun customEstimatedPose(useFrontCam: Boolean): EstimatedRobotPose?{
 //        val cameraResult = if (useFrontCam) {
