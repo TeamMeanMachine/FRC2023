@@ -77,6 +77,8 @@ data class Pose(val wristPosition: Vector2, val wristAngle: Angle, val pivotAngl
 
         val BACK_NOD_DOWN_POSE = Pose(Vector2(-24.25, 28.75), -50.0.degrees, 0.0.degrees)
 
+        val POINT_TO_TAG_POSE = Pose(Vector2(-17.5, 9.0), -90.0.degrees, 0.0.degrees)
+
     }
 
     override fun toString(): String {
@@ -85,7 +87,8 @@ data class Pose(val wristPosition: Vector2, val wristAngle: Angle, val pivotAngl
     operator fun plus(otherPose: Pose) = Pose(wristPosition + otherPose.wristPosition, wristAngle + otherPose.wristAngle, pivotAngle + otherPose.pivotAngle)
 }
 
-suspend fun animateToPose(pose: Pose, minTime: Double = 0.0, waituntilDone: Boolean = false) = use(Arm, Intake) {
+suspend fun
+        animateToPose(pose: Pose, minTime: Double = 0.0, waituntilDone: Boolean = false) = use(Arm, Intake) {
   animateThroughPoses(waituntilDone, Pair(minTime, pose))
 }
 

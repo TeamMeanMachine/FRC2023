@@ -361,5 +361,5 @@ fun setPivotPower() {
     val openLoopPower = Intake.pivotPDController.update(pError).coerceIn(-1.0, 1.0)
     if ((Intake.pivotSetpoint.asDegrees - Intake.pivotAngle.asDegrees).absoluteValue > 40.0 && DriverStation.isEnabled()) println("pivotError: ${round(pError, 1)}    openLoopPower: ${round(openLoopPower, 1)}")
     val power = openLoopPower + Intake.pFeedForward
-    Intake.pivotMotor.setPercentOutput(power)
+//    Intake.pivotMotor.setPercentOutput(power)
 }

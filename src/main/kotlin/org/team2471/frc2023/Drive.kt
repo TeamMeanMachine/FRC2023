@@ -1,6 +1,7 @@
 package org.team2471.frc2023
 
 import com.ctre.phoenix.sensors.CANCoder
+import edu.wpi.first.math.controller.PIDController
 import edu.wpi.first.networktables.NetworkTableEntry
 import edu.wpi.first.networktables.NetworkTableInstance
 import edu.wpi.first.wpilibj.*
@@ -388,7 +389,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
                         drive(
                             OI.driveTranslation * maxTranslation,
                             aimTurn.asDegrees,
-                            false
+                            true
                         )
                     }
                 } else {

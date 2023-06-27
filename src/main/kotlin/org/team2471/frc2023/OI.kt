@@ -129,6 +129,9 @@ object OI : Subsystem("OI") {
         ({operatorController.dPad == Controller.Direction.DOWN}).whenTrue {
             AprilTag.resetCameras()
         }
+        operatorController::b.whenTrue {
+            Arm.pointToTag()
+        }
     }
 
     override fun preEnable() {

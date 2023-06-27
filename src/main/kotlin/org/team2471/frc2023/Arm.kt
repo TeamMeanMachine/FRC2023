@@ -1,6 +1,7 @@
 package org.team2471.frc2023
 
 import edu.wpi.first.math.filter.LinearFilter
+import edu.wpi.first.math.filter.SlewRateLimiter
 import edu.wpi.first.networktables.NetworkTableInstance
 import edu.wpi.first.wpilibj.AnalogInput
 import edu.wpi.first.wpilibj.DigitalInput
@@ -11,8 +12,10 @@ import org.team2471.frc.lib.actuators.SparkMaxID
 import org.team2471.frc.lib.coroutines.MeanlibDispatcher
 import org.team2471.frc.lib.coroutines.periodic
 import org.team2471.frc.lib.framework.Subsystem
+import org.team2471.frc.lib.framework.use
 import org.team2471.frc.lib.math.Vector2
 import org.team2471.frc.lib.math.deadband
+import org.team2471.frc.lib.math.linearMap
 import org.team2471.frc.lib.math.round
 import org.team2471.frc.lib.motion.following.demoMode
 import org.team2471.frc.lib.motion_profiling.MotionCurve
@@ -95,6 +98,7 @@ object Arm : Subsystem("Arm") {
             shoulderMotor.setPositionSetpoint(field.asDegrees, sFeedForward)
             shoulderFollowerMotor.setPositionSetpoint(field.asDegrees, sFeedForward)
         }
+    val pointingSlew = SlewRateLimiter(30.0, -30.0, 0.0)
     val sFeedForward: Double
         get() = shoulderCurve.getValue(shoulderAngle.asDegrees)
     val shoulderCurve = MotionCurve()
@@ -490,5 +494,27 @@ object Arm : Subsystem("Arm") {
 //    val shoulderIKDegrees = Math.toDegrees(shoulderIKRadians)
 //    val elbowIKDegrees = Math.toDegrees(elbowIKRadians)
 //    println("sh:$shoulderDegrees=$shoulderIKDegrees  el:$elbowDegrees=$elbowIKDegrees")
+    }
+    suspend fun pointToTag() = use(Arm) {
+        animateToPose(Pose.POINT_TO_TAG_POSE)
+        pointingSlew.reset(wristPosition.y)
+        var aimYOffset = Vector2(0.0, 0.0)
+        var goalY = 0.0
+        periodic {
+            if (!OI.operatorController.b){
+                stop()
+            }
+
+            val tags = AprilTag.getAimingTarget()
+            if (tags.first != null) {
+                for (tag in tags.first!!) {
+                    goalY = linearMap(-1.0, 14.0, 0.0, 35.0, tag.pitch.coerceIn(-1.0, 14.0))
+                }
+            }
+            aimYOffset = Vector2(0.0, pointingSlew.calculate(goalY))
+            wristPosition = Pose.POINT_TO_TAG_POSE.wristPosition + aimYOffset
+            println(wristPosition)
+        }
+        animateThroughPoses(Pair(0.5, Pose.POINT_TO_TAG_POSE), Pair(2.0, Pose.BACK_DRIVE_POSE))
     }
 }
