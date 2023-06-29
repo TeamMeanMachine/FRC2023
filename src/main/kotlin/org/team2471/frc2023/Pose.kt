@@ -132,14 +132,16 @@ suspend fun animateThroughPoses(waituntilDone: Boolean = false, vararg poses: Pa
         timeMap["wristPosTime"] = wristPosTime
         timeMap["wristTime"] = wristTime
         timeMap["pivotTime"] = pivotTime
-        val maxTime = timeMap.values.max() / Drive.demoSpeed
+        val maxTime = timeMap.values.maxOrNull()?.div(Drive.demoSpeed)
 //        val secondMaxTime = timeMap.values.reversed()[1]
 //        val timeSavings = maxTime - secondMaxTime
 //        val maxName = timeMap.filter { it.value == maxTime }.keys.first()
         //val secondMaxName = timeMap.filter {it.value == secondMaxTime}.keys.first()
 //        println("you can save $timeSavings by tuning $maxName")
         println(" ${pose.toString()} min time: ${round(minTime, 2)},  wrist pos time: ${round(wristPosTime, 2)}, wrist time: ${round(wristTime, 2)} , pivot time: ${round(pivotTime, 2)}")
-        times.add(maxTime)
+        if (maxTime != null) {
+            times.add(maxTime)
+        }
         val currentTime = times.sum()
         pivotCurve.storeValue(currentTime, pose.pivotAngle.asDegrees)
         wristCurve.storeValue(currentTime, pose.wristAngle.asDegrees)
