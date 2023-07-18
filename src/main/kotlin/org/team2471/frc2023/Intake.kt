@@ -63,11 +63,12 @@ object Intake : Subsystem("Intake") {
     val wristTicksOffsetEntry = table.getEntry("Wrist Ticks Offset")
     val wristTicksEntry = table.getEntry("Wrist Ticks")
     val pivotTicksEntry = table.getEntry("Pivot Ticks")
+    val wristMotorAngleEntry = table.getEntry("Wrist Motor Angle")
 
     val wristAngle: Angle
         get() {
 //            return wristMotor.position.degrees
-//            if (isCompBot) {
+            if (isCompBot) {
                 val wristAng = wristMotor.position.degrees
                 if ((wristAng - prevWristAngle).asDegrees.absoluteValue > 15.0 && (wristAng.asDegrees + 89.0).absoluteValue < 1.0) {
                     println("Difference from wristAngle and prevAngle > 15. $wristAng")
@@ -75,13 +76,11 @@ object Intake : Subsystem("Intake") {
                 } else {
                     return wristMotor.position.degrees
                 }
-//            } else {
+            } else {
+                val wristEncoderAngle = (wristSensor.value.degrees - wristTicksOffsetEntry.getDouble(1829.0).degrees) * 90.0 / 1054.0
 
-
-
-
-//                return 90.0.degrees
-//            }
+                return wristEncoderAngle + Arm.elbowAngle
+            }
         }
 
 
@@ -100,6 +99,14 @@ object Intake : Subsystem("Intake") {
         }
     val wristTicks: Int
         get() = if (isCompBot) 0 else wristSensor.value
+
+    fun wristCoastMode() {
+        wristMotor.coastMode()
+    }
+
+    fun wristBrakeMode() {
+        wristMotor.brakeMode()
+    }
 
     val pivotAnalogAngle: Angle
         get() = ((pivotSensor.value - if (isCompBot) 514.0 else 1510.0).degrees / 4096.0 * 360.0).wrap() //third arm previous ticks: 2116.0
@@ -189,7 +196,7 @@ object Intake : Subsystem("Intake") {
         intakeMotor.restoreFactoryDefaults() //intake bad
         wristMotor.config(20) {
             feedbackCoefficient = 261.0 / 1273.0 * 198.0 / 360.0  //last one is fudge factor
-            coastMode()
+            brakeMode()
             pid {
                 p(0.00014) //00002
             }
@@ -224,8 +231,10 @@ object Intake : Subsystem("Intake") {
         pivotCurve.storeValue(179.0, 0.0)
         pivotCurve.storeValue(185.0, 0.0)
 
+        wristMotor.setRawOffset(if (isCompBot) -90.0 else wristAngle.asDegrees)
+        //wristSetpoint = wristAngle
         wristMotor.setRawOffset(-90.0)
-        wristSetpoint = wristAngle
+        wristSetpoint = wristMotor.position.degrees
         GlobalScope.launch(MeanlibDispatcher) {
             var tempPivot: Angle
             if (FieldManager.homeField) {
@@ -241,11 +250,19 @@ object Intake : Subsystem("Intake") {
 //            coneMinArea.setInteger(20)
 //            coneMinBlockY.setInteger(100)
             periodic {
+                if (!isCompBot) {
+                    /*if ((wristAngle.asDegrees - wristMotor.position).absoluteValue > 3) {
+                        println("resetting wrist motor offset to: ${wristAngle.asDegrees}  prev motor position: ${wristMotor.position}  ${wristMotor.analogAngle}")
+                        wristMotor.setRawOffset(wristAngle.asDegrees)
+                    }*/
+                }
+
                 holdingObject = linearFilter.calculate(intakeMotor.current) > if (NodeDeckHub.isCone) DETECT_CONE else DETECT_CUBE
                 wristEntry.setDouble(wristAngle.asDegrees)
                 pivotEntry.setDouble(pivotAngle.asDegrees)
                 wristTicksEntry.setDouble(wristTicks.toDouble())
                 pivotTicksEntry.setDouble(pivotTicks.toDouble())
+                wristMotorAngleEntry.setDouble(wristMotor.position)
                 if (FieldManager.homeField) {
                     pivotSetpointEntry.setDouble(pivotSetpoint.asDegrees)
                     pivotSensorEntry.setInteger(pivotSensor.value.toLong())
@@ -279,10 +296,10 @@ object Intake : Subsystem("Intake") {
 
     override suspend fun default() {
         periodic {
-            if (Arm.shoulderAngle.asDegrees.absoluteValue < 3.0 && Arm.elbowAngle.asDegrees.absoluteValue < 5.0) {
-                if (wristAngle < -65.0.degrees) wristSetpoint = -90.0.degrees
-                if (wristAngle > 65.0.degrees) wristSetpoint = 90.0.degrees
-            }
+//            if (Arm.shoulderAngle.asDegrees.absoluteValue < 3.0 && Arm.elbowAngle.asDegrees.absoluteValue < 5.0) {
+//                if (wristAngle < -65.0.degrees) wristSetpoint = -90.0.degrees
+//                if (wristAngle > 65.0.degrees) wristSetpoint = 90.0.degrees
+//            }
         }
     }
 
@@ -290,7 +307,10 @@ object Intake : Subsystem("Intake") {
         wristMotor.setPercentOutput(0.0)
         intakeMotor.setPercentOutput(0.0)
         pivotSetpoint = pivotAngle
-        wristSetpoint = wristAngle
+        //wristSetpoint = wristAngle
+        wristSetpoint = wristMotor.position.degrees
+        wristOffset = 0.0.degrees
+        pivotOffset = 0.0.degrees
     }
 
 //    fun initializePixy() {

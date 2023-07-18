@@ -283,7 +283,7 @@ object Arm : Subsystem("Arm") {
         elbowMotor.restoreFactoryDefaults()
         shoulderMotor.config(20) {
             feedbackCoefficient = 360.0 / 42.0 / 165.0 //184.0  // ticks / degrees / gear ratio
-            coastMode()
+            brakeMode()
             inverted(false)
             pid {
                 p(0.000002)  //0.0000018
@@ -294,7 +294,7 @@ object Arm : Subsystem("Arm") {
         }
         shoulderFollowerMotor.config(20) {
             feedbackCoefficient = 360.0 / 42.0 / 165.0  // ticks / degrees / gear ratio
-            coastMode()
+            brakeMode()
             inverted(false)
             pid {
                 p(0.000002)
@@ -305,7 +305,7 @@ object Arm : Subsystem("Arm") {
         }
         elbowMotor.config(20) {
             feedbackCoefficient = 360.0 / 42.0 / 75.0
-            coastMode()
+            brakeMode()
             pid {
                 p(0.000022) //0.0000055
                 d(0.000004)
@@ -347,10 +347,6 @@ object Arm : Subsystem("Arm") {
                 elbowCurve.storeValue(110.0, 0.11)
             }
 
-
-
-
-
             elbowTicksOffsetEntry.setDouble(elbowEncoder.value.toDouble())
 
             var shoulderDirection = LinearFilter.movingAverage(3)
@@ -362,7 +358,7 @@ object Arm : Subsystem("Arm") {
             //println("shoulderFollower: ${shoulderFollowerEntry.getDouble(0.0)}")
             periodic {
 
-                if (isCompBot) {
+                if (!isCompBot) {
                     elbowMotor.setRawOffset(elbowAngle.asDegrees)
 
                 }
@@ -378,7 +374,6 @@ object Arm : Subsystem("Arm") {
                 shoulderEntry.setDouble(shoulderAngle.asDegrees)
                 elbowEntry.setDouble(elbowAngle.asDegrees)
                 elbowMotorAngleEntry.setDouble(elbowMotor.position)
-
 
 //                var pose3d = Pose3d(0.0,0.0,0.0, Rotation3d(0.0, 0.0, shoulderAngle.asDegrees))
 //                shoulderPose.setValue(pose3d)
@@ -422,10 +417,10 @@ object Arm : Subsystem("Arm") {
                     shoulderMotor.setRawOffset(shoulderAngle.asDegrees)
                     shoulderFollowerMotor.setRawOffset(shoulderAngle.asDegrees)
                 }
-                if ((elbowMotor.position - elbowAngle.asDegrees).absoluteValue > 4.0) { //testing time
+                /*if ((elbowMotor.position - elbowAngle.asDegrees).absoluteValue > 4.0) { //testing time
                     if ((elbowMotor.position - elbowAngle.asDegrees).absoluteValue > 15.0) println("Resetting elbow from ${round(elbowMotor.position, 1)} to ${round(elbowAngle.asDegrees, 1)}")
                     elbowMotor.setRawOffset(elbowAngle.asDegrees)
-                }
+                }*/
 
                 tempElbow = elbowAngle
 //                if (!elbowSensor.get()) {
@@ -472,10 +467,20 @@ object Arm : Subsystem("Arm") {
 
     fun shoulderCoastMode() {
         shoulderMotor.coastMode()
+        shoulderFollowerMotor.coastMode()
     }
 
     fun shoulderBrakeMode() {
         shoulderMotor.brakeMode()
+        shoulderFollowerMotor.brakeMode()
+    }
+
+    fun elbowCoastMode() {
+        elbowMotor.coastMode()
+    }
+
+    fun elbowBrakeMode() {
+        elbowMotor.brakeMode()
     }
 
     fun testIK() {

@@ -13,8 +13,8 @@ object NodeDeckHub {
 
     private val selectedNodeEntry = nodeDeckTable.getEntry("Selected Node")
     private val isFloorConeEntry  = nodeDeckTable.getEntry("isFloorCone")
-    private val shoulderCoastModeEntry = nodeDeckTable.getEntry("setShoulderCoastMode")
-    private val shoulderBrakeModeEntry = nodeDeckTable.getEntry("setShoulderBrakeMode")
+    private val coastModeEntry = nodeDeckTable.getEntry("setShoulderCoastMode")
+    private val brakeModeEntry = nodeDeckTable.getEntry("setShoulderBrakeMode")
 
     //auto entry's
     private val startingPointEntry = nodeDeckTable.getEntry("Starting Point")
@@ -36,10 +36,10 @@ object NodeDeckHub {
 
     val selectedNode
         get() = selectedNodeEntry.getInteger(0)
-    val shoulderBrakeMode: Boolean
-        get() = shoulderBrakeModeEntry.getBoolean(false)
-    val shoulderCoastMode: Boolean
-        get() = shoulderCoastModeEntry.getBoolean(false)
+    val brakeMode: Boolean
+        get() = brakeModeEntry.getBoolean(false)
+    val coastMode: Boolean
+        get() = coastModeEntry.getBoolean(false)
     val isFloorCone: Boolean
         get() = isFloorConeEntry.getBoolean(false)
 
@@ -76,15 +76,19 @@ object NodeDeckHub {
             periodic {
                 autoCheckEntry.setBoolean(selAuto == "NodeDeck")
                 autoPieceCheckEntry.setBoolean(amountOfAutoPieces > 0)
-                if (shoulderCoastMode) {
+                if (coastMode) {
                     Arm.shoulderCoastMode()
-                    shoulderCoastModeEntry.setBoolean(false)
-                    println("shoulderCoastMode: $shoulderCoastMode")
+                    Arm.elbowCoastMode()
+                    Intake.wristCoastMode()
+                    coastModeEntry.setBoolean(false)
+                    println("shoulderCoastMode: $coastMode")
                 }
-                if (shoulderBrakeMode) {
+                if (brakeMode) {
                     Arm.shoulderBrakeMode()
-                    shoulderBrakeModeEntry.setBoolean(false)
-                    println("shoulderBrakeMode: $shoulderBrakeMode")
+                    Arm.elbowBrakeMode()
+                    Intake.wristBrakeMode()
+                    brakeModeEntry.setBoolean(false)
+                    println("shoulderBrakeMode: $brakeMode")
                 }
 
                 if (selectedNode != lastNode || lastFloorState != isFloorCone) {

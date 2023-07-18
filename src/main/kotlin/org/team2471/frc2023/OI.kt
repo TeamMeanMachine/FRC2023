@@ -132,14 +132,17 @@ object OI : Subsystem("OI") {
         operatorController::b.whenTrue {
             Arm.pointToTag()
         }
-//        ({ driverController.dPad == Controller.Direction.DOWN }).whenTrue {
-//            Arm.elbowSetpoint -= 1.0.degrees
-//            println("changing elbow setpoint. setpoint: ${Arm.elbowSetpoint}  angle: ${Arm.elbowAngle}")
-//        }
-//        ({ driverController.dPad == Controller.Direction.UP}).whenTrue {
-//            Arm.elbowSetpoint += 1.0.degrees
-//            println("changing elbow setpoint. setpoint: ${Arm.elbowSetpoint}  angle: ${Arm.elbowAngle}")
-//        }
+        operatorController::a.whenTrue {
+            animateThroughPoses(Pose.SHORT_POSE_ONE, Pose.SHORT_POSE_TWO)
+        }
+        ({ driverController.dPad == Controller.Direction.DOWN }).whenTrue {
+            Intake.pivotSetpoint -= 1.0.degrees
+            println("changing pivot setpoint. setpoint: ${Intake.pivotSetpoint}  angle: ${Intake.pivotAngle}")
+        }
+        ({ driverController.dPad == Controller.Direction.UP}).whenTrue {
+            Intake.pivotSetpoint += 1.0.degrees
+            println("changing pivot setpoint. setpoint: ${Intake.pivotSetpoint}  angle: ${Intake.pivotAngle}")
+        }
     }
 
     override fun preEnable() {

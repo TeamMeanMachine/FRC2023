@@ -79,6 +79,11 @@ data class Pose(val wristPosition: Vector2, val wristAngle: Angle, val pivotAngl
 
         val POINT_TO_TAG_POSE = Pose(Vector2(-17.5, 9.0), -90.0.degrees, 0.0.degrees)
 
+
+        val SHORT_POSE_ONE = Pose(Vector2(-15.0, 9.0), -90.0.degrees, 180.0.degrees)
+
+        val SHORT_POSE_TWO = Pose(Vector2(-15.0 , 18.0), 0.0.degrees, 180.0.degrees)
+
     }
 
     override fun toString(): String {
