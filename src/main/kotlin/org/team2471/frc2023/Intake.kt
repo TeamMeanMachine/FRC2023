@@ -1,10 +1,8 @@
 package org.team2471.frc2023
 
-import edu.wpi.first.math.filter.Debouncer
 import edu.wpi.first.math.filter.LinearFilter
 import edu.wpi.first.networktables.NetworkTableInstance
 import edu.wpi.first.wpilibj.AnalogInput
-import edu.wpi.first.wpilibj.DigitalInput
 import edu.wpi.first.wpilibj.DriverStation
 //import io.github.pseudoresonance.pixy2api.Pixy2
 //import io.github.pseudoresonance.pixy2api.Pixy2CCC
@@ -64,11 +62,13 @@ object Intake : Subsystem("Intake") {
     val wristTicksEntry = table.getEntry("Wrist Ticks")
     val pivotTicksEntry = table.getEntry("Pivot Ticks")
     val wristMotorAngleEntry = table.getEntry("Wrist Motor Angle")
+    val wristEncoderAngleEntry = table.getEntry("Wrist Encoder Angle")
+    val wristEncoderRawAngleEntry = table.getEntry("Wrist Encoder Raw Angle")
 
     val wristAngle: Angle
         get() {
 //            return wristMotor.position.degrees
-            if (isCompBot) {
+//            if (isCompBot) {
                 val wristAng = wristMotor.position.degrees
                 if ((wristAng - prevWristAngle).asDegrees.absoluteValue > 15.0 && (wristAng.asDegrees + 89.0).absoluteValue < 1.0) {
                     println("Difference from wristAngle and prevAngle > 15. $wristAng")
@@ -76,10 +76,26 @@ object Intake : Subsystem("Intake") {
                 } else {
                     return wristMotor.position.degrees
                 }
+//            } else {
+//                val wristEncoderAngle = (wristSensor.value.degrees - wristTicksOffsetEntry.getDouble(1829.0).degrees) * 90.0 / 1054.0
+//
+//                return wristEncoderAngle + Arm.elbowAngle
+//            }
+        }
+    val wristEncoderAngle: Angle
+        get() {
+            if (!isCompBot) {
+                return wristEncoderRawAngle + Arm.elbowAngle
             } else {
-                val wristEncoderAngle = (wristSensor.value.degrees - wristTicksOffsetEntry.getDouble(1829.0).degrees) * 90.0 / 1054.0
-
-                return wristEncoderAngle + Arm.elbowAngle
+                return -90.0.degrees
+            }
+        }
+    val wristEncoderRawAngle: Angle
+        get() {
+            if (!isCompBot) {
+                return (wristSensor.value.degrees - wristTicksOffsetEntry.getDouble(1829.0).degrees) * 90.0 / 1054.0
+            } else {
+                return -90.0.degrees
             }
         }
 
@@ -109,7 +125,7 @@ object Intake : Subsystem("Intake") {
     }
 
     val pivotAnalogAngle: Angle
-        get() = ((pivotSensor.value - if (isCompBot) 514.0 else 1510.0).degrees / 4096.0 * 360.0).wrap() //third arm previous ticks: 2116.0
+        get() = ((pivotSensor.value - if (isCompBot) 514.0 else 2897.0).degrees / 4096.0 * 360.0).wrap() //third arm previous ticks: 2116.0
     var pivotOffset: Angle = 0.0.degrees
 
     val pivotAngle: Angle
@@ -196,7 +212,7 @@ object Intake : Subsystem("Intake") {
         intakeMotor.restoreFactoryDefaults() //intake bad
         wristMotor.config(20) {
             feedbackCoefficient = 261.0 / 1273.0 * 198.0 / 360.0  //last one is fudge factor
-            brakeMode()
+            coastMode()
             pid {
                 p(0.00014) //00002
             }
@@ -231,7 +247,7 @@ object Intake : Subsystem("Intake") {
         pivotCurve.storeValue(179.0, 0.0)
         pivotCurve.storeValue(185.0, 0.0)
 
-        wristMotor.setRawOffset(if (isCompBot) -90.0 else wristAngle.asDegrees)
+//        wristMotor.setRawOffset(if (isCompBot) -90.0 else wristEncoderAngle.asDegrees)
         //wristSetpoint = wristAngle
         wristMotor.setRawOffset(-90.0)
         wristSetpoint = wristMotor.position.degrees
@@ -263,6 +279,9 @@ object Intake : Subsystem("Intake") {
                 wristTicksEntry.setDouble(wristTicks.toDouble())
                 pivotTicksEntry.setDouble(pivotTicks.toDouble())
                 wristMotorAngleEntry.setDouble(wristMotor.position)
+                wristEncoderAngleEntry.setDouble(wristEncoderAngle.asDegrees)
+                wristEncoderRawAngleEntry.setDouble(wristEncoderRawAngle.asDegrees)
+
                 if (FieldManager.homeField) {
                     pivotSetpointEntry.setDouble(pivotSetpoint.asDegrees)
                     pivotSensorEntry.setInteger(pivotSensor.value.toLong())

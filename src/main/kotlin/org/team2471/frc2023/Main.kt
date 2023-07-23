@@ -111,7 +111,7 @@ object Robot : MeanlibRobot() {
 //        Arm.feedForwardTest()
 
 //        Intake.intakeTest()
-//        Drive.setAngleOffsets()
+        Drive.setAngleOffsets()
     }
 
 

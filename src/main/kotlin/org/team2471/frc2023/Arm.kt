@@ -283,7 +283,7 @@ object Arm : Subsystem("Arm") {
         elbowMotor.restoreFactoryDefaults()
         shoulderMotor.config(20) {
             feedbackCoefficient = 360.0 / 42.0 / 165.0 //184.0  // ticks / degrees / gear ratio
-            brakeMode()
+            coastMode()
             inverted(false)
             pid {
                 p(0.000002)  //0.0000018
@@ -294,7 +294,7 @@ object Arm : Subsystem("Arm") {
         }
         shoulderFollowerMotor.config(20) {
             feedbackCoefficient = 360.0 / 42.0 / 165.0  // ticks / degrees / gear ratio
-            brakeMode()
+            coastMode()
             inverted(false)
             pid {
                 p(0.000002)
@@ -360,7 +360,6 @@ object Arm : Subsystem("Arm") {
 
                 if (!isCompBot) {
                     elbowMotor.setRawOffset(elbowAngle.asDegrees)
-
                 }
 
                 elbowAngleCheck.setBoolean(elbowAngle.asDegrees.absoluteValue < 10)
@@ -553,4 +552,6 @@ object Arm : Subsystem("Arm") {
         }
         animateThroughPoses(Pair(0.5, Pose.POINT_TO_TAG_POSE), Pair(2.0, Pose.BACK_DRIVE_POSE))
     }
+
+
 }

@@ -21,6 +21,7 @@ object OI : Subsystem("OI") {
     private val deadBandOperator = 0.1
 
     var controlledBy = PERSONINCONTROL.NONE
+    var kidMode = false
 
     private val driveTranslationX: Double
         get() = (if (FieldManager.isRedAlliance) 1.0 else -1.0) * driverController.leftThumbstickX.deadband(deadBandDriver).squareWithSign()
@@ -66,11 +67,19 @@ object OI : Subsystem("OI") {
         driverController::start.whenTrue { Drive.calibrateRobotPosition() }
 //        driverController::b.whenTrue { Drive.dynamicGoToFeeder()}
         driverController::x.whenTrue { Drive.xPose() }
+
+
         driverController::b.whenTrue {
-            quickSpit()
+            safeAnimationCheck(PERSONINCONTROL.DRIVER) {
+                quickSpit()
+            }
         }
         driverController::a.whenTrue {
-            backNod()
+            safeAnimationCheck(PERSONINCONTROL.DRIVER) {
+                if (kidMode) {
+                    backNod()
+                }
+            }
         }
         driverController::leftBumper.whenTrue {
             if (!Drive.demoMode) {
@@ -81,7 +90,11 @@ object OI : Subsystem("OI") {
         }
         ({driveRightTrigger > 0.1}).whenTrue { //score testing time
             safeAnimationCheck(PERSONINCONTROL.DRIVER){
-                scoreObject()
+                if (kidMode) {
+                    superQuickSpit()
+                } else {
+                    scoreObject()
+                }
             }
         }
         ({driveLeftTrigger > 0.1}).whenTrue {
@@ -89,7 +102,9 @@ object OI : Subsystem("OI") {
                 flip()
             }
         }
-
+        driverController::rightBumper.whenTrue {
+            kidMode = Drive.demoMode && !kidMode
+        }
         operatorController::back.whenTrue { Arm.resetShoulderZero()}
         operatorController::start.whenTrue {
             safeAnimationCheck(PERSONINCONTROL.OPERATOR) {
@@ -98,12 +113,18 @@ object OI : Subsystem("OI") {
         }
         operatorController::leftBumper.whenTrue {
             safeAnimationCheck(PERSONINCONTROL.OPERATOR) {
-                backScoreToward()
+                if (kidMode) {
+                    raiseArmFront()
+                } else {
+                    backScoreToward()
+                }
             }
         }
         operatorController::rightBumper.whenTrue {
             safeAnimationCheck(PERSONINCONTROL.OPERATOR) {
-                backScoreAway()
+                if (!kidMode) {
+                    backScoreAway()
+                }
             }
         }
         operatorController::x.whenTrue {
@@ -130,19 +151,21 @@ object OI : Subsystem("OI") {
             AprilTag.resetCameras()
         }
         operatorController::b.whenTrue {
-            Arm.pointToTag()
+            if (kidMode) {
+                Arm.pointToTag()
+            }
         }
-        operatorController::a.whenTrue {
-            animateThroughPoses(Pose.SHORT_POSE_ONE, Pose.SHORT_POSE_TWO)
-        }
-        ({ driverController.dPad == Controller.Direction.DOWN }).whenTrue {
-            Intake.pivotSetpoint -= 1.0.degrees
-            println("changing pivot setpoint. setpoint: ${Intake.pivotSetpoint}  angle: ${Intake.pivotAngle}")
-        }
-        ({ driverController.dPad == Controller.Direction.UP}).whenTrue {
-            Intake.pivotSetpoint += 1.0.degrees
-            println("changing pivot setpoint. setpoint: ${Intake.pivotSetpoint}  angle: ${Intake.pivotAngle}")
-        }
+//        operatorController::a.whenTrue {
+//            animateThroughPoses(Pose.SHORT_POSE_ONE, Pose.SHORT_POSE_TWO)
+//        }
+//        ({ driverController.dPad == Controller.Direction.DOWN }).whenTrue {
+//            Intake.pivotSetpoint -= 1.0.degrees
+//            println("changing pivot setpoint. setpoint: ${Intake.pivotSetpoint}  angle: ${Intake.pivotAngle}")
+//        }
+//        ({ driverController.dPad == Controller.Direction.UP}).whenTrue {
+//            Intake.pivotSetpoint += 1.0.degrees
+//            println("changing pivot setpoint. setpoint: ${Intake.pivotSetpoint}  angle: ${Intake.pivotAngle}")
+//        }
     }
 
     override fun preEnable() {

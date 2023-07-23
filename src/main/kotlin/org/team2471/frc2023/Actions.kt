@@ -633,3 +633,18 @@ suspend fun backNod() =use(Arm, Intake) {
         )
     }
 }
+
+suspend fun superQuickSpit() = use(Intake) {
+    Intake.intakeMotor.setPercentOutput(-1.0)
+    delay(0.5)
+    Intake.intakeMotor.setPercentOutput(0.0)
+}
+suspend fun raiseArmFront() = use(Arm, Intake) {
+    if (Intake.wristAngle < -75.0.degrees || Arm.wristPosition.x < -10.0) {
+        flip(true)
+    }
+    animateThroughPoses(
+        Pair(0.0, Pose.FRONT_ARM_RAISE_MID),
+        Pair(0.0, Pose.FRONT_ARM_RAISE),
+    )
+}
