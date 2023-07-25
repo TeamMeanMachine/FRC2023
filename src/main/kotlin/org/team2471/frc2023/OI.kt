@@ -70,15 +70,11 @@ object OI : Subsystem("OI") {
 
 
         driverController::b.whenTrue {
-            safeAnimationCheck(PERSONINCONTROL.DRIVER) {
-                quickSpit()
-            }
+            quickSpit()
         }
         driverController::a.whenTrue {
-            safeAnimationCheck(PERSONINCONTROL.DRIVER) {
-                if (kidMode) {
-                    backNod()
-                }
+            if (kidMode) {
+                backNod()
             }
         }
         driverController::leftBumper.whenTrue {
@@ -102,9 +98,9 @@ object OI : Subsystem("OI") {
                 flip()
             }
         }
-        driverController::rightBumper.whenTrue {
-            kidMode = Drive.demoMode && !kidMode
-        }
+//        driverController::rightBumper.whenTrue {
+//            kidMode = Drive.demoMode && !kidMode
+//        }
         operatorController::back.whenTrue { Arm.resetShoulderZero()}
         operatorController::start.whenTrue {
             safeAnimationCheck(PERSONINCONTROL.OPERATOR) {

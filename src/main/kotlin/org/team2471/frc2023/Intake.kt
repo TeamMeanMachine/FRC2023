@@ -93,7 +93,7 @@ object Intake : Subsystem("Intake") {
     val wristEncoderRawAngle: Angle
         get() {
             if (!isCompBot) {
-                return (wristSensor.value.degrees - wristTicksOffsetEntry.getDouble(1829.0).degrees) * 90.0 / 1054.0
+                return (wristSensor.value.degrees - wristTicksOffsetEntry.getDouble(1695.0).degrees) * 90.0 / 1054.0
             } else {
                 return -90.0.degrees
             }
@@ -247,9 +247,9 @@ object Intake : Subsystem("Intake") {
         pivotCurve.storeValue(179.0, 0.0)
         pivotCurve.storeValue(185.0, 0.0)
 
-//        wristMotor.setRawOffset(if (isCompBot) -90.0 else wristEncoderAngle.asDegrees)
+        wristMotor.setRawOffset(if (isCompBot) -90.0 else wristEncoderAngle.asDegrees)
         //wristSetpoint = wristAngle
-        wristMotor.setRawOffset(-90.0)
+//        wristMotor.setRawOffset(-90.0)
         wristSetpoint = wristMotor.position.degrees
         GlobalScope.launch(MeanlibDispatcher) {
             var tempPivot: Angle
