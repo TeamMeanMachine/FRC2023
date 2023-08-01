@@ -403,7 +403,7 @@ object Arm : Subsystem("Arm") {
                     OI.operatorController.leftThumbstickX.deadband(0.2),
                     -OI.operatorController.leftThumbstickY.deadband(0.2)
                 )
-                move *= 10.0 * 0.02   // d = r * t  where rate is inches per second and time is 1/50 second
+                move *= 4.0 * 0.02   // d = r * t  where rate is inches per second and time is 1/50 second
 
                 wristPosOffset += move
 

@@ -67,8 +67,6 @@ object OI : Subsystem("OI") {
         driverController::start.whenTrue { Drive.calibrateRobotPosition() }
 //        driverController::b.whenTrue { Drive.dynamicGoToFeeder()}
         driverController::x.whenTrue { Drive.xPose() }
-
-
         driverController::b.whenTrue {
             quickSpit()
         }
