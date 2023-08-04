@@ -212,7 +212,7 @@ object Arm : Subsystem("Arm") {
 
     val REACH_LIMIT: Double
 //        CHanged because of ropes. need to change back if cables come
-        get() = if (Drive.demoMode) demoReachLimitEntry.getDouble(39.0) else 39.0
+        get() = if (Drive.demoMode) demoReachLimitEntry.getDouble(45.0) else 45.0
     
     const val HEIGHT_LIMIT = 50.0
     const val FLOOR_HEIGHT = -5.0

@@ -125,6 +125,10 @@ object OI : Subsystem("OI") {
             resetArmVars()
             Arm.wristFrontOffset = Vector2(0.0, 0.0)
             Arm.wristBackOffset = Vector2(0.0, 0.0)
+            if (!Robot.isCompBot){
+                Intake.wristMotor.setRawOffset(Intake.wristEncoderAngle.asDegrees)
+            }
+
 //            Arm.wristFrontOffset = Vector2(0.0, 0.0)
 //            Arm.wristBackOffset = Vector2(0.0, 0.0)
 //            Intake.wristOffset = 0.0.degrees

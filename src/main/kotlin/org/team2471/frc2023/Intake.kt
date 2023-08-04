@@ -71,10 +71,10 @@ object Intake : Subsystem("Intake") {
 //            if (isCompBot) {
                 val wristAng = wristMotor.position.degrees
                 if ((wristAng - prevWristAngle).asDegrees.absoluteValue > 15.0 && (wristAng.asDegrees + 89.0).absoluteValue < 1.0) {
-                    println("Difference from wristAngle and prevAngle > 15. $wristAng")
+                    println("Difference from wristAngle and prevAngle > 15. wristAngle: $wristAng prevWristAngle: $prevWristAngle")
                     return prevWristAngle
                 } else {
-                    return wristMotor.position.degrees
+                    return wristAng
                 }
 //            } else {
 //                val wristEncoderAngle = (wristSensor.value.degrees - wristTicksOffsetEntry.getDouble(1829.0).degrees) * 90.0 / 1054.0

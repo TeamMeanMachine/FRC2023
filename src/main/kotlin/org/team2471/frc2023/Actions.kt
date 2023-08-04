@@ -235,7 +235,7 @@ suspend fun backScoreAway(isCone: Boolean = NodeDeckHub.isCone, pieceNumber: Int
         if (isCone) {
             when (FieldManager.nodeList[pieceNumber]?.level) {
                 Level.HIGH -> {
-                    animateThroughPoses(
+                    animateThroughPoses(!Robot.isCompBot,
                         Pair(0.8, Pose.BACK_HIGH_SCORE_CONE_AWAY_MID),
                         Pair(0.4, Pose.BACK_HIGH_SCORE_CONE_AWAY)
                     )
