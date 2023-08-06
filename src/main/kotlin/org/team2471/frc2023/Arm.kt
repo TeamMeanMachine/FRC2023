@@ -64,6 +64,7 @@ object Arm : Subsystem("Arm") {
     val elbowTicksOffsetEntry = table.getEntry("Elbow Ticks Offset")
     val shoulderTicksOffsetEntry = table.getEntry("Shoulder Ticks Offset")
     val demoReachLimitEntry = table.getEntry("Demo Reach Limit")
+    val elbowMotorAngleEntry = table.getEntry("Elbow Motor Angle")
 
 
     val driverInControlEntry = table.getEntry("Driver in Control")
@@ -118,7 +119,12 @@ object Arm : Subsystem("Arm") {
         get() = if (isCompBot) {
             (-elbowEncoder.value.degrees + elbowTicksOffsetEntry.getDouble(2410.0).degrees) * 90.0 / 1054.0
         } else {
-            (-elbowEncoder.value.degrees + elbowTicksOffsetEntry.getDouble(1912.0).degrees) * 90.0 / 1054.0 //1912
+
+            val encoderAngle = (elbowEncoder.value.degrees - elbowTicksOffsetEntry.getDouble(1773.0).degrees) * 90.0 / 1054.0
+
+
+            -(encoderAngle - shoulderAngle)
+//            (-elbowEncoder.value.degrees + elbowTicksOffsetEntry.getDouble(1912.0).degrees) * 90.0 / 1054.0 //1912
         }
 
     var elbowOffset = 0.0.degrees
@@ -322,13 +328,28 @@ object Arm : Subsystem("Arm") {
             shoulderCurve.storeValue(65.0, -0.13)
             shoulderCurve.storeValue(70.0, -0.16)
 
-            elbowCurve.storeValue(-110.0, -0.21)
-            elbowCurve.storeValue(-90.0, -0.18)
-            elbowCurve.storeValue(-40.0, -0.13)
-            elbowCurve.storeValue(0.0, 0.0)
-            elbowCurve.storeValue(40.0, 0.18)
-            elbowCurve.storeValue(90.0, 0.19)
-            elbowCurve.storeValue(110.0, 0.23)
+
+            if (isCompBot) {
+                elbowCurve.storeValue(-110.0, -0.21)
+                elbowCurve.storeValue(-90.0, -0.18)
+                elbowCurve.storeValue(-40.0, -0.13)
+                elbowCurve.storeValue(0.0, 0.0)
+                elbowCurve.storeValue(40.0, 0.18)
+                elbowCurve.storeValue(90.0, 0.19)
+                elbowCurve.storeValue(110.0, 0.23)
+            } else {
+                elbowCurve.storeValue(-110.0, -0.12)
+                elbowCurve.storeValue(-90.0, -0.115)
+                elbowCurve.storeValue(-40.0, -0.074)
+                elbowCurve.storeValue(0.0, 0.0)
+                elbowCurve.storeValue(40.0, 0.082)
+                elbowCurve.storeValue(90.0, 0.1)
+                elbowCurve.storeValue(110.0, 0.11)
+            }
+
+
+
+
 
             elbowTicksOffsetEntry.setDouble(elbowEncoder.value.toDouble())
 
@@ -341,6 +362,11 @@ object Arm : Subsystem("Arm") {
             //println("shoulderFollower: ${shoulderFollowerEntry.getDouble(0.0)}")
             periodic {
 
+                if (isCompBot) {
+                    elbowMotor.setRawOffset(elbowAngle.asDegrees)
+
+                }
+
                 elbowAngleCheck.setBoolean(elbowAngle.asDegrees.absoluteValue < 10)
                 shoulderAngleCheck.setBoolean(shoulderAngle.asDegrees.absoluteValue < 10)
                 wristFrontOffsetEntry.setDoubleArray(arrayOf(wristFrontOffset.x, wristFrontOffset.y))
@@ -351,6 +377,7 @@ object Arm : Subsystem("Arm") {
 
                 shoulderEntry.setDouble(shoulderAngle.asDegrees)
                 elbowEntry.setDouble(elbowAngle.asDegrees)
+                elbowMotorAngleEntry.setDouble(elbowMotor.position)
 
 
 //                var pose3d = Pose3d(0.0,0.0,0.0, Rotation3d(0.0, 0.0, shoulderAngle.asDegrees))
@@ -506,9 +533,13 @@ object Arm : Subsystem("Arm") {
             }
 
             val tags = AprilTag.getAimingTarget()
-            if (tags.first != null) {
-                for (tag in tags.first!!) {
-                    goalY = linearMap(-1.0, 14.0, 0.0, 35.0, tag.pitch.coerceIn(-1.0, 14.0))
+            if (tags != null) {
+                if (tags.first != null) {
+                    if (tags != null) {
+                        for (tag in tags.first!!) {
+                            goalY = linearMap(-1.0, 14.0, 0.0, 35.0, tag.pitch.coerceIn(-1.0, 14.0))
+                        }
+                    }
                 }
             }
             aimYOffset = Vector2(0.0, pointingSlew.calculate(goalY))

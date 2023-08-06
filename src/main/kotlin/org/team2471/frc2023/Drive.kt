@@ -378,22 +378,24 @@ object Drive : Subsystem("Drive"), SwerveDrive {
 //                    print(ex.message)
 //                    tag = null
 //                }
-                if (tags.first != null && tags.second != null) {
-                    for (tag in tags.first!!) {
-                        val tagYaw = tag.yaw.degrees + if (tags.second == AprilTag.camBack) -23.0.degrees else 23.0.degrees
+                if (tags != null) {
+                    if (tags.first != null && tags.second != null) {
+                        for (tag in tags.first!!) {
+                            val tagYaw = tag.yaw.degrees + if (tags.second == AprilTag.camBack) -23.0.degrees else 23.0.degrees
 
-                        val aimTurn = tagYaw / 35.0
+                            val aimTurn = tagYaw / 35.0
 
-                        println("turn: ${aimTurn.asDegrees}  heading: ${heading.asDegrees}   tagYaw: ${tagYaw}   camera ${tags.second?.name}")
+                            println("turn: ${aimTurn.asDegrees}  heading: ${heading.asDegrees}   tagYaw: ${tagYaw}   camera ${tags.second?.name}")
 
-                        drive(
-                            OI.driveTranslation * maxTranslation,
-                            aimTurn.asDegrees,
-                            true
-                        )
+                            drive(
+                                OI.driveTranslation * maxTranslation,
+                                aimTurn.asDegrees,
+                                true
+                            )
+                        }
+                    } else {
+                        println("Tag is null")
                     }
-                } else {
-                    println("Tag is null")
                 }
             } else {
                 drive(

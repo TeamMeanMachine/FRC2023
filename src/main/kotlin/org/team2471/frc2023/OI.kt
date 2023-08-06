@@ -132,6 +132,14 @@ object OI : Subsystem("OI") {
         operatorController::b.whenTrue {
             Arm.pointToTag()
         }
+//        ({ driverController.dPad == Controller.Direction.DOWN }).whenTrue {
+//            Arm.elbowSetpoint -= 1.0.degrees
+//            println("changing elbow setpoint. setpoint: ${Arm.elbowSetpoint}  angle: ${Arm.elbowAngle}")
+//        }
+//        ({ driverController.dPad == Controller.Direction.UP}).whenTrue {
+//            Arm.elbowSetpoint += 1.0.degrees
+//            println("changing elbow setpoint. setpoint: ${Arm.elbowSetpoint}  angle: ${Arm.elbowAngle}")
+//        }
     }
 
     override fun preEnable() {

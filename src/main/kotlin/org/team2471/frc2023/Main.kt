@@ -105,7 +105,12 @@ object Robot : MeanlibRobot() {
 
     override suspend fun test()  {
         println("test mode begin. Hi.")
-        Intake.intakeTest()
+
+
+
+//        Arm.feedForwardTest()
+
+//        Intake.intakeTest()
 //        Drive.setAngleOffsets()
     }
 

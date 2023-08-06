@@ -93,7 +93,7 @@ object AprilTag {
     //                    }
                     aprilTagStartupCheckEntry.setBoolean(camFront != null && camBack != null && frontPoseEstimator != null && backPoseEstimator != null)
 
-    //                frontPoseEstimator.referencePose = Pose3d(Pose2d(PoseEstimator.currentPose.toWPIField(), Rotation2d(Drive.heading.asRadians)))
+    //                frontPoseEstimator.referencePose = Pose3d(Pose2d(PoseEstimator.current Pose.toWPIField(), Rotation2d(Drive.heading.asRadians)))
     //                backPoseEstimator.referencePose = Pose3d(Pose2d(PoseEstimator.currentPose.toWPIField(), Rotation2d(Drive.heading.asRadians)))
                     try {
                         //val frontCamSelected = useFrontCam()
@@ -316,7 +316,7 @@ object AprilTag {
             null
         }
     }
-    fun getAimingTarget(): Pair<List<PhotonTrackedTarget>?, PhotonCamera?> {
+    fun getAimingTarget(): Pair<List<PhotonTrackedTarget>?, PhotonCamera?>? {
         try {
             var frontTags = if (camFront?.latestResult?.hasTargets() == true) camFront?.latestResult?.targets?.filter { it.fiducialId == 8 } else null
             var backTags = if (camBack?.latestResult?.hasTargets() == true) camBack?.latestResult?.targets?.filter { it.fiducialId == 8 } else null
@@ -332,6 +332,22 @@ object AprilTag {
             println(ex.message)
             return Pair(null, null)
         }
+    }
+// Takes a single camera and passes it into getTags for easy use
+    fun getTags(camera: PhotonCamera?, vararg ids: Int): ArrayList<Pair<PhotonTrackedTarget, PhotonCamera>>? {
+        return getTags(listOf(camera), *ids)
+    }
+//  Returns a list of tags and what cameras they came from that meet the camera and id conditions
+    fun getTags(cameras: List<PhotonCamera?> = listOf(camFront, camBack), vararg ids: Int): ArrayList<Pair<PhotonTrackedTarget, PhotonCamera>>? {
+        var results = ArrayList<Pair<PhotonTrackedTarget, PhotonCamera>>()
+        for (camera in cameras) {
+            camera?.latestResult?.targets?.filter{
+                it.fiducialId in ids
+            }?.forEach {
+                results.add(Pair(it, camera))
+            }
+        }
+        return if (results.size != 0) null else results
     }
 
 //    fun getTarget(fiducialId: Int) :Pair<PhotonTrackedTarget, PhotonCamera>? {
