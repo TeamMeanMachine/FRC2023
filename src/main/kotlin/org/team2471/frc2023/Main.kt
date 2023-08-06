@@ -4,9 +4,15 @@ package org.team2471.frc2023
 
 import FRC____.BuildConfig
 import edu.wpi.first.wpilibj.DriverStation
+import edu.wpi.first.wpilibj.PowerDistribution
 import edu.wpi.first.wpilibj.RobotBase
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard
 import kotlinx.coroutines.DelicateCoroutinesApi
+import org.littletonrobotics.junction.LogFileUtil
+import org.littletonrobotics.junction.Logger
+import org.littletonrobotics.junction.networktables.NT4Publisher
+import org.littletonrobotics.junction.wpilog.WPILOGReader
+import org.littletonrobotics.junction.wpilog.WPILOGWriter
 import org.team2471.frc.lib.framework.MeanlibRobot
 import org.team2471.frc.lib.motion.following.demoMode
 import org.team2471.frc.lib.units.degrees
@@ -22,6 +28,26 @@ object Robot : MeanlibRobot() {
     var lastMeasureTime = startMeasureTime
     var isCompBot = true
     init {
+        val logger = Logger.getInstance()
+        logger.recordMetadata("ProjectName", "MyProject") // Set a metadata value
+
+        if (isReal()/*true*/) {
+            logger.addDataReceiver(WPILOGWriter("/home")) // Log to a USB stick
+            logger.addDataReceiver(NT4Publisher()) // Publish data to NetworkTables
+            PowerDistribution(1, PowerDistribution.ModuleType.kRev) // Enables power distribution logging
+        } else {
+            setUseTiming(false) // Run as fast as possible
+            val logPath = LogFileUtil.findReplayLog() // Pull the replay log from AdvantageScope (or prompt the user)
+            logger.setReplaySource(WPILOGReader(logPath)) // Read replay log
+            logger.addDataReceiver(WPILOGWriter(LogFileUtil.addPathSuffix(logPath, "_sim"))) // Save outputs to a new log
+        }
+
+        logger.disableDeterministicTimestamps() // See "Deterministic Timestamps" in the "Understanding Data Flow" page
+
+        logger.disableDeterministicTimestamps() // See "Deterministic Timestamps" in the "Understanding Data Flow" page
+        logger.start() // Start logging! No more data receivers, replay sources, or metadata values may be added.
+
+
         val networkInterfaces =  NetworkInterface.getNetworkInterfaces()
         println("retrieving network interfaces")
         for (iFace in networkInterfaces) {
