@@ -39,7 +39,7 @@ data class Pose(val wristPosition: Vector2, val wristAngle: Angle, val pivotAngl
         val BACK_HIGH_SCORE_CONE_TOWARD_MID = if (Robot.isCompBot) Pose(Vector2(-28.0, 48.0), -90.0.degrees, 0.0.degrees) else Pose(Vector2(-28.0, 40.0), -90.0.degrees, 0.0.degrees)
         val BACK_HIGH_SCORE_CONE_TOWARD = if (Robot.isCompBot) Pose(Vector2(-38.5, 42.5), -90.0.degrees, 0.0.degrees) else Pose(Vector2(-42.5, 37.0), -90.0.degrees, 0.0.degrees)
         val BACK_HIGH_SCORE_CONE_AWAY_MID = if (Robot.isCompBot) Pose(Vector2(-29.0, 45.0),-180.0.degrees, -180.0.degrees) else Pose(Vector2(-29.0, 41.0),-180.0.degrees, -180.0.degrees)
-        val BACK_HIGH_SCORE_CONE_AWAY = if(Robot.isCompBot) Pose(Vector2(-40.0, 39.0), -180.0.degrees, -180.0.degrees) else Pose(Vector2(-45.0, 38.0), -180.0.degrees, -180.0.degrees)
+        val BACK_HIGH_SCORE_CONE_AWAY = if(Robot.isCompBot) Pose(Vector2(-40.0, 39.0), -180.0.degrees, -180.0.degrees) else Pose(Vector2(-45.0, 37.25), -180.0.degrees, -180.0.degrees)
         val BACK_HIGH_SCORE_CUBE_MID = Pose(Vector2(-18.0, 37.5), -90.0.degrees, 0.0.degrees)
         val BACK_HIGH_SCORE_CUBE = Pose(Vector2(-32.25, 37.0), -90.0.degrees, 0.0.degrees)
 

@@ -64,6 +64,7 @@ object Intake : Subsystem("Intake") {
     val wristMotorAngleEntry = table.getEntry("Wrist Motor Angle")
     val wristEncoderAngleEntry = table.getEntry("Wrist Encoder Angle")
     val wristEncoderRawAngleEntry = table.getEntry("Wrist Encoder Raw Angle")
+    val pivotCurrentEntry = table.getEntry("Pivot Current")
 
     val wristAngle: Angle
         get() {
@@ -287,6 +288,7 @@ object Intake : Subsystem("Intake") {
                     pivotSensorEntry.setInteger(pivotSensor.value.toLong())
                     pErrorEntry.setDouble(pivotSetpoint.asDegrees - pivotAngle.asDegrees)
                     pFeedEntry.setDouble(pFeedForward)
+                    pivotCurrentEntry.setDouble(pivotMotor.current)
                 }
 //                val coneOrientation = coneUp()
 //                coneFacingUp = coneDebouncer.calculate(coneOrientation == true)

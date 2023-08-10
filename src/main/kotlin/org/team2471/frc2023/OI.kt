@@ -157,12 +157,14 @@ object OI : Subsystem("OI") {
 //            animateThroughPoses(Pose.SHORT_POSE_ONE, Pose.SHORT_POSE_TWO)
 //        }
 //        ({ driverController.dPad == Controller.Direction.DOWN }).whenTrue {
-//            Intake.pivotSetpoint -= 1.0.degrees
-//            println("changing pivot setpoint. setpoint: ${Intake.pivotSetpoint}  angle: ${Intake.pivotAngle}")
+//            Arm.shoulderSetpoint = 0.0.degrees
+//            Arm.elbowSetpoint -= 5.0.degrees
+//            println("changing pivot setpoint. setpoint: ${Arm.elbowSetpoint}  angle: ${Arm.elbowAngle}")
 //        }
 //        ({ driverController.dPad == Controller.Direction.UP}).whenTrue {
-//            Intake.pivotSetpoint += 1.0.degrees
-//            println("changing pivot setpoint. setpoint: ${Intake.pivotSetpoint}  angle: ${Intake.pivotAngle}")
+//            Arm.shoulderSetpoint = 0.0.degrees
+//            Arm.elbowSetpoint += 5.0.degrees
+//            println("changing pivot setpoint. setpoint: ${Arm.elbowSetpoint}  angle: ${Arm.elbowMotor.position}")
 //        }
     }
 

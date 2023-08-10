@@ -372,8 +372,8 @@ suspend fun scoreObject(pieceNumber: Int = NodeDeckHub.selectedNode.toInt()) = u
                 when (nodeLevel) {
                     Level.HIGH -> {
                         println("Cone Away High")
-                        midPose = Pose.current + Pose(Vector2(5.0, -7.0), 50.0.degrees, 0.0.degrees)
-                        animateToPose(midPose, 0.3)
+                        midPose = Pose.current + Pose(Vector2(7.0, -7.0), 50.0.degrees, 0.0.degrees)
+                        animateToPose(midPose, 2.0)
                         Intake.intakeMotor.setPercentOutput(Intake.CONE_AWAY_SPIT)
                         if (!DriverStation.isAutonomous()) {
                             midPose += Pose(Vector2(6.5, 14.0), 0.0.degrees, 0.0.degrees)

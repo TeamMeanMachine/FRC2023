@@ -12,9 +12,10 @@ import org.team2471.frc2023.OI
 suspend fun Arm.feedForwardTest() = use(Arm) {
     var power = 0.0
     periodic {
+        shoulderSetpoint = 0.0.degrees
         elbowMotor.setPercentOutput(power)
-        println("power: $power elbow: $elbowAngle")
-        power += 0.001
+        println("power: $power elbow: ${elbowMotor.position}")
+        power -= 0.001
     }
 }
 

@@ -307,7 +307,7 @@ object Arm : Subsystem("Arm") {
             feedbackCoefficient = 360.0 / 42.0 / 75.0
             brakeMode()
             pid {
-                p(0.000022) //0.0000055
+                p(0.000022) //0.000022
                 d(0.000004)
             }
             currentLimit(0, 60, 0)
