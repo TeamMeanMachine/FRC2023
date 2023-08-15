@@ -159,12 +159,12 @@ object OI : Subsystem("OI") {
 //        ({ driverController.dPad == Controller.Direction.DOWN }).whenTrue {
 //            Arm.shoulderSetpoint = 0.0.degrees
 //            Arm.elbowSetpoint -= 5.0.degrees
-//            println("changing pivot setpoint. setpoint: ${Arm.elbowSetpoint}  angle: ${Arm.elbowAngle}")
+//            println("changing pivot setpoint. setpoint: ${Arm.elbowSetpoint}  angle: ${Arm.elbowAngle} current: ${Arm.elbowMotor.current}")
 //        }
 //        ({ driverController.dPad == Controller.Direction.UP}).whenTrue {
 //            Arm.shoulderSetpoint = 0.0.degrees
 //            Arm.elbowSetpoint += 5.0.degrees
-//            println("changing pivot setpoint. setpoint: ${Arm.elbowSetpoint}  angle: ${Arm.elbowMotor.position}")
+//            println("changing pivot setpoint. setpoint: ${Arm.elbowSetpoint}  angle: ${Arm.elbowAngle} current: ${Arm.elbowMotor.current}")
 //        }
     }
 

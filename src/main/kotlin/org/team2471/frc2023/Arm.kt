@@ -310,7 +310,7 @@ object Arm : Subsystem("Arm") {
                 p(0.000022) //0.000022
                 d(0.000004)
             }
-            currentLimit(0, 60, 0)
+            currentLimit(40, 80, 1000)
             burnSettings()
         }
         elbowIsZeroed = false
@@ -373,6 +373,7 @@ object Arm : Subsystem("Arm") {
                 shoulderEntry.setDouble(shoulderAngle.asDegrees)
                 elbowEntry.setDouble(elbowAngle.asDegrees)
                 elbowMotorAngleEntry.setDouble(elbowMotor.position)
+                elbowMotorCurrentEntry.setDouble(elbowMotor.current)
 
 //                var pose3d = Pose3d(0.0,0.0,0.0, Rotation3d(0.0, 0.0, shoulderAngle.asDegrees))
 //                shoulderPose.setValue(pose3d)

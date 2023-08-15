@@ -14,7 +14,7 @@ suspend fun Arm.feedForwardTest() = use(Arm) {
     periodic {
         shoulderSetpoint = 0.0.degrees
         elbowMotor.setPercentOutput(power)
-        println("power: $power elbow: ${elbowMotor.position}")
+        println("power: $power elbow: ${elbowMotor.position} current ${elbowMotor.current}")
         power -= 0.001
     }
 }
