@@ -318,7 +318,10 @@ object AutoChooser {
             val testAutonomous = autonomi["Tests"]
             val path = testAutonomous?.get(testPath)
             if (path != null) {
+                println("Path isnt null")
                 Drive.driveAlongPath(path, true)
+            } else {
+                println("Path is null")
             }
         }
     }

@@ -73,7 +73,7 @@ object Intake : Subsystem("Intake") {
                 val wristAng = wristMotor.position.degrees
                 if ((wristAng - prevWristAngle).asDegrees.absoluteValue > 15.0 && (wristAng.asDegrees + 89.0).absoluteValue < 1.0) {
                     println("Difference from wristAngle and prevAngle > 15. wristAngle: $wristAng prevWristAngle: $prevWristAngle")
-                    return prevWristAngle
+                    return wristMotor.position.degrees
                 } else {
                     return wristAng
                 }
@@ -268,10 +268,10 @@ object Intake : Subsystem("Intake") {
 //            coneMinBlockY.setInteger(100)
             periodic {
                 if (!isCompBot) {
-                    /*if ((wristAngle.asDegrees - wristMotor.position).absoluteValue > 3) {
-                        println("resetting wrist motor offset to: ${wristAngle.asDegrees}  prev motor position: ${wristMotor.position}  ${wristMotor.analogAngle}")
-                        wristMotor.setRawOffset(wristAngle.asDegrees)
-                    }*/
+                    if ((wristAngle.asDegrees - wristMotor.position).absoluteValue > 10) {
+                        println("not resetting wrist motor offset to: ${wristAngle.asDegrees}  prev motor position: ${wristMotor.position}  ${wristMotor.analogAngle}!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+//                        wristMotor.setRawOffset(wristAngle.asDegrees)
+                    }
                 }
 
                 holdingObject = linearFilter.calculate(intakeMotor.current) > if (NodeDeckHub.isCone) DETECT_CONE else DETECT_CUBE
