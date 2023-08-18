@@ -347,7 +347,7 @@ suspend fun scoreObject(pieceNumber: Int = NodeDeckHub.selectedNode.toInt()) = u
                     Level.HIGH -> {
                         print("Cone Toward High")
                         midPose = Pose.current + Pose(Vector2(4.0, -2.5), 50.0.degrees, 0.0.degrees)
-                        animateToPose(midPose, 0.4,  true)
+                        animateAlongTrigger(midPose)
                         Intake.intakeMotor.setPercentOutput(Intake.CONE_TOWARD_SPIT)
                         midPose += Pose(Vector2(5.5, 8.0), 25.0.degrees, 0.0.degrees)
                         val midPose2 = midPose + Pose(Vector2(11.0, 10.0), -30.0.degrees, 0.0.degrees)
@@ -357,7 +357,7 @@ suspend fun scoreObject(pieceNumber: Int = NodeDeckHub.selectedNode.toInt()) = u
                     Level.MID -> {
                         println("Cone Toward Mid")
                         midPose = Pose.current + Pose(Vector2(5.0, -2.5), 50.0.degrees, 0.0.degrees)
-                        animateThroughPoses(true, Pair(0.3, midPose))
+                        animateAlongTrigger(midPose)
                         Intake.intakeMotor.setPercentOutput(Intake.CONE_TOWARD_SPIT)
                         animateToPose(midPose + Pose(Vector2(6.0, -2.0), 10.0.degrees, 0.0.degrees), 0.3)
                     }
@@ -373,7 +373,7 @@ suspend fun scoreObject(pieceNumber: Int = NodeDeckHub.selectedNode.toInt()) = u
                     Level.HIGH -> {
                         println("Cone Away High")
                         midPose = Pose.current + Pose(Vector2(7.0, -7.0), 50.0.degrees, 0.0.degrees)
-                        animateToPose(midPose, 2.0)
+                        animateAlongTrigger(midPose)
                         Intake.intakeMotor.setPercentOutput(Intake.CONE_AWAY_SPIT)
                         if (!DriverStation.isAutonomous()) {
                             midPose += Pose(Vector2(6.5, 14.0), 0.0.degrees, 0.0.degrees)
@@ -386,7 +386,7 @@ suspend fun scoreObject(pieceNumber: Int = NodeDeckHub.selectedNode.toInt()) = u
                     }
                     Level.MID -> {
                         midPose = Pose.current + Pose(Vector2(7.0, -6.5), 40.0.degrees, 0.0.degrees)
-                        animateToPose(midPose, 0.5)
+                        animateAlongTrigger(midPose)
                         Intake.intakeMotor.setPercentOutput(Intake.CONE_AWAY_SPIT)
                         animateToPose(midPose + Pose(Vector2(6.0, -2.0), 10.0.degrees, 0.0.degrees), 0.3)
                     }

@@ -283,7 +283,7 @@ object Arm : Subsystem("Arm") {
         elbowMotor.restoreFactoryDefaults()
         shoulderMotor.config(20) {
             feedbackCoefficient = 360.0 / 42.0 / 165.0 //184.0  // ticks / degrees / gear ratio
-            coastMode()
+            brakeMode()
             inverted(false)
             pid {
                 p(0.000002)  //0.0000018
@@ -294,7 +294,7 @@ object Arm : Subsystem("Arm") {
         }
         shoulderFollowerMotor.config(20) {
             feedbackCoefficient = 360.0 / 42.0 / 165.0  // ticks / degrees / gear ratio
-            coastMode()
+            brakeMode()
             inverted(false)
             pid {
                 p(0.000002)
@@ -305,7 +305,7 @@ object Arm : Subsystem("Arm") {
         }
         elbowMotor.config(20) {
             feedbackCoefficient = 360.0 / 42.0 / 75.0
-            brakeMode()
+            coastMode()
             pid {
                 p(0.000022) //0.000022
                 d(0.000004)

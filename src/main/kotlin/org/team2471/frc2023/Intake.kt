@@ -223,7 +223,7 @@ object Intake : Subsystem("Intake") {
         pivotMotor.config(20) {
             inverted(true)
             brakeMode()
-            currentLimit(30, 40, 1)
+            currentLimit(10, 20, 0)
         }
         intakeMotor.config { //intake bad
             brakeMode()

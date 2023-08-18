@@ -1,9 +1,11 @@
 package org.team2471.frc2023
 
+import edu.wpi.first.math.filter.SlewRateLimiter
 import edu.wpi.first.wpilibj.Timer
 import org.team2471.frc.lib.coroutines.periodic
 import org.team2471.frc.lib.framework.use
 import org.team2471.frc.lib.math.Vector2
+import org.team2471.frc.lib.math.linearMap
 import org.team2471.frc.lib.math.round
 import org.team2471.frc.lib.motion.following.demoSpeed
 import org.team2471.frc.lib.motion_profiling.MotionCurve
@@ -206,5 +208,36 @@ suspend fun animateThroughPoses(waituntilDone: Boolean = false, vararg poses: Pa
     }
     fun toString() {
 
+    }
+}
+suspend fun animateAlongTrigger(endPose: Pose, startPose: Pose = Pose.current) = use(Arm, Intake) {
+    println("inside animateAlongTrigger $startPose  to  $endPose")
+    val pathX = MotionCurve()
+    val pathY = MotionCurve()
+    val wristCurve = MotionCurve()
+    val pivotCurve = MotionCurve()
+
+    pathX.storeValue(0.0, startPose.wristPosition.x)
+    pathY.storeValue(0.0, startPose.wristPosition.y)
+    wristCurve.storeValue(0.0, startPose.wristAngle.asDegrees)
+    pivotCurve.storeValue(0.0, startPose.pivotAngle.asDegrees)
+
+    pathX.storeValue(1.0, endPose.wristPosition.x)
+    pathY.storeValue(1.0, endPose.wristPosition.y)
+    wristCurve.storeValue(1.0, endPose.wristAngle.asDegrees)
+    pivotCurve.storeValue(1.0, endPose.pivotAngle.asDegrees)
+
+    val slewRateLimiter = SlewRateLimiter(5.0 * Drive.demoSpeed, -5.0 * Drive.demoSpeed, 0.0)
+
+    periodic {
+        if (OI.driveRightTrigger > 0.95) {
+            println("stopping")
+            this.stop()
+        }
+        val tPath = linearMap(0.0, 0.95, 0.0, 1.0, slewRateLimiter.calculate(OI.driveRightTrigger))
+        println(tPath)
+        Arm.wristPosition = Vector2(pathX.getValue(tPath), pathY.getValue(tPath))
+        Intake.wristSetpoint = wristCurve.getValue(tPath).degrees
+        Intake.pivotSetpoint = pivotCurve.getValue(tPath).degrees
     }
 }
