@@ -1,6 +1,7 @@
 package org.team2471.frc2023
 
 import edu.wpi.first.math.filter.SlewRateLimiter
+import edu.wpi.first.wpilibj.DriverStation
 import edu.wpi.first.wpilibj.Timer
 import org.team2471.frc.lib.coroutines.periodic
 import org.team2471.frc.lib.framework.use
@@ -217,27 +218,44 @@ suspend fun animateAlongTrigger(endPose: Pose, startPose: Pose = Pose.current) =
     val wristCurve = MotionCurve()
     val pivotCurve = MotionCurve()
 
+    val duration = 1.0 //duration only works in autonomous
+
     pathX.storeValue(0.0, startPose.wristPosition.x)
     pathY.storeValue(0.0, startPose.wristPosition.y)
     wristCurve.storeValue(0.0, startPose.wristAngle.asDegrees)
     pivotCurve.storeValue(0.0, startPose.pivotAngle.asDegrees)
 
-    pathX.storeValue(1.0, endPose.wristPosition.x)
-    pathY.storeValue(1.0, endPose.wristPosition.y)
-    wristCurve.storeValue(1.0, endPose.wristAngle.asDegrees)
-    pivotCurve.storeValue(1.0, endPose.pivotAngle.asDegrees)
+    pathX.storeValue(duration, endPose.wristPosition.x)
+    pathY.storeValue(duration, endPose.wristPosition.y)
+    wristCurve.storeValue(duration, endPose.wristAngle.asDegrees)
+    pivotCurve.storeValue(duration, endPose.pivotAngle.asDegrees)
 
-    val slewRateLimiter = SlewRateLimiter(5.0 * Drive.demoSpeed, -5.0 * Drive.demoSpeed, 0.0)
+    val slewRateLimiter = SlewRateLimiter(5.0 * Drive.demoSpeed, -5.0 * Drive.demoSpeed, 0.0) //maybe lower these rate limits
 
-    periodic {
-        if (OI.driveRightTrigger > 0.95) {
-            println("stopping")
-            this.stop()
+    if (DriverStation.isAutonomous()) {
+        val timer = Timer()
+        timer.start()
+        periodic {
+            val t = timer.get()
+            Arm.wristPosition = Vector2(pathX.getValue(t), pathY.getValue(t))
+            Intake.wristSetpoint = wristCurve.getValue(t).degrees
+            Intake.pivotSetpoint = pivotCurve.getValue(t).degrees
+            if (t > duration) {
+                println("scoring")
+                this.stop()
+            }
         }
-        val tPath = linearMap(0.0, 0.95, 0.0, 1.0, slewRateLimiter.calculate(OI.driveRightTrigger))
-        println(tPath)
-        Arm.wristPosition = Vector2(pathX.getValue(tPath), pathY.getValue(tPath))
-        Intake.wristSetpoint = wristCurve.getValue(tPath).degrees
-        Intake.pivotSetpoint = pivotCurve.getValue(tPath).degrees
+    } else {
+        periodic {
+            if (OI.driveRightTrigger > 0.95) {
+                println("scoring")
+                this.stop()
+            }
+            val t = linearMap(0.0, 0.95, 0.0, duration, slewRateLimiter.calculate(OI.driveRightTrigger))
+//            println(t)
+            Arm.wristPosition = Vector2(pathX.getValue(t), pathY.getValue(t))
+            Intake.wristSetpoint = wristCurve.getValue(t).degrees
+            Intake.pivotSetpoint = pivotCurve.getValue(t).degrees
+        }
     }
 }
