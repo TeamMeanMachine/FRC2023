@@ -406,7 +406,7 @@ object Arm : Subsystem("Arm") {
                 )
                 move *= 4.0 * 0.02   // d = r * t  where rate is inches per second and time is 1/50 second
 
-                wristPosOffset += move
+//                wristPosOffset += move pizza
 
 //                println("wristPosOffset: $wristPosOffset")
                 wristPosition += Vector2(0.0, 0.0)

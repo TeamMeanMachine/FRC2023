@@ -28,7 +28,8 @@ suspend fun Arm.pidTest() = use(Arm, Intake) {
 
 suspend fun Intake.pidTestOne() = use(this) {
     periodic {
-        pivotSetpoint = (180 + OI.operatorLeftY * 80.0).degrees
+        pivotSetpoint = (OI.operatorLeftY * 80.0).degrees
+//        println("setpoint: $pivotSetpoint power ${pivotMotor.output}")
     }
 }
 

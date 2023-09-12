@@ -179,6 +179,8 @@ object Drive : Subsystem("Drive"), SwerveDrive {
     override val carpetFlow = Vector2(0.0, 1.0)
     override val kCarpet = 0.0234 // how much downstream and upstream carpet directions affect the distance, for no effect, use  0.0 (2.5% more distance downstream)
     override val kTread = 0.0 //.04 // how much of an effect treadWear has on distance (fully worn tread goes 4% less than full tread)  0.0 for no effect
+    override val plannedPath: NetworkTableEntry
+        get() = TODO("Not yet implemented")
 
     val autoPDController = PDConstantFController(0.015, 0.04, 0.05)
     val teleopPDController =  PDConstantFController(0.012, 0.09, 0.05)

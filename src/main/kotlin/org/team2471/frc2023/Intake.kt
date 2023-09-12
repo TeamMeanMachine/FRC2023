@@ -126,7 +126,7 @@ object Intake : Subsystem("Intake") {
     }
 
     val pivotAnalogAngle: Angle
-        get() = ((pivotSensor.value - if (isCompBot) 984.0 else 2885.0).degrees / 4096.0 * 360.0).wrap() //third arm previous ticks: 2116.0
+        get() = ((pivotSensor.value - if (isCompBot) 984.0 else 1629.0).degrees / 4096.0 * 360.0).wrap() //third arm previous ticks: 2116.0
     var pivotOffset: Angle = 0.0.degrees
 
     val pivotAngle: Angle
@@ -155,7 +155,7 @@ object Intake : Subsystem("Intake") {
                 pivotSetpointEntry.setDouble(field.asDegrees)
             }
         }
-    val pivotPDController = PDController(0.100, 0.001) //0.1, 0.001  //0.03, 0.04)   //0.35, 0.03
+    val pivotPDController = PDController(0.200, 0.001) //0.1, 0.001  //0.03, 0.04)   //0.35, 0.03
     var prevPFeedForward = 0.0
     val pFeedForward: Double
         get() {
@@ -248,7 +248,7 @@ object Intake : Subsystem("Intake") {
         pivotCurve.storeValue(179.0, 0.0)
         pivotCurve.storeValue(185.0, 0.0)
 
-        wristMotor.setRawOffset(if (isCompBot) -90.0 else wristEncoderAngle.asDegrees)
+        wristMotor.setRawOffset(-90.0) //if (isCompBot) -90.0 else wristEncoderAngle.asDegrees)
         //wristSetpoint = wristAngle
 //        wristMotor.setRawOffset(-90.0)
         wristSetpoint = wristMotor.position.degrees
@@ -428,4 +428,5 @@ fun setPivotPower() {
     if ((Intake.pivotSetpoint.asDegrees - Intake.pivotAngle.asDegrees).absoluteValue > 40.0 && DriverStation.isEnabled()) println("pivotError: ${round(pError, 1)}    openLoopPower: ${round(openLoopPower, 1)}")
     val power = openLoopPower + Intake.pFeedForward
     Intake.pivotMotor.setPercentOutput(power)
+    println("power: $power  setpoint ${Intake.pivotSetpoint}")
 }
