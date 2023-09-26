@@ -28,14 +28,21 @@ suspend fun Arm.pidTest() = use(Arm, Intake) {
 
 suspend fun Intake.pidTestOne() = use(this) {
     periodic {
-        pivotSetpoint = (OI.operatorLeftY * 80.0).degrees
-//        println("setpoint: $pivotSetpoint power ${pivotMotor.output}")
+//        pivotSetpoint = (OI.operatorLeftY * 90.0).degrees
+//        println("setpoint: $pivotSetpoint power ${pivotMotor.output}     current ${pivotMotor.current}")
+    }
+}
+suspend fun Intake.controlerTest() = use(this) {
+    periodic {
+        val power = OI.operatorLeftY * 40.0
+//        pivotMotor.setPercentOutput(power)
+//        println("power ${round(power, 2)}  current ${round(pivotMotor.current, 2)}  angle ${round(pivotAngle.asDegrees, 2)}")
     }
 }
 
 suspend fun Intake.pidTestTwo() = use(Intake) {
     periodic {
-        pivotSetpoint = (OI.operatorLeftX * 30.0).degrees
+//        pivotSetpoint = (OI.operatorLeftX * 30.0).degrees
     }
 }
 
@@ -46,8 +53,9 @@ suspend fun Arm.springTest() = use(Arm) {
 suspend fun Intake.feedFowardTest() = use(Intake) {
     var power = 0.0
     periodic {
-        intakeMotor.setPercentOutput(power)
-        power += 0.03
+//        pivotMotor.setPercentOutput(power)
+//        println("power $power  curent ${pivotMotor.current}  angle ${pivotAngle.asDegrees}")
+//        power += 0.01
     }
 }
 

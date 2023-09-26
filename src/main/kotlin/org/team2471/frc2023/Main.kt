@@ -105,7 +105,9 @@ object Robot : MeanlibRobot() {
 
     override suspend fun test()  {
         println("test mode begin. Hi.")
-        Intake.pidTestOne()
+//        Intake.feedFowardTest()
+//        Intake.pidTestOne()
+        Intake.controlerTest()
     }
 
 
