@@ -296,7 +296,7 @@ object AutoChooser {
                     Drive.dynamicGoToScore(scoringNode.alignPosition, safeSide)
                 }, {
                     delay(1.75)
-                    backScoreAway(FieldManager.nodeList[nodeID]?.coneOrCube == GamePiece.CONE, nodeID)
+                    backScoreToward(FieldManager.nodeList[nodeID]?.coneOrCube == GamePiece.CONE, nodeID)
                 })
             }
         } else {

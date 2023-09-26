@@ -21,7 +21,6 @@ object OI : Subsystem("OI") {
     private val deadBandOperator = 0.1
 
     var controlledBy = PERSONINCONTROL.NONE
-    var kidMode = false
 
     private val driveTranslationX: Double
         get() = (if (FieldManager.isRedAlliance) 1.0 else -1.0) * driverController.leftThumbstickX.deadband(deadBandDriver).squareWithSign()
@@ -71,7 +70,7 @@ object OI : Subsystem("OI") {
             quickSpit()
         }
         driverController::a.whenTrue {
-            if (kidMode) {
+            if (Drive.demoMode) {
                 backNod()
             }
         }
@@ -84,16 +83,12 @@ object OI : Subsystem("OI") {
         }
         ({driveRightTrigger > 0.1}).whenTrue { //score testing time
             safeAnimationCheck(PERSONINCONTROL.DRIVER){
-                if (kidMode) {
-                    superQuickSpit()
-                } else {
-                    scoreObject()
-                }
+                scoreObject()
             }
         }
         ({driveLeftTrigger > 0.1}).whenTrue {
             safeAnimationCheck(PERSONINCONTROL.DRIVER) {
-                flip()
+//                flip()
             }
         }
 //        driverController::rightBumper.whenTrue {
@@ -107,18 +102,12 @@ object OI : Subsystem("OI") {
         }
         operatorController::leftBumper.whenTrue {
             safeAnimationCheck(PERSONINCONTROL.OPERATOR) {
-                if (kidMode) {
-                    raiseArmFront()
-                } else {
-                    backScoreToward()
-                }
+                backScoreToward()
             }
         }
         operatorController::rightBumper.whenTrue {
             safeAnimationCheck(PERSONINCONTROL.OPERATOR) {
-                if (!kidMode) {
-                    backScoreAway()
-                }
+                backScoreToward()
             }
         }
         operatorController::x.whenTrue {
@@ -149,7 +138,7 @@ object OI : Subsystem("OI") {
             AprilTag.resetCameras()
         }
         operatorController::b.whenTrue {
-            if (kidMode) {
+            if (Drive.demoMode) {
                 Arm.pointToTag()
             }
         }
