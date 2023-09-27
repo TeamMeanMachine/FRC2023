@@ -407,6 +407,7 @@ suspend fun scoreObject(pieceNumber: Int = NodeDeckHub.selectedNode.toInt()) = u
                 else -> println("Currently can't score there.")
             }
         }
+        toBackDrivePose()
 
         resetArmVars()
         Intake.intakeMotor.setPercentOutput(0.0)

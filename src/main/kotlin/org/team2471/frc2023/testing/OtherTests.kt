@@ -1,13 +1,17 @@
 package org.team2471.frc2023.testing
 
+import org.team2471.frc.lib.actuators.MotorController
 import org.team2471.frc.lib.coroutines.periodic
 import org.team2471.frc.lib.framework.use
 import org.team2471.frc.lib.math.Vector2
+import org.team2471.frc.lib.math.round
+import org.team2471.frc.lib.units.Angle
 import org.team2471.frc.lib.units.degrees
 import org.team2471.frc2023.Arm
 import org.team2471.frc2023.Drive
 import org.team2471.frc2023.Intake
 import org.team2471.frc2023.OI
+import kotlin.math.absoluteValue
 
 suspend fun Arm.feedForwardTest() = use(Arm) {
     var power = 0.0
@@ -68,4 +72,30 @@ suspend fun Intake.intakeTest() = use(Intake) {
 
 suspend fun driveToPointsTest() = use(Drive) {
 
+}
+
+suspend fun autoFeedForwardTest(motor: MotorController, motorAngle: () -> Angle, angleList: ArrayList<Double>, powerInterval: Double = 0.01) {
+    val powerList: ArrayList<Double> = ArrayList()
+
+    for (angle in angleList) {
+        var power = 0.0
+        var lastAngleError: Double? = null
+        periodic {
+            val angleError = angle - motorAngle.invoke().asDegrees
+            val rate = (lastAngleError ?: angleError) - angleError
+            if (angleError.absoluteValue < 0.5 && rate.absoluteValue < 0.5) {
+                powerList.add(power.round(2))
+                this.stop()
+            } else if (angleError > angle) {
+                power += powerInterval
+                motor.setPercentOutput(power)
+            } else if (angleError < angle) {
+                power -= powerInterval
+                motor.setPercentOutput(power)
+            }
+            lastAngleError = angleError
+        }
+    }
+    println("Angles: ${angleList}")
+    println("Powers: ${powerList}")
 }
