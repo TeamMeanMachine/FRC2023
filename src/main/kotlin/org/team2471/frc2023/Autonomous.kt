@@ -221,18 +221,10 @@ object AutoChooser {
                         if (NodeDeckHub.amountOfAutoPieces == 3) scoreObject(NodeDeckHub.thirdAutoPiece)
                         if (NodeDeckHub.amountOfAutoPieces > 3) {
                             nodeDeckPiece(gamePieceAngles[2].degrees, NodeDeckHub.fourthAutoPiece,  NodeDeckHub.amountOfAutoPieces == 4 && NodeDeckHub.finishWithPiece, NodeDeckHub.thirdAutoPiece)
-                        } else {
-                            afterScoreFlip(FieldManager.nodeList[NodeDeckHub.thirdAutoPiece]?.level)
                         }
-                    } else {
-                        afterScoreFlip(FieldManager.nodeList[NodeDeckHub.secondAutoPiece]?.level)
                     }
-                } else {
-                    afterScoreFlip(FieldManager.nodeList[NodeDeckHub.firstAutoPiece]?.level)
                 }
             }
-        } else {
-//            flip()
         }
         println("charge: ${NodeDeckHub.chargeInAuto}")
         if (NodeDeckHub.chargeInAuto) {
@@ -272,8 +264,7 @@ object AutoChooser {
         }, {
             scoreObject(prevPiece)
             println("before toFrontDrivePose")
-            afterScoreFlip(FieldManager.nodeList[nodeID]?.level)
-            delay(0.25)
+            delay(0.25) // To front
             println("before intakeFromGround")
             intakeFromGroundAuto(isCone)
         })

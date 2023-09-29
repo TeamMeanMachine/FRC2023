@@ -179,8 +179,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
     override val carpetFlow = Vector2(0.0, 1.0)
     override val kCarpet = 0.0234 // how much downstream and upstream carpet directions affect the distance, for no effect, use  0.0 (2.5% more distance downstream)
     override val kTread = 0.0 //.04 // how much of an effect treadWear has on distance (fully worn tread goes 4% less than full tread)  0.0 for no effect
-    override val plannedPath: NetworkTableEntry
-        get() = TODO("Not yet implemented")
+    override val plannedPath = table.getEntry("plannedPath")
 
     val autoPDController = PDConstantFController(0.015, 0.04, 0.05)
     val teleopPDController =  PDConstantFController(0.012, 0.09, 0.05)
@@ -770,6 +769,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         //val finalHeading = if (FieldManager.isBlueAlliance) 180.0 else 0.0
         val currentHeading = Drive.heading
         var finalHeading = if (FieldManager.isBlueAlliance) ((if (currentHeading < 0.0.degrees) -180 else 180) - goalHeading.asDegrees) else goalHeading.asDegrees
+        finalHeading += 180.0
         finalHeading = finalHeading.degrees.unWrap(currentHeading).asDegrees
         println("** heading: $currentHeading  Goal Heading: $goalHeading final heading $finalHeading **")
         val cableSideHeading = 20.0 * if (NodeDeckHub.startingPoint == StartingPoint.OUTSIDE && isCone) (if (isRedAlliance) -1.0 else 1.0) else 0.0
@@ -782,8 +782,6 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         newPath.addHeadingPoint(0.0, currentHeading.asDegrees)
 //        newPath.addHeadingPoint(safeDistance / rate, heading.asDegrees)
         println("Initial Heading: ${currentHeading.asDegrees}")
-        newPath.addHeadingPoint(time * 0.2, currentHeading.asDegrees + cableSideHeading)
-        newPath.addHeadingPoint(time * 0.6, currentHeading.asDegrees + cableSideHeading)
         newPath.addHeadingPoint(time * 0.9, finalHeading)
         newPath.addHeadingPoint(time, finalHeading)
         println("Time: $time  Final Heading: $finalHeading")

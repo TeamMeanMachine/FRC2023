@@ -6,7 +6,6 @@ import edu.wpi.first.wpilibj.DriverStation
 import org.team2471.frc.lib.coroutines.delay
 import org.team2471.frc.lib.coroutines.parallel
 import org.team2471.frc.lib.coroutines.periodic
-import org.team2471.frc.lib.coroutines.suspendUntil
 import org.team2471.frc.lib.framework.use
 import org.team2471.frc.lib.math.Vector2
 import org.team2471.frc.lib.math.linearMap
@@ -54,7 +53,7 @@ suspend fun intakeFromGroundAuto(isCone: Boolean) = use(Arm, Intake) {
     if  (isCone) {
 //        animateThroughPoses(Pose.GROUND_INTAKE_FRONT_CONE, Pose.GROUND_INTAKE_CONE_NEAR, Pose.GROUND_INTAKE_CONE_FAR)
     } else {
-        animateThroughPoses(Pose.GROUND_INTAKE_FRONT_CUBE, Pose.GROUND_INTAKE_CUBE_NEAR, Pose.GROUND_INTAKE_CUBE_FAR)
+        animateThroughPoses(Pose.GROUND_INTAKE_BACK_CUBE, Pose.GROUND_INTAKE_CUBE_NEAR, Pose.GROUND_INTAKE_CUBE_FAR)
     }
     val timer2 = Timer()
     timer2.start()
@@ -96,7 +95,7 @@ suspend fun intakeFromGround(isCone: Boolean = NodeDeckHub.isCone) = use(Arm, In
             if  (isCone) {
 //                animateThroughPoses(true, Pose.GROUND_INTAKE_FRONT_CONE, Pose.GROUND_INTAKE_CONE_NEAR)
             } else {
-                animateThroughPoses(true, Pose.GROUND_INTAKE_FRONT_CUBE, Pose.GROUND_INTAKE_CUBE_NEAR)
+                animateThroughPoses(true, Pose.GROUND_INTAKE_BACK_CUBE, Pose.GROUND_INTAKE_CUBE_NEAR)
             }
             println("after, wristPos: ${Arm.shoulderSetpoint} ${Arm.elbowSetpoint}    actual: ${Arm.shoulderAngle} ${Arm.elbowAngle}")
 //            if (OI.operatorLeftTrigger < 0.05 && DriverStation.isTeleop()) {  // todo: should be able to early exit the animations above
@@ -438,9 +437,11 @@ suspend fun afterScoreFlip(nodeLevel: Level?) = use(Arm, Intake) {
 
 suspend fun toDrivePose() = use(Arm, Intake) {
     resetArmVars()
-    if (Arm.wristPosition.x < -10.0 || Intake.wristAngle.asDegrees < -55.0) animateToPose(Pose.BACK_DRIVE_POSE, 1.5) else if (Arm.wristPosition.x > 10.0 || Intake.wristAngle.asDegrees > 55.0) animateToPose(
-        Pose.FRONT_DRIVE_POSE, 1.0
-    )
+    if (Arm.wristPosition.x < -10.0 || Intake.wristAngle.asDegrees < -55.0) {
+        animateToPose(Pose.BACK_DRIVE_POSE, 1.5)
+    } else if (Arm.wristPosition.x > 10.0 || Intake.wristAngle.asDegrees > 55.0) {
+        animateToPose(Pose.FRONT_DRIVE_POSE, 1.0)
+    }
     Drive.maxTranslation = 1.0
 }
 suspend fun toFrontDrivePose() = use(Arm, Intake) {
@@ -497,8 +498,8 @@ suspend fun raiseArmFront() = use(Arm, Intake) {
     if (Intake.wristAngle < -75.0.degrees || Arm.wristPosition.x < -10.0) {
         flip(true)
     }
-    animateThroughPoses(
-        Pair(0.0, Pose.FRONT_ARM_RAISE_MID),
-        Pair(0.0, Pose.FRONT_ARM_RAISE),
-    )
+    //animateThroughPoses(
+//        Pair(0.0, Pose.FRONT_ARM_RAISE_MID),
+//        Pair(0.0, Pose.FRONT_ARM_RAISE),
+//    )
 }
