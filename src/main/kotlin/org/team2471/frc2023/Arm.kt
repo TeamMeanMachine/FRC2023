@@ -310,7 +310,7 @@ object Arm : Subsystem("Arm") {
                 p(0.000022) //0.000022
                 d(0.000004)
             }
-            currentLimit(40, 80, 1000)
+            currentLimit(0, 60, 0)
             burnSettings()
         }
         elbowIsZeroed = false
