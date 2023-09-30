@@ -36,11 +36,12 @@ suspend fun Intake.pidTestOne() = use(this) {
 //        println("setpoint: $pivotSetpoint power ${pivotMotor.output}     current ${pivotMotor.current}")
     }
 }
-suspend fun Intake.controlerTest() = use(this) {
+suspend fun Arm.controlerTest() = use(this) {
     periodic {
         val power = OI.operatorLeftY * 40.0
-//        pivotMotor.setPercentOutput(power)
-//        println("power ${round(power, 2)}  current ${round(pivotMotor.current, 2)}  angle ${round(pivotAngle.asDegrees, 2)}")
+        elbowMotor.setPercentOutput(power)
+        shoulderSetpoint = 0.0.degrees
+        println("power ${round(power, 2)}  current ${round(elbowMotor.current, 2)}  angle ${round(elbowAngle.asDegrees, 2)}")
     }
 }
 
