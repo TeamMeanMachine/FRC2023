@@ -245,7 +245,7 @@ object AutoChooser {
                 Drive.driveToPointsPercentSpeed(0.5, Drive.combinedPosition, chargeDestination)
                 Drive.autoBalance()
             }, {
-                if (FieldManager.nodeList[NodeDeckHub.firstAutoPiece]?.level?.equals(Level.LOW) != true) flip()
+//                if (FieldManager.nodeList[NodeDeckHub.firstAutoPiece]?.level?.equals(Level.LOW) != true) flip()
             })
         } else {
 //            toDrivePose()

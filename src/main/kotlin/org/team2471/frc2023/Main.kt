@@ -107,7 +107,9 @@ object Robot : MeanlibRobot() {
         println("test mode begin. Hi.")
 //        Intake.feedFowardTest()
 //        Intake.pidTestOne()
-        Arm.controlerTest()
+//        Arm.controlerTest()
+//        Arm.feedForwardTest()
+//        Drive.setAngleOffsets()
     }
 
 

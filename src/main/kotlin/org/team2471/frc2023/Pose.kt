@@ -21,9 +21,12 @@ data class Pose(val wristPosition: Vector2, val wristAngle: Angle) {
         val current: Pose
             get() = Pose(Arm.wristPosition, Intake.wristAngle)
         val START_POSE = Pose(Vector2(0.0, 9.0), -90.0.degrees)
-        val GROUND_INTAKE_BACK_CUBE = Pose(Vector2(-21.0, 9.0), -90.0.degrees)
+        val GROUND_INTAKE_MID_CUBE = Pose(Vector2(-21.0, 9.0), -90.0.degrees)
         val GROUND_INTAKE_CUBE_NEAR = Pose(Vector2(-20.0, -5.0), -75.0.degrees)
         val GROUND_INTAKE_CUBE_FAR = Pose(Vector2(-40.0, -3.0), -75.0.degrees)
+        val GROUND_INTAKE_CONE_NEAR = Pose(Vector2(-20.0, 14.0), 20.0.degrees)
+        val GROUND_INTAKE_CONE_FAR = Pose(Vector2(-40.0, 15.0), 20.0.degrees)
+        val GROUND_INTAKE_CUBE_SAFE = Pose(Pose.GROUND_INTAKE_CONE_NEAR.wristPosition, -90.0.degrees)
 
         val BACK_LOW_SCORE_CONE_TOWARD = Pose(Vector2(-5.0, 6.0), -40.0.degrees)
 //        val BACK_LOW_SCORE_CONE_AWAY = Pose(Vector2(-2.0, 9.0), -60.0.degrees)
@@ -49,10 +52,10 @@ data class Pose(val wristPosition: Vector2, val wristAngle: Angle) {
 
         val BACK_START_POSE = Pose(Vector2(0.0, 9.0), -92.0.degrees)
 
-        val FRONT_DRIVE_POSE_CENTER = Pose(Vector2(0.0, 9.0), 92.0.degrees)
+//        val FRONT_DRIVE_POSE_CENTER = Pose(Vector2(0.0, 9.0), 92.0.degrees)
         val BACK_DRIVE_POSE_CENTER = Pose(Vector2(0.0, 9.0), -92.0.degrees)
 
-        val FRONT_DRIVE_POSE = Pose(Vector2(-3.5, 8.5), 92.0.degrees)
+//        val FRONT_DRIVE_POSE = Pose(Vector2(-3.5, 8.5), 92.0.degrees)
         val BACK_DRIVE_POSE = Pose(Vector2(3.5, 8.5), -92.0.degrees)
         val FLIP_INTAKE_TO_BACK_POSE = Pose(Vector2(-28.0, 26.0), 90.0.degrees)
         val FLIP_INTAKE_TO_BACK_WRIST = Pose(Vector2(-28.0, 26.0), -90.0.degrees)
@@ -74,10 +77,10 @@ data class Pose(val wristPosition: Vector2, val wristAngle: Angle) {
 
         val GROUND_TO_DRIVE_SAFE_CUBE = Pose(Vector2(17.0, 9.0), 80.0.degrees)
         val GROUND_TO_DRIVE_SAFE_CONE = Pose(Vector2(23.0, 20.0), 100.0.degrees)
-        val GROUND_TO_DRIVE_SAFE  = Pose(Vector2(17.0, 22.0), -90.0.degrees)
+        val GROUND_TO_DRIVE_SAFE  = Pose(Vector2(17.0, 9.0), -90.0.degrees)
         val GROUND_TO_DRIVE_SAFE_EMPTY = Pose(Vector2(35.0, 21.0), 90.0.degrees)
 
-        val AUTO_CLIMB_POSE = Pose(Vector2(0.0, 0.0), FRONT_DRIVE_POSE.wristAngle)
+//        val AUTO_CLIMB_POSE = Pose(Vector2(0.0, 0.0), FRONT_DRIVE_POSE.wristAngle)
 
         val BACK_NOD_DOWN_POSE = Pose(Vector2(-24.25, 28.75), -50.0.degrees)
 
@@ -94,6 +97,7 @@ data class Pose(val wristPosition: Vector2, val wristAngle: Angle) {
         return "Pose($wristPosition, $wristAngle)"
     }
     operator fun plus(otherPose: Pose) = Pose(wristPosition + otherPose.wristPosition, wristAngle + otherPose.wristAngle)
+    operator fun minus(otherPose: Pose) = Pose(wristPosition - otherPose.wristPosition, wristAngle - otherPose.wristAngle)
 }
 
 suspend fun animateToPose(pose: Pose, minTime: Double = 0.0, waituntilDone: Boolean = false) = use(Arm, Intake) {
@@ -216,7 +220,7 @@ suspend fun animateAlongTrigger(endPose: Pose, startPose: Pose = Pose.current) =
     pathY.storeValue(duration, endPose.wristPosition.y)
     wristCurve.storeValue(duration, endPose.wristAngle.asDegrees)
 
-    val slewRateLimiter = SlewRateLimiter(5.0 * Drive.demoSpeed, -5.0 * Drive.demoSpeed, 0.0) //maybe lower these rate limits
+    val slewRateLimiter = SlewRateLimiter(1.25 * Drive.demoSpeed, -3.0 * Drive.demoSpeed, 0.0) //maybe lower these rate limits
 
     if (DriverStation.isAutonomous()) {
         val timer = Timer()
@@ -232,7 +236,7 @@ suspend fun animateAlongTrigger(endPose: Pose, startPose: Pose = Pose.current) =
         }
     } else {
         periodic {
-            if (OI.driveRightTrigger > 0.95) {
+            if (slewRateLimiter.calculate(OI.driveRightTrigger) > 0.95) {
                 println("scoring")
                 this.stop()
             }

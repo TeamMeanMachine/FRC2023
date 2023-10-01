@@ -121,11 +121,8 @@ object Intake : Subsystem("Intake") {
     const val INTAKE_CUBE = 0.70
     var HOLD_CONE = -0.3 //change default instead
         get() = coneHoldPowerEntry.getDouble(-0.17).coerceIn(-0.5, 0.0) //coerce to prevent too large values in shuffleboard
-    var HOLD_CUBE = 0.1 //change default instead
-        get() =  if(isCompBot) cubeHoldPowerEntry.getDouble(0.1).coerceIn(0.0, 0.5)//coerce to prevent too large values in shuffleboard
-                    else {
-                        cubeHoldPowerEntry.getDouble(0.12).coerceIn(0.0, 0.5)
-                    }
+    var HOLD_CUBE = 0.075 //change default instead
+        get() =  cubeHoldPowerEntry.getDouble(0.075).coerceIn(0.0, 0.5)//coerce to prevent too large values in shuffleboard
     var DETECT_CONE = 20
 //        get() = coneDetectEntry.getInteger(20.toLong()).toInt()
     var DETECT_CUBE = 13
@@ -158,7 +155,7 @@ object Intake : Subsystem("Intake") {
             println("Wrist didn't exist")
         }
 
-        wristMotor.setRawOffset(-90.0) //if (isCompBot) -90.0 else wristEncoderAngle.asDegrees)
+        wristMotor.setRawOffset(if (isCompBot) -90.0 else wristEncoderAngle.asDegrees)
         //wristSetpoint = wristAngle
 //        wristMotor.setRawOffset(-90.0)
         wristSetpoint = wristMotor.position.degrees
