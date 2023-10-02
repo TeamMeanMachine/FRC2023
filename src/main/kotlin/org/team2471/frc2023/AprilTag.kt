@@ -70,8 +70,8 @@ object AprilTag {
         get() = AprilDetection(lastBackDetectionTime, lastBackPose.toTMMField())
 
     private var robotToCamFront: Transform3d = Transform3d(
-        Translation3d(-6.inches.asMeters, 10.5.inches.asMeters, 7.inches.asMeters),
-        Rotation3d(0.0, -11.0.degrees.asRadians, 160.0.degrees.asRadians)
+        Translation3d(8.5.inches.asMeters, -11.inches.asMeters, 8.5.inches.asMeters),
+        Rotation3d(0.0, -11.0.degrees.asRadians, 23.degrees.asRadians)
     )
 
     private var robotToCamBack = Transform3d(

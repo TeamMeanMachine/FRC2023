@@ -107,7 +107,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
             MotorController(FalconID(Falcons.LEFT_FRONT_DRIVE)),
             MotorController(FalconID(Falcons.LEFT_FRONT_STEER)),
             Vector2(-9.75, 9.75),
-            Preferences.getDouble("Angle Offset 0",-9.05).degrees,
+            Preferences.getDouble("Angle Offset 0",-120.76).degrees,
             CANCoders.CANCODER_FRONTLEFT,
             odometer0Entry,
             0
@@ -116,7 +116,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
             MotorController(FalconID(Falcons.RIGHT_FRONT_DRIVE)),
             MotorController(FalconID(Falcons.RIGHT_FRONT_STEER)),
             Vector2(9.75, 9.75),
-            Preferences.getDouble("Angle Offset 1",-253.4).degrees,
+            Preferences.getDouble("Angle Offset 1",-290.3).degrees,
             CANCoders.CANCODER_FRONTRIGHT,
             odometer1Entry,
             1
@@ -125,7 +125,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
             MotorController(FalconID(Falcons.RIGHT_REAR_DRIVE)),
             MotorController(FalconID(Falcons.RIGHT_REAR_STEER)),
             Vector2(9.75, -9.75),
-            Preferences.getDouble("Angle Offset 2",-345.05).degrees,
+            Preferences.getDouble("Angle Offset 2",-159.25).degrees,
             CANCoders.CANCODER_REARRIGHT,
             odometer2Entry,
             2
@@ -134,7 +134,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
             MotorController(FalconID(Falcons.LEFT_REAR_DRIVE)),
             MotorController(FalconID(Falcons.LEFT_REAR_STEER)),
             Vector2(-9.75, -9.75),
-            Preferences.getDouble("Angle Offset 3",-308.41).degrees,
+            Preferences.getDouble("Angle Offset 3",-126.38).degrees,
             CANCoders.CANCODER_REARLEFT,
             odometer3Entry,
             3
@@ -733,7 +733,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         var time = distance / rate
         val currentHeading = heading
         var finalHeading = if (FieldManager.isRedAlliance) 0.0 else if (currentHeading.asDegrees > 0) 180.0 else -180.0
-        val minSpin = 4/180.0 * (currentHeading - finalHeading.degrees).wrap().asDegrees.absoluteValue
+        val minSpin = 4.0/180.0 * (currentHeading - finalHeading.degrees).wrap().asDegrees.absoluteValue
         println("printing minimum spin time: $minSpin")
         val middleStartTime = if (NodeDeckHub.startingPoint == StartingPoint.MIDDLE) time * 2 else 0.0
         time = maxOf(time, middleStartTime, minSpin)
@@ -753,9 +753,6 @@ object Drive : Subsystem("Drive"), SwerveDrive {
                 StartingPoint.OUTSIDE -> FieldManager.outsideSafePointClose
                 StartingPoint.MIDDLE -> Vector2(p1currentPose.x, FieldManager.chargeSafePointClose.y)
             }
-
-
-
         val p3safePointFar = when (startingSide) {
                 StartingPoint.INSIDE -> FieldManager.insideSafePointFar + reflectFieldByAlliance(Vector2(0.0, 4.0.feet.asFeet))
                 StartingPoint.OUTSIDE -> FieldManager.outsideSafePointFar + reflectFieldByAlliance(Vector2(0.0, 4.0.feet.asFeet))
@@ -764,7 +761,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         if(startingSide == StartingPoint.MIDDLE) {
             distance += 2.5
         }
-        val distFromObject = 55.0.inches.asFeet
+        val distFromObject = 40.0.inches.asFeet
         val vectorOffset = Vector2(-goalHeading.sin(), -goalHeading.cos() * if (FieldManager.isBlueAlliance) -1.0 else 1.0) * distFromObject
         val p4goalPosition = goalPosition + vectorOffset
         newPath.addVector2(p1currentPose)
@@ -781,8 +778,8 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         finalHeading += 180.0
         finalHeading = finalHeading.degrees.unWrap(currentHeading).asDegrees
         println("** heading: $currentHeading  Goal Heading: $goalHeading final heading $finalHeading **")
-        val cableSideHeading = 20.0 * if (NodeDeckHub.startingPoint == StartingPoint.OUTSIDE && isCone) (if (isRedAlliance) -1.0 else 1.0) else 0.0
-        val minSpin = 4.0/180.0 * (cableSideHeading + ((currentHeading + cableSideHeading.degrees) - finalHeading.degrees).wrap().asDegrees.absoluteValue)
+        val cableSideHeading = 0.0/*20.0 * if (NodeDeckHub.startingPoint == StartingPoint.OUTSIDE && isCone) (if (isRedAlliance) -1.0 else 1.0) else 0.0*/
+        val minSpin = 1.0/180.0 * (cableSideHeading + ((currentHeading + cableSideHeading.degrees) - finalHeading.degrees).wrap().asDegrees.absoluteValue)
         println("printing minimum spin time: $minSpin")
         time = maxOf(time,minSpin) * if (startingSide == StartingPoint.OUTSIDE) 1.5 else 1.0
         newPath.addEasePoint(0.0,0.0)
@@ -791,7 +788,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         newPath.addHeadingPoint(0.0, currentHeading.asDegrees)
 //        newPath.addHeadingPoint(safeDistance / rate, heading.asDegrees)
         println("Initial Heading: ${currentHeading.asDegrees}")
-        newPath.addHeadingPoint(time * 0.9, finalHeading)
+        newPath.addHeadingPoint(time * 0.75, finalHeading)
         newPath.addHeadingPoint(time, finalHeading)
         println("Time: $time  Final Heading: $finalHeading")
         Drive.driveAlongPath(newPath){ abortPath() }

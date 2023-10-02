@@ -208,7 +208,6 @@ suspend fun animateAlongTrigger(endPose: Pose, startPose: Pose = Pose.current) =
     val pathX = MotionCurve()
     val pathY = MotionCurve()
     val wristCurve = MotionCurve()
-    val pivotCurve = MotionCurve()
 
     val duration = 1.0 //duration only works in autonomous
 

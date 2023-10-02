@@ -204,12 +204,8 @@ object AutoChooser {
                 Intake.intakeMotor.setPercentOutput(Intake.CUBE_SPIT)
                 Drive.drive(Vector2(0.0,0.0), 0.0)
                 delay(0.8)
-                parallel ({
-                    if (!NodeDeckHub.chargeInAuto) Drive.dynamicGoToGamePieceOnFloor(FieldManager.getClosestGamePieceOnField(), gamePieceAngles[0].degrees, isCone = false)
-                }, {
-                    Intake.intakeMotor.setPercentOutput(0.0)
-//                    flip()
-                })
+                Intake.intakeMotor.setPercentOutput(0.0)
+                if (!NodeDeckHub.chargeInAuto) Drive.dynamicGoToGamePieceOnFloor(FieldManager.getClosestGamePieceOnField(), gamePieceAngles[0].degrees, isCone = false)
             } else {
                 backScoreToward(FieldManager.nodeList[NodeDeckHub.firstAutoPiece]?.coneOrCube == GamePiece.CONE, NodeDeckHub.firstAutoPiece)
                 if (NodeDeckHub.amountOfAutoPieces == 1) scoreObject(NodeDeckHub.firstAutoPiece)
@@ -228,31 +224,18 @@ object AutoChooser {
         }
         println("charge: ${NodeDeckHub.chargeInAuto}")
         if (NodeDeckHub.chargeInAuto) {
-//            if (NodeDeckHub.amountOfAutoPieces < 2) {
-//                Drive.driveToPoints(Drive.combinedPosition, Drive.combinedPosition + Vector2(0.0, FieldManager.reflectFieldByAlliance(-0.25)))
-//                delay(1.0)
-//            }
-            parallel({
 //                Drive.dynamicGoToChargeCenter()
-                val chargeX = when(NodeDeckHub.startingPoint) {
-                    StartingPoint.OUTSIDE -> -1
-                    StartingPoint.INSIDE -> 1
-                    StartingPoint.MIDDLE -> 0
-                }
-                val chargeDestination = Vector2(FieldManager.centerOfChargeX + (Drive.robotHalfWidth.asFeet * 1.7 * chargeX), FieldManager.reflectFieldByAlliance(15.25))
-                Drive.driveToPointsPercentSpeed(0.5, Drive.combinedPosition, Vector2(chargeDestination.x, FieldManager.reflectFieldByAlliance(7.0 + Drive.robotHalfWidth.asFeet)))
-                delay(0.2)
-                Drive.driveToPointsPercentSpeed(0.5, Drive.combinedPosition, chargeDestination)
-                Drive.autoBalance()
-            }, {
-//                if (FieldManager.nodeList[NodeDeckHub.firstAutoPiece]?.level?.equals(Level.LOW) != true) flip()
-            })
-        } else {
-//            toDrivePose()
+            val chargeX = when(NodeDeckHub.startingPoint) {
+                StartingPoint.OUTSIDE -> -1
+                StartingPoint.INSIDE -> 1
+                StartingPoint.MIDDLE -> 0
+            }
+            val chargeDestination = Vector2(FieldManager.centerOfChargeX + (Drive.robotHalfWidth.asFeet * 1.7 * chargeX), FieldManager.reflectFieldByAlliance(15.25))
+            Drive.driveToPointsPercentSpeed(0.5, Drive.combinedPosition, Vector2(chargeDestination.x, FieldManager.reflectFieldByAlliance(7.0 + Drive.robotHalfWidth.asFeet)))
+            delay(0.2)
+            Drive.driveToPointsPercentSpeed(0.5, Drive.combinedPosition, chargeDestination)
+            Drive.autoBalance()
         }
-//        var nextGamePiece = FieldManager.getClosestGamePieceOnField()
-//        println("nodedeck auto path to game piece: $nextGamePiece")
-//        Drive.dynamicGoToGamePieceOnFloor(nextGamePiece, 0.0.degrees)
     }
     suspend fun nodeDeckPiece(pickupHeading: Angle, nodeID: Int, finishWithPiece: Boolean, prevPiece: Int) = use(Intake, Drive, Arm) {
         val nextGamePiece = FieldManager.getClosestGamePieceOnField()
@@ -264,7 +247,7 @@ object AutoChooser {
         }, {
             scoreObject(prevPiece)
             println("before toFrontDrivePose")
-            delay(0.25) // To front
+            delay(0.6) // To front
             println("before intakeFromGround")
             intakeFromGroundAuto(isCone)
         })
@@ -283,11 +266,9 @@ object AutoChooser {
                 }
                 parallel({
                     groundBackToDrive(FieldManager.getNodeIsCone(nodeID))
+                    backScoreToward(FieldManager.nodeList[nodeID]?.coneOrCube == GamePiece.CONE, nodeID)
                 },{
                     Drive.dynamicGoToScore(scoringNode.alignPosition, safeSide)
-                }, {
-                    delay(1.75)
-                    backScoreToward(FieldManager.nodeList[nodeID]?.coneOrCube == GamePiece.CONE, nodeID)
                 })
             }
         } else {
