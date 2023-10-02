@@ -9,6 +9,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import org.jetbrains.kotlin.com.google.common.graph.Network
 import org.team2471.frc.lib.actuators.FalconID
 import org.team2471.frc.lib.actuators.MotorController
 import org.team2471.frc.lib.control.PDConstantFController
@@ -65,8 +66,8 @@ object Drive : Subsystem("Drive"), SwerveDrive {
 //    val advantageSwerveTargetsEntry = table.getEntry("SwerveTargets")
     val rateCurve = MotionCurve()
     val demoLimitEntry = table.getEntry("Demo Mode Drive Limit")
-    val recordedPathEntry = table.getEntry("Recorded Path")
     val plannedPathEntry = table.getEntry("Planned Path")
+    val actualRouteEntry = table.getEntry("Actual Route")
 
 
 
@@ -183,6 +184,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
     override val kCarpet = 0.0234 // how much downstream and upstream carpet directions affect the distance, for no effect, use  0.0 (2.5% more distance downstream)
     override val kTread = 0.0 //.04 // how much of an effect treadWear has on distance (fully worn tread goes 4% less than full tread)  0.0 for no effect
     override val plannedPath: NetworkTableEntry = plannedPathEntry
+    override val actualRoute: NetworkTableEntry = actualRouteEntry
 
     val autoPDController = PDConstantFController(0.015, 0.04, 0.05)
     val teleopPDController =  PDConstantFController(0.012, 0.09, 0.05)
@@ -248,7 +250,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
             rateCurve.storeValue(8.0, 6.0)  // distance, rate
 
             demoLimitEntry.setDouble(1.0)
-            recordedPathEntry.setString("")
+            actualRouteEntry.setDoubleArray(doubleArrayOf())
             plannedPathEntry.setString("")
 
             //val defaultXYPos = doubleArrayOf(0.0,0.0)
@@ -314,6 +316,8 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         if (odometer1Entry.getDouble(0.0) > 0.0) Preferences.setDouble("odometer 1", odometer1Entry.getDouble(0.0))
         if (odometer2Entry.getDouble(0.0) > 0.0) Preferences.setDouble("odometer 2", odometer2Entry.getDouble(0.0))
         if (odometer3Entry.getDouble(0.0) > 0.0) Preferences.setDouble("odometer 3", odometer3Entry.getDouble(0.0))
+        actualRoute.setDoubleArray(doubleArrayOf())
+        plannedPath.setString("")
     }
 
     override fun poseUpdate(poseTwist: SwerveDrive.Pose) {
@@ -854,7 +858,8 @@ object Drive : Subsystem("Drive"), SwerveDrive {
     }
 
     suspend fun calibrateRobotPosition() = use(Drive) {
-        position = Vector2(-11.5, if (FieldManager.isBlueAlliance) 21.25 else -21.25)
+        //position = Vector2(-11.5, if (FieldManager.isBlueAlliance) 21.25 else -21.25)
+        position = Vector2(0.0,0.0)
         zeroGyro()
         PoseEstimator.zeroOffset()
     }
