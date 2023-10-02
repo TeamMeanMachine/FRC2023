@@ -2,10 +2,6 @@
 
 package org.team2471.frc2023
 
-object Talons {
-    const val INTAKE_PIVOT = 14
-}
-
 
 object Sparks {
     const val SHOULDER_A = 16
@@ -20,7 +16,6 @@ object Sparks {
 }
 
 object AnalogSensors {
-    const val INTAKE_PIVOT = 3
     const val SHOULDER = 1
     const val ELBOW = 2
     const val WRIST = 0

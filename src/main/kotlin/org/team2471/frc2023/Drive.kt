@@ -778,6 +778,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         //val finalHeading = if (FieldManager.isBlueAlliance) 180.0 else 0.0
         val currentHeading = Drive.heading
         var finalHeading = if (FieldManager.isBlueAlliance) ((if (currentHeading < 0.0.degrees) -180 else 180) - goalHeading.asDegrees) else goalHeading.asDegrees
+        finalHeading += 180.0
         finalHeading = finalHeading.degrees.unWrap(currentHeading).asDegrees
         println("** heading: $currentHeading  Goal Heading: $goalHeading final heading $finalHeading **")
         val cableSideHeading = 20.0 * if (NodeDeckHub.startingPoint == StartingPoint.OUTSIDE && isCone) (if (isRedAlliance) -1.0 else 1.0) else 0.0
@@ -790,8 +791,6 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         newPath.addHeadingPoint(0.0, currentHeading.asDegrees)
 //        newPath.addHeadingPoint(safeDistance / rate, heading.asDegrees)
         println("Initial Heading: ${currentHeading.asDegrees}")
-        newPath.addHeadingPoint(time * 0.2, currentHeading.asDegrees + cableSideHeading)
-        newPath.addHeadingPoint(time * 0.6, currentHeading.asDegrees + cableSideHeading)
         newPath.addHeadingPoint(time * 0.9, finalHeading)
         newPath.addHeadingPoint(time, finalHeading)
         println("Time: $time  Final Heading: $finalHeading")

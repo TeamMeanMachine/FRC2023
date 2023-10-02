@@ -221,18 +221,10 @@ object AutoChooser {
                         if (NodeDeckHub.amountOfAutoPieces == 3) scoreObject(NodeDeckHub.thirdAutoPiece)
                         if (NodeDeckHub.amountOfAutoPieces > 3) {
                             nodeDeckPiece(gamePieceAngles[2].degrees, NodeDeckHub.fourthAutoPiece,  NodeDeckHub.amountOfAutoPieces == 4 && NodeDeckHub.finishWithPiece, NodeDeckHub.thirdAutoPiece)
-                        } else {
-                            afterScoreFlip(FieldManager.nodeList[NodeDeckHub.thirdAutoPiece]?.level)
                         }
-                    } else {
-                        afterScoreFlip(FieldManager.nodeList[NodeDeckHub.secondAutoPiece]?.level)
                     }
-                } else {
-                    afterScoreFlip(FieldManager.nodeList[NodeDeckHub.firstAutoPiece]?.level)
                 }
             }
-        } else {
-//            flip()
         }
         println("charge: ${NodeDeckHub.chargeInAuto}")
         if (NodeDeckHub.chargeInAuto) {
@@ -253,7 +245,7 @@ object AutoChooser {
                 Drive.driveToPointsPercentSpeed(0.5, Drive.combinedPosition, chargeDestination)
                 Drive.autoBalance()
             }, {
-                if (FieldManager.nodeList[NodeDeckHub.firstAutoPiece]?.level?.equals(Level.LOW) != true) flip()
+//                if (FieldManager.nodeList[NodeDeckHub.firstAutoPiece]?.level?.equals(Level.LOW) != true) flip()
             })
         } else {
 //            toDrivePose()
@@ -272,8 +264,7 @@ object AutoChooser {
         }, {
             scoreObject(prevPiece)
             println("before toFrontDrivePose")
-            afterScoreFlip(FieldManager.nodeList[nodeID]?.level)
-            delay(0.25)
+            delay(0.25) // To front
             println("before intakeFromGround")
             intakeFromGroundAuto(isCone)
         })
@@ -296,7 +287,7 @@ object AutoChooser {
                     Drive.dynamicGoToScore(scoringNode.alignPosition, safeSide)
                 }, {
                     delay(1.75)
-                    backScoreAway(FieldManager.nodeList[nodeID]?.coneOrCube == GamePiece.CONE, nodeID)
+                    backScoreToward(FieldManager.nodeList[nodeID]?.coneOrCube == GamePiece.CONE, nodeID)
                 })
             }
         } else {

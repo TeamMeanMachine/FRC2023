@@ -29,30 +29,13 @@ import kotlin.math.sin
 
 object Intake : Subsystem("Intake") {
     val wristMotor = MotorController(SparkMaxID(Sparks.WRIST))
-    val pivotMotor = MotorController(TalonID(Talons.INTAKE_PIVOT))
     val intakeMotor = MotorController(SparkMaxID(Sparks.INTAKE)) //intake bad
     val wristSensor = AnalogInput(AnalogSensors.WRIST)
-    val pivotSensor = AnalogInput(AnalogSensors.INTAKE_PIVOT)
 
     private val table = NetworkTableInstance.getDefault().getTable(Intake.name)
     val wristEntry = table.getEntry("Wrist Angle")
     val wristSetpointEntry = table.getEntry("Wrist Setpoint")
-    val pivotEntry = table.getEntry("Pivot Angle")
-    val pivotAnalogEntry = table.getEntry("Pivot Analog Angle")
-    val pivotSetpointEntry = table.getEntry("Pivot Setpoint")
-    val pivotSensorEntry = table.getEntry("Pivot sensor")
     val intakeCurrentEntry = table.getEntry("Intake Currrent")
-    val pFeedEntry = table.getEntry("P Feed Forward")
-    val pErrorEntry = table.getEntry("Pivot Error")
-    val intakePowerEntry = table.getEntry("Intake Power")
-    val wristPose = table.getEntry("Wrist Pose")
-    val pivotPose = table.getEntry("Pivot Pose")
-//    val coneOrientationEntry = table.getEntry("Cone Orientation")
-//    val coneMinBlockY = table.getEntry("Pixy Min Block Y")
-//    val coneMinArea = table.getEntry("Pixy Min Area")
-//    val coneMaxBlockCount = table.getEntry("Pixy Max Blocks")
-//    val coneFacingUpEntry = table.getEntry("Cone Is Up")
-//    val coneDebouncer = Debouncer(0.5,Debouncer.DebounceType.kFalling)
     val cubeDetectEntry = table.getEntry("Cube Detect Power")
     val coneDetectEntry = table.getEntry("Cone Detect Power")
     val cubeHoldPowerEntry = table.getEntry("Cube Hold Power")
@@ -60,16 +43,12 @@ object Intake : Subsystem("Intake") {
     val holdingObjectEntry = table.getEntry("Holding Object")
     val wristTicksOffsetEntry = table.getEntry("Wrist Ticks Offset")
     val wristTicksEntry = table.getEntry("Wrist Ticks")
-    val pivotTicksEntry = table.getEntry("Pivot Ticks")
     val wristMotorAngleEntry = table.getEntry("Wrist Motor Angle")
     val wristEncoderAngleEntry = table.getEntry("Wrist Encoder Angle")
     val wristEncoderRawAngleEntry = table.getEntry("Wrist Encoder Raw Angle")
-    val pivotCurrentEntry = table.getEntry("Pivot Current")
 
     val wristAngle: Angle
         get() {
-//            return wristMotor.position.degrees
-//            if (isCompBot) {
                 val wristAng = wristMotor.position.degrees
                 if ((wristAng - prevWristAngle).asDegrees.absoluteValue > 15.0 && (wristAng.asDegrees + 89.0).absoluteValue < 1.0) {
                     println("Difference from wristAngle and prevAngle > 15. wristAngle: $wristAng prevWristAngle: $prevWristAngle")
@@ -77,11 +56,6 @@ object Intake : Subsystem("Intake") {
                 } else {
                     return wristAng
                 }
-//            } else {
-//                val wristEncoderAngle = (wristSensor.value.degrees - wristTicksOffsetEntry.getDouble(1829.0).degrees) * 90.0 / 1054.0
-//
-//                return wristEncoderAngle + Arm.elbowAngle
-//            }
         }
     val wristEncoderAngle: Angle
         get() {
@@ -124,53 +98,6 @@ object Intake : Subsystem("Intake") {
     fun wristBrakeMode() {
         wristMotor.brakeMode()
     }
-
-    val pivotAnalogAngle: Angle
-        get() = ((pivotSensor.value - if (isCompBot) 984.0 else 2885.0).degrees / 4096.0 * 360.0).wrap() //third arm previous ticks: 2116.0
-    var pivotOffset: Angle = 0.0.degrees
-
-    val pivotAngle: Angle
-        get() {
-            val returnValue = pivotAnalogAngle.unWrap(prevPivotAngle)
-            prevPivotAngle = returnValue
-            return returnValue
-        }
-    val pivotTicks: Int
-        get() = pivotSensor.value
-
-    var prevPivotAngle = pivotAngle
-    var pivotSetpoint: Angle = pivotAngle
-        set(value) {
-            if (value > 270.0.degrees) {  // too far, have to twist back to equivalent angle to protect wires
-                field = value - 360.0f.degrees;
-            }
-            else if (value < -270.0.degrees) {  // too far, have to twist ahead to equivalent angle to protect wires
-                field = value + 360.0f.degrees;
-            }
-            else {
-                field = value
-            }
-            setPivotPower()
-            if (FieldManager.homeField) {
-                pivotSetpointEntry.setDouble(field.asDegrees)
-            }
-        }
-    val pivotPDController = PDController(0.100, 0.001) //0.1, 0.001  //0.03, 0.04)   //0.35, 0.03
-    var prevPFeedForward = 0.0
-    val pFeedForward: Double
-        get() {
-            try {
-                val temp: Double = pivotCurve.getValue((pivotAngle + if (wristAngle > 0.0.degrees) 180.0.degrees else 0.0.degrees).wrap().asDegrees) * sin(wristAngle.asRadians.absoluteValue)
-                prevPFeedForward = temp
-            } catch (ex: Exception){
-                println("pFeedForward returned null.")
-            }
-            return prevPFeedForward
-        }
-    val pivotCurve = MotionCurve()
-
-    val pivotError
-        get() = pivotAngle - pivotSetpoint
     val wristError
         get() = wristAngle - wristSetpoint
 
@@ -194,11 +121,8 @@ object Intake : Subsystem("Intake") {
     const val INTAKE_CUBE = 0.70
     var HOLD_CONE = -0.3 //change default instead
         get() = coneHoldPowerEntry.getDouble(-0.17).coerceIn(-0.5, 0.0) //coerce to prevent too large values in shuffleboard
-    var HOLD_CUBE = 0.1 //change default instead
-        get() =  if(isCompBot) cubeHoldPowerEntry.getDouble(0.1).coerceIn(0.0, 0.5)//coerce to prevent too large values in shuffleboard
-                    else {
-                        cubeHoldPowerEntry.getDouble(0.12).coerceIn(0.0, 0.5)
-                    }
+    var HOLD_CUBE = 0.075 //change default instead
+        get() =  cubeHoldPowerEntry.getDouble(0.075).coerceIn(0.0, 0.5)//coerce to prevent too large values in shuffleboard
     var DETECT_CONE = 20
 //        get() = coneDetectEntry.getInteger(20.toLong()).toInt()
     var DETECT_CUBE = 13
@@ -220,11 +144,6 @@ object Intake : Subsystem("Intake") {
             currentLimit(0, 60, 0)
             burnSettings()
         }
-        pivotMotor.config(20) {
-            inverted(true)
-            brakeMode()
-            currentLimit(30, 40, 1)
-        }
         intakeMotor.config { //intake bad
             brakeMode()
             currentLimit(0, 50, 0)
@@ -236,28 +155,13 @@ object Intake : Subsystem("Intake") {
             println("Wrist didn't exist")
         }
 
-        pivotCurve.storeValue(-185.0, 0.0)
-        pivotCurve.storeValue(-179.0, 0.0)
-        pivotCurve.storeValue(-170.0, 0.13) //.05
-        pivotCurve.storeValue(-90.0, 0.26)
-        pivotCurve.storeValue(-45.0, 0.11)
-        pivotCurve.storeValue(0.0, 0.0)
-        pivotCurve.storeValue(45.0, -0.11)
-        pivotCurve.storeValue(90.0, -0.23)
-        pivotCurve.storeValue(170.0, -0.10)
-        pivotCurve.storeValue(179.0, 0.0)
-        pivotCurve.storeValue(185.0, 0.0)
-
         wristMotor.setRawOffset(if (isCompBot) -90.0 else wristEncoderAngle.asDegrees)
         //wristSetpoint = wristAngle
 //        wristMotor.setRawOffset(-90.0)
         wristSetpoint = wristMotor.position.degrees
         GlobalScope.launch(MeanlibDispatcher) {
-            var tempPivot: Angle
             if (FieldManager.homeField) {
                 wristSetpointEntry.setDouble(wristSetpoint.asDegrees)
-                pivotSetpointEntry.setDouble(pivotSetpoint.asDegrees)
-                pivotSensorEntry.setInteger(pivotSensor.value.toLong())
                 coneHoldPowerEntry.setDouble(HOLD_CONE)
                 coneDetectEntry.setInteger(DETECT_CONE.toLong())
                 cubeHoldPowerEntry.setDouble(HOLD_CUBE)
@@ -276,39 +180,20 @@ object Intake : Subsystem("Intake") {
 
                 holdingObject = linearFilter.calculate(intakeMotor.current) > if (NodeDeckHub.isCone) DETECT_CONE else DETECT_CUBE
                 wristEntry.setDouble(wristAngle.asDegrees)
-                pivotEntry.setDouble(pivotAngle.asDegrees)
                 wristTicksEntry.setDouble(wristTicks.toDouble())
-                pivotTicksEntry.setDouble(pivotTicks.toDouble())
                 wristMotorAngleEntry.setDouble(wristMotor.position)
                 wristEncoderAngleEntry.setDouble(wristEncoderAngle.asDegrees)
                 wristEncoderRawAngleEntry.setDouble(wristEncoderRawAngle.asDegrees)
 
-                if (FieldManager.homeField) {
-                    pivotSetpointEntry.setDouble(pivotSetpoint.asDegrees)
-                    pivotSensorEntry.setInteger(pivotSensor.value.toLong())
-                    pErrorEntry.setDouble(pivotSetpoint.asDegrees - pivotAngle.asDegrees)
-                    pFeedEntry.setDouble(pFeedForward)
-                    pivotCurrentEntry.setDouble(pivotMotor.current)
-                }
-//                val coneOrientation = coneUp()
-//                coneFacingUp = coneDebouncer.calculate(coneOrientation == true)
-//
-//                coneOrientationEntry.setInteger(if (coneOrientation == null) -1 else if (coneOrientation) 1 else 0)
-//                coneFacingUpEntry.setBoolean(coneFacingUp)
-
-                var pivot = OI.operatorController.rightThumbstickX.deadband(0.2)
                 var wrist = OI.operatorController.rightThumbstickY.deadband(0.2)
-                pivot *= 45.0 * 0.02  // degrees per second, time 1/50 second
-                wrist *= 45.0 * 0.02
+                wrist *= 45.0 * 0.02 // degrees per second, time 1/50 second
 
-//                wristMotor.setPercentOutput(wrist * 0.5)
-                pivotOffset -= pivot.degrees
+                wristMotor.setPercentOutput(wrist * 0.5)
                 wristOffset += wrist.degrees
                 wristSetpoint += 0.0.degrees
                 if (FieldManager.homeField) {
                     intakeCurrentEntry.setDouble(intakeMotor.current) //intake bad
                 }
-                setPivotPower()
 
                 prevWristAngle = wristAngle
             }
@@ -327,11 +212,9 @@ object Intake : Subsystem("Intake") {
     override fun preEnable() {
         wristMotor.setPercentOutput(0.0)
         intakeMotor.setPercentOutput(0.0)
-        pivotSetpoint = pivotAngle
         //wristSetpoint = wristAngle
         wristSetpoint = wristMotor.position.degrees
         wristOffset = 0.0.degrees
-        pivotOffset = 0.0.degrees
     }
 
 //    fun initializePixy() {
@@ -397,35 +280,12 @@ object Intake : Subsystem("Intake") {
 //val Pixy2CCC.Block.area : Int
 //    get() = this.width * this.height
 
-suspend fun Intake.pivotTest() = use(this) {
-    var angle = pivotAngle
-    var upPressed = false
-    var downPressed = false
-    periodic {
-        if (OI.driverController.dPad == Controller.Direction.UP) {
-            upPressed = true
-        } else if (OI.driverController.dPad == Controller.Direction.DOWN) {
-            downPressed = true
-        }
-        if (OI.driverController.dPad != Controller.Direction.UP && upPressed) {
-            upPressed = false
-            angle += 10.degrees
-            println("up = ${angle}")
-        }
-        if (OI.driverController.dPad != Controller.Direction.DOWN && downPressed) {
-            downPressed = false
-            angle -= 10.degrees
-            println("down = ${angle}")
-        }
-        pivotSetpoint = angle
-        println("angle = ${angle}")
-    }
-}
 
-fun setPivotPower() {
-    val pError = (Intake.pivotSetpoint + Intake.pivotOffset - Intake.pivotAngle).wrap().asDegrees
-    val openLoopPower = Intake.pivotPDController.update(pError).coerceIn(-1.0, 1.0)
-    if ((Intake.pivotSetpoint.asDegrees - Intake.pivotAngle.asDegrees).absoluteValue > 40.0 && DriverStation.isEnabled()) println("pivotError: ${round(pError, 1)}    openLoopPower: ${round(openLoopPower, 1)}")
-    val power = openLoopPower + Intake.pFeedForward
-    Intake.pivotMotor.setPercentOutput(power)
-}
+//fun setPivotPower() {
+//    val pError = (Intake.pivotSetpoint + Intake.pivotOffset - Intake.pivotAngle).wrap().asDegrees
+//    val openLoopPower = Intake.pivotPDController.update(pError).coerceIn(-1.0, 1.0)
+//    if ((Intake.pivotSetpoint.asDegrees - Intake.pivotAngle.asDegrees).absoluteValue > 40.0 && DriverStation.isEnabled()) println("pivotError: ${round(pError, 1)}    openLoopPower: ${round(openLoopPower, 1)}")
+//    val power = openLoopPower + Intake.pFeedForward
+//    Intake.pivotMotor.setPercentOutput(power)
+//    println("power: $power  setpoint ${Intake.pivotSetpoint} current: ${Intake.pivotMotor.current}")
+//}
