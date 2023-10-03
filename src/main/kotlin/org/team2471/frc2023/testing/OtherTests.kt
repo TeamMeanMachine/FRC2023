@@ -6,11 +6,11 @@ import org.team2471.frc.lib.framework.use
 import org.team2471.frc.lib.math.Vector2
 import org.team2471.frc.lib.math.round
 import org.team2471.frc.lib.units.Angle
-import org.team2471.frc.lib.units.degrees
-import org.team2471.frc2023.Arm
-import org.team2471.frc2023.Drive
-import org.team2471.frc2023.Intake
-import org.team2471.frc2023.OI
+import org.team2471.frc.lib.motion.following.driveAlongPath
+import org.team2471.frc.lib.motion_profiling.Path2D
+import org.team2471.frc.lib.units.*
+import org.team2471.frc2023.*
+import kotlin.math.absoluteValue
 import kotlin.math.absoluteValue
 
 suspend fun Arm.feedForwardTest() = use(Arm) {
@@ -18,7 +18,7 @@ suspend fun Arm.feedForwardTest() = use(Arm) {
     periodic {
         shoulderSetpoint = 0.0.degrees
         elbowMotor.setPercentOutput(power)
-        println("power: $power elbow: ${elbowMotor.position} current ${elbowMotor.current}")
+//        println("power: $power elbow: ${elbowMotor.position} current ${elbowMotor.current}")
         power -= 0.001
     }
 }
@@ -73,6 +73,29 @@ suspend fun Intake.intakeTest() = use(Intake) {
 
 suspend fun driveToPointsTest() = use(Drive) {
 
+}
+
+suspend fun pathFollowTest() = use(Drive) {
+    Drive.heading = -180.0.degrees
+    val newPath = Path2D("Path Follow Test")
+    println("position: ${Drive.position}, ${Drive.combinedPosition}")
+    val p1currentPose = PoseEstimator.currentPose
+
+    newPath.addVector2(p1currentPose)
+    newPath.addVector2(Vector2(p1currentPose.x, p1currentPose.y - 10.0))
+
+    var time = 2.5
+    //val finalHeading = if (FieldManager.isBlueAlliance) 180.0 else 0.0
+    val currentHeading = Drive.heading
+    print(currentHeading)
+
+    newPath.addEasePoint(0.0,0.0)
+    newPath.addEasePoint(time, 1.0)
+
+    newPath.addHeadingPoint(0.0, currentHeading.asDegrees)
+    newPath.addHeadingPoint(time, 170.0)
+    Drive.driveAlongPath(newPath)
+    print(Drive.heading)
 }
 
 suspend fun autoFeedForwardTest(motor: MotorController, motorAngle: () -> Angle, angleList: ArrayList<Double>, powerInterval: Double = 0.01) {
