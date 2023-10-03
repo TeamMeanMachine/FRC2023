@@ -732,7 +732,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         val rate = rateCurve.getValue(distance) * if (DriverStation.isAutonomous()) 1.0 else 1.0 // ft per sec
         var time = distance / rate
         val currentHeading = heading
-        var finalHeading = if (FieldManager.isRedAlliance) 0.0 else if (currentHeading.asDegrees > 0) 180.0 else -180.0
+        var finalHeading = if (FieldManager.isRedAlliance) 0.0 else 180.0
         val minSpin = 4.0/180.0 * (currentHeading - finalHeading.degrees).wrap().asDegrees.absoluteValue
         println("printing minimum spin time: $minSpin")
         val middleStartTime = if (NodeDeckHub.startingPoint == StartingPoint.MIDDLE) time * 2 else 0.0
@@ -740,6 +740,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         newPath.addEasePoint(time, 1.0)
 
         newPath.addHeadingPoint(0.0, currentHeading.asDegrees)
+        newPath.addHeadingPoint(time * 0.5, 90.0)
         newPath.addHeadingPoint(time, finalHeading)
         Drive.driveAlongPath(newPath) { abortPath() }
     }
@@ -774,7 +775,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         var time = distance / rate
         //val finalHeading = if (FieldManager.isBlueAlliance) 180.0 else 0.0
         val currentHeading = Drive.heading
-        var finalHeading = if (FieldManager.isBlueAlliance) ((if (currentHeading < 0.0.degrees) -180 else 180) - goalHeading.asDegrees) else goalHeading.asDegrees
+        var finalHeading = if (FieldManager.isBlueAlliance) (180 - goalHeading.asDegrees) else goalHeading.asDegrees
         finalHeading += 180.0
         finalHeading = finalHeading.degrees.unWrap(currentHeading).asDegrees
         println("** heading: $currentHeading  Goal Heading: $goalHeading final heading $finalHeading **")
@@ -788,6 +789,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         newPath.addHeadingPoint(0.0, currentHeading.asDegrees)
 //        newPath.addHeadingPoint(safeDistance / rate, heading.asDegrees)
         println("Initial Heading: ${currentHeading.asDegrees}")
+        newPath.addHeadingPoint(time * 0.4, 90.0)
         newPath.addHeadingPoint(time * 0.75, finalHeading)
         newPath.addHeadingPoint(time, finalHeading)
         println("Time: $time  Final Heading: $finalHeading")
