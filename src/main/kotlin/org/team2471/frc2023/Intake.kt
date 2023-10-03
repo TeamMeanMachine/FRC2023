@@ -127,8 +127,8 @@ object Intake : Subsystem("Intake") {
 //        get() = coneDetectEntry.getInteger(20.toLong()).toInt()
     var DETECT_CUBE = 13
 //        get() = cubeDetectEntry.getInteger(13.toLong()).toInt()
-    const val CONE_TOWARD_SPIT = 1.0
     const val CONE_AWAY_SPIT = 1.0
+    const val CONE_TOWARD_SPIT = 1.0
     const val CUBE_SPIT = -0.2
 
     init {
