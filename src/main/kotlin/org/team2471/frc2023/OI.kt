@@ -94,11 +94,13 @@ object OI : Subsystem("OI") {
 //        driverController::rightBumper.whenTrue {
 //            kidMode = Drive.demoMode && !kidMode
 //        }
-        operatorController::back.whenTrue { Arm.resetShoulderZero()}
-        operatorController::start.whenTrue {
+        operatorController::back.whenTrue {
             safeAnimationCheck(PERSONINCONTROL.OPERATOR) {
                 toDrivePose()
             }
+        }
+        operatorController::start.whenTrue {
+            toStartPose()
         }
         operatorController::leftBumper.whenTrue {
             safeAnimationCheck(PERSONINCONTROL.OPERATOR) {

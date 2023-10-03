@@ -73,7 +73,7 @@ suspend fun intakeFromGroundAuto(isCone: Boolean) = use(Arm, Intake) {
 
 suspend fun intakeFromGround(isCone: Boolean = NodeDeckHub.isCone) = use(Arm, Intake) {
     println("inside intakeFromGround")
-    if (Intake.wristAngle.asDegrees < -70.0) {
+    if (Intake.wristAngle.asDegrees < -10.0) {
         try {
             println("in intakeFromGround")
             val path = Path2D("newPath")
@@ -344,7 +344,7 @@ suspend fun scoreObject(pieceNumber: Int = NodeDeckHub.selectedNode.toInt()) = u
                         Intake.intakeMotor.setPercentOutput(Intake.CONE_TOWARD_SPIT)
                         midPose += Pose(Vector2(10.0, 10.0), 25.0.degrees)
                         val midPose2 = midPose + Pose(Vector2(11.0, 10.0), -30.0.degrees)
-                        animateThroughPoses(Pair(0.3, midPose)/*, Pair(0.3, midPose2)*/)
+                        animateToPose(midPose)/*, Pair(0.3, midPose2)*/
 
                     }
                     Level.MID -> {
@@ -352,7 +352,7 @@ suspend fun scoreObject(pieceNumber: Int = NodeDeckHub.selectedNode.toInt()) = u
                         midPose = Pose.current + Pose(Vector2(5.0, -2.5), 50.0.degrees)
                         animateAlongTrigger(midPose)
                         Intake.intakeMotor.setPercentOutput(Intake.CONE_TOWARD_SPIT)
-                        animateToPose(midPose + Pose(Vector2(6.0, -2.0), 10.0.degrees), 0.3)
+                        animateToPose(midPose + Pose(Vector2(6.0, -2.0), 10.0.degrees))
                     }
                     Level.LOW -> {
                         println("Cone Toward Low")
@@ -459,6 +459,10 @@ suspend fun toBackDrivePose() = use(Arm, Intake) {
     resetArmVars()
     animateThroughPoses(Pose.BACK_DRIVE_POSE_CENTER, Pose.BACK_DRIVE_POSE)
     Drive.maxTranslation = 1.0
+}
+suspend fun toStartPose() = use(Arm, Intake) {
+    resetArmVars()
+    animateToPose(Pose.START_POSE)
 }
 
 suspend fun resetArmVars() {

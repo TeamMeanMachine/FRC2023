@@ -24,7 +24,7 @@ data class Pose(val wristPosition: Vector2, val wristAngle: Angle) {
         val GROUND_INTAKE_MID_CUBE = Pose(Vector2(-21.0, 9.0), -90.0.degrees)
         val GROUND_INTAKE_CUBE_NEAR = Pose(Vector2(-20.0, -5.0), -75.0.degrees)
         val GROUND_INTAKE_CUBE_FAR = Pose(Vector2(-40.0, -3.0), -75.0.degrees)
-        val GROUND_INTAKE_CONE_NEAR = Pose(Vector2(-20.0, 14.0), 20.0.degrees)
+        val GROUND_INTAKE_CONE_NEAR = Pose(Vector2(-20.0, 12.5), 20.0.degrees)
         val GROUND_INTAKE_CONE_FAR = Pose(Vector2(-40.0, 15.0), 20.0.degrees)
         val GROUND_INTAKE_CUBE_SAFE = Pose(Pose.GROUND_INTAKE_CONE_NEAR.wristPosition, -90.0.degrees)
 
@@ -44,7 +44,7 @@ data class Pose(val wristPosition: Vector2, val wristAngle: Angle) {
 //        val BACK_HIGH_SCORE_CONE_AWAY_MID = if (Robot.isCompBot) Pose(Vector2(-29.0, 45.0),-180.0.degrees) else Pose(Vector2(-29.0, 41.0),-180.0.degrees)
 //        val BACK_HIGH_SCORE_CONE_AWAY = if(Robot.isCompBot) Pose(Vector2(-40.0, 39.0), -180.0.degrees) else Pose(Vector2(-45.0, 37.25), -180.0.degrees)
         val BACK_HIGH_SCORE_CUBE_MID = Pose(Vector2(-18.0, 37.5), -90.0.degrees)
-        val BACK_HIGH_SCORE_CUBE = Pose(Vector2(-32.25, 37.0), -90.0.degrees)
+        val BACK_HIGH_SCORE_CUBE = Pose(Vector2(-38.25, 37.0), -90.0.degrees)
 
         //val FRONT_ARM_RAISE_MID = Pose(Vector2(20.0, 10.0), 90.0.degrees)
         //val FRONT_ARM_RAISE = Pose(Vector2(25.0, 35.0), 90.0.degrees)
