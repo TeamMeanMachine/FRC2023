@@ -189,21 +189,21 @@ suspend fun backScoreToward(isCone: Boolean = NodeDeckHub.isCone, pieceNumber: I
             when (FieldManager.nodeList[pieceNumber]?.level) {
                 Level.HIGH -> {
                     animateThroughPoses(!Robot.isCompBot,
-                        Pair(0.7, Pose.BACK_HIGH_SCORE_CONE_TOWARD_MID),
-                        Pair(0.3, Pose.BACK_HIGH_SCORE_CONE_TOWARD)
+                        Pair(0.7, Pose.BACK_HIGH_SCORE_CONE_AWAY_MID),
+                        Pair(0.3, Pose.BACK_HIGH_SCORE_CONE_AWAY)
                     )
-                    autoArmToPose(Pose.BACK_HIGH_SCORE_CONE_TOWARD)
+                    autoArmToPose(Pose.BACK_HIGH_SCORE_CONE_AWAY)
                 }
                 Level.MID -> {
                     animateThroughPoses(
-                        Pair(0.0, Pose.BACK_MIDDLE_SCORE_CONE_TOWARD_MID),
-                        Pair(0.0, Pose.BACK_MIDDLE_SCORE_CONE_TOWARD)
+                        Pair(0.0, Pose.BACK_MIDDLE_SCORE_CONE_AWAY_MID),
+                        Pair(0.0, Pose.BACK_MIDDLE_SCORE_CONE_AWAY)
                     )
-                    autoArmToPose(Pose.BACK_MIDDLE_SCORE_CONE_TOWARD)
+                    autoArmToPose(Pose.BACK_MIDDLE_SCORE_CONE_AWAY)
                 }
                 Level.LOW -> {
-                    animateToPose(Pose.BACK_LOW_SCORE_CONE_TOWARD)
-                    autoArmToPose(Pose.BACK_LOW_SCORE_CONE_TOWARD)
+                    animateToPose(Pose.BACK_LOW_SCORE_CONE_AWAY)
+                    autoArmToPose(Pose.BACK_LOW_SCORE_CONE_AWAY)
                 }
                 else -> {
                     println("Error: Node level not given back")
@@ -228,21 +228,21 @@ suspend fun backScoreToward(isCone: Boolean = NodeDeckHub.isCone, pieceNumber: I
 //            when (FieldManager.nodeList[pieceNumber]?.level) {
 //                Level.HIGH -> {
 //                    animateThroughPoses(!Robot.isCompBot,
-//                        Pair(0.8, Pose.BACK_HIGH_SCORE_CONE_AWAY_MID),
-//                        Pair(0.4, Pose.BACK_HIGH_SCORE_CONE_AWAY)
+//                        Pair(0.8, Pose.BACK_HIGH_SCORE_CONE_TOWARD_MID),
+//                        Pair(0.4, Pose.BACK_HIGH_SCORE_CONE_TOWARD)
 //                    )
-//                    autoArmToPose(Pose.BACK_HIGH_SCORE_CONE_AWAY)
+//                    autoArmToPose(Pose.BACK_HIGH_SCORE_CONE_TOWARD)
 //                }
 //                Level.MID -> {
 //                    animateThroughPoses(
-//                        Pair(1.0, Pose.BACK_MIDDLE_SCORE_CONE_AWAY_MID),
-//                        Pair(0.4, Pose.BACK_MIDDLE_SCORE_CONE_AWAY)
+//                        Pair(1.0, Pose.BACK_MIDDLE_SCORE_CONE_TOWARD_MID),
+//                        Pair(0.4, Pose.BACK_MIDDLE_SCORE_CONE_TOWARD)
 //                    )
-//                    autoArmToPose(Pose.BACK_MIDDLE_SCORE_CONE_AWAY)
+//                    autoArmToPose(Pose.BACK_MIDDLE_SCORE_CONE_TOWARD)
 //                }
 //                Level.LOW -> {
-//                    animateToPose(Pose.BACK_LOW_SCORE_CONE_AWAY)
-//                    autoArmToPose(Pose.BACK_LOW_SCORE_CONE_AWAY)
+//                    animateToPose(Pose.BACK_LOW_SCORE_CONE_TOWARD)
+//                    autoArmToPose(Pose.BACK_LOW_SCORE_CONE_TOWARD)
 //                }
 //                else -> {
 //                    println("Error: Node level not given back")
@@ -367,7 +367,7 @@ suspend fun scoreObject(pieceNumber: Int = NodeDeckHub.selectedNode.toInt()) = u
                         println("Cone Away High")
                         midPose = Pose.current + Pose(Vector2(7.0, -7.0), 50.0.degrees)
                         animateAlongTrigger(midPose)
-                        Intake.intakeMotor.setPercentOutput(Intake.CONE_AWAY_SPIT)
+                        Intake.intakeMotor.setPercentOutput(Intake.CONE_TOWARD_SPIT)
                         if (!DriverStation.isAutonomous()) {
                             midPose += Pose(Vector2(6.5, 14.0), 0.0.degrees)
                             val midPose2 = midPose + Pose(Vector2(16.0, 17.0), 0.0.degrees)
@@ -380,11 +380,11 @@ suspend fun scoreObject(pieceNumber: Int = NodeDeckHub.selectedNode.toInt()) = u
                     Level.MID -> {
                         midPose = Pose.current + Pose(Vector2(7.0, -6.5), 40.0.degrees)
                         animateAlongTrigger(midPose)
-                        Intake.intakeMotor.setPercentOutput(Intake.CONE_AWAY_SPIT)
+                        Intake.intakeMotor.setPercentOutput(Intake.CONE_TOWARD_SPIT)
                         animateToPose(midPose + Pose(Vector2(6.0, -2.0), 10.0.degrees), 0.3)
                     }
                     Level.LOW -> {
-                        Intake.intakeMotor.setPercentOutput(Intake.CONE_AWAY_SPIT)
+                        Intake.intakeMotor.setPercentOutput(Intake.CONE_TOWARD_SPIT)
                         delay(1.0)
                     }
                     else -> println("Currently can't score there.")
@@ -484,14 +484,14 @@ suspend fun quickSpit() =use(Intake) {
 suspend fun backNod() =use(Arm, Intake) {
     if (Drive.demoMode) {
         animateThroughPoses(
-            Pair(0.0, Pose.BACK_MIDDLE_SCORE_CONE_TOWARD_MID),
-            Pair(0.0, Pose.BACK_MIDDLE_SCORE_CONE_TOWARD)
+            Pair(0.0, Pose.BACK_MIDDLE_SCORE_CONE_AWAY_MID),
+            Pair(0.0, Pose.BACK_MIDDLE_SCORE_CONE_AWAY)
         )
         animateThroughPoses(
             Pair(0.3, Pose.BACK_NOD_DOWN_POSE),
-            Pair(0.3, Pose.BACK_MIDDLE_SCORE_CONE_TOWARD),
+            Pair(0.3, Pose.BACK_MIDDLE_SCORE_CONE_AWAY),
             Pair(0.3, Pose.BACK_NOD_DOWN_POSE),
-            Pair(0.3, Pose.BACK_MIDDLE_SCORE_CONE_TOWARD)
+            Pair(0.3, Pose.BACK_MIDDLE_SCORE_CONE_AWAY)
         )
     }
 }
