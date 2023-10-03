@@ -126,17 +126,17 @@ object FieldManager {
 //        avoidanceZones.add(AvoidanceZone("RedChargeStation", Vector2(-10.5, -6.0), Vector2(0.0, -12.0)))
         for (p in 0 until 8) {
             // floor game piece starting locations:
-            //    Blue Side
+            //    Blue Side +
             //   3 2 1 0
             // - ---------- +
             //   7 6 5 4
-            //    Red Side
+            //    Red Side -
 
             val pOffset = when (p) {
                 0 -> Vector2(0.0, 0.2) //feet
                 1 -> Vector2(-0.6, 0.4)
                 2 -> Vector2(0.3, -1.9)
-                3 -> Vector2(0.0, -0.05)
+                3 -> Vector2(0.5, -0.05)
                 4 -> Vector2(-0.2, 0.6)
                 6 -> Vector2(1.3, 1.5)
                 7 -> Vector2(0.0, 1.0)

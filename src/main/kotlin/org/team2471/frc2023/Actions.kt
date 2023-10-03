@@ -170,7 +170,7 @@ suspend fun groundBackToDrive(isCone: Boolean) {
             animateThroughPoses(Pose.BACK_DRIVE_POSE)
         } else {
 //            animateToPose(Pose(Arm.wristPosition + Vector2(0.0, 10.0), Intake.wristAngle))
-            animateToPose(Pose.GROUND_INTAKE_CUBE_SAFE, 0.5)
+            animateToPose(Pose.GROUND_INTAKE_CUBE_SAFE, if (Robot.isAutonomous) 0.0 else 0.5)
             animateToPose(Pose.BACK_DRIVE_POSE)
         }
     } finally {
@@ -342,9 +342,9 @@ suspend fun scoreObject(pieceNumber: Int = NodeDeckHub.selectedNode.toInt()) = u
                         midPose = Pose.current + Pose(Vector2(4.0, -2.5), 50.0.degrees)
                         animateAlongTrigger(midPose)
                         Intake.intakeMotor.setPercentOutput(Intake.CONE_TOWARD_SPIT)
-                        midPose += Pose(Vector2(5.5, 8.0), 25.0.degrees)
+                        midPose += Pose(Vector2(10.0, 10.0), 25.0.degrees)
                         val midPose2 = midPose + Pose(Vector2(11.0, 10.0), -30.0.degrees)
-                        animateThroughPoses(Pair(0.3, midPose), Pair(0.3, midPose2))
+                        animateThroughPoses(Pair(0.3, midPose)/*, Pair(0.3, midPose2)*/)
 
                     }
                     Level.MID -> {
