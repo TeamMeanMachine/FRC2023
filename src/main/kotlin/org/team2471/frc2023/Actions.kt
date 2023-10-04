@@ -63,6 +63,7 @@ suspend fun intakeFromGroundAuto(isCone: Boolean) = use(Arm, Intake) {
         periodic {
             if (timer2.get() > 1.5 || timer2.get() - holdingTime > 0.4) {
                 println("totalTime: ${timer2.get() > 1.0}  holdTime ${timer2.get() - holdingTime > 0.4}")
+                Pose.abortAnimation = true
                 this.stop()
             }
             if (Intake.holdingObject && holdingTime == 25.0 && timer2.get() > 0.15) {
