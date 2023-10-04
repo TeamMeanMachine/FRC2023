@@ -49,111 +49,113 @@ suspend fun intakeCurrentLogic() {
     }
 }
 suspend fun intakeFromGroundAuto(isCone: Boolean) = use(Arm, Intake) {
-    Intake.intakeMotor.setPercentOutput(if (isCone) Intake.INTAKE_CONE else Intake.INTAKE_CUBE)
-    if  (isCone) {
-        animateThroughPoses(Pose.GROUND_INTAKE_CONE_NEAR, Pose.GROUND_INTAKE_CONE_FAR)
-    } else {
-        animateThroughPoses(Pose.GROUND_INTAKE_MID_CUBE, Pose.GROUND_INTAKE_CUBE_NEAR, Pose.GROUND_INTAKE_CUBE_FAR)
-    }
-    val timer2 = Timer()
-    timer2.start()
-    var holdingTime = 25.0
-    periodic {
-        if (timer2.get() > 2.0 || timer2.get() - holdingTime > 0.4) {
-            println("totalTime: ${timer2.get() > 1.0}  holdTime ${timer2.get() - holdingTime > 0.4}")
-            this.stop()
+    parallel({
+        Intake.intakeMotor.setPercentOutput(if (isCone) Intake.INTAKE_CONE else Intake.INTAKE_CUBE)
+        if  (isCone) {
+            animateThroughPoses(Pose.GROUND_INTAKE_CONE_NEAR, Pose.GROUND_INTAKE_CONE_FAR)
+        } else {
+            animateThroughPoses(Pose.GROUND_INTAKE_MID_CUBE, Pose.GROUND_INTAKE_CUBE_NEAR, Pose.GROUND_INTAKE_CUBE_FAR)
         }
-        if (Intake.holdingObject && holdingTime == 25.0 && timer2.get() > 0.15) {
-            holdingTime = timer2.get()
+    }, {
+        val timer2 = Timer()
+        timer2.start()
+        var holdingTime = 25.0
+        periodic {
+            if (timer2.get() > 1.5 || timer2.get() - holdingTime > 0.4) {
+                println("totalTime: ${timer2.get() > 1.0}  holdTime ${timer2.get() - holdingTime > 0.4}")
+                this.stop()
+            }
+            if (Intake.holdingObject && holdingTime == 25.0 && timer2.get() > 0.15) {
+                holdingTime = timer2.get()
+            }
+            if (!Intake.holdingObject) holdingTime = 25.0
         }
-        if (!Intake.holdingObject) holdingTime = 25.0
-    }
+    })
     Intake.intakeMotor.setPercentOutput(if (Intake.holdingObject) (if (isCone) Intake.HOLD_CONE else Intake.HOLD_CUBE) else 0.0)
 }
 
 suspend fun intakeFromGround(isCone: Boolean = NodeDeckHub.isCone) = use(Arm, Intake) {
     println("inside intakeFromGround")
-    if (Intake.wristAngle.asDegrees < -10.0) {
-        try {
-            println("in intakeFromGround")
-            val path = Path2D("newPath")
-            if (isCone) {
-                path.addVector2(Pose.GROUND_INTAKE_CONE_NEAR.wristPosition)
-                path.addVector2(Pose.GROUND_INTAKE_CONE_FAR.wristPosition)
-            } else {
-                path.addVector2(Pose.GROUND_INTAKE_CUBE_NEAR.wristPosition)
-                path.addVector2(Pose.GROUND_INTAKE_CUBE_FAR.wristPosition)
-            }
-            val distance = path.length
-            val rate = 150.0  //  inches per second
-            val time = distance / rate
-            path.addEasePoint(0.0, 0.0)
-            path.addEasePoint(time, 1.0)
+    try {
+        println("in intakeFromGround")
+        val path = Path2D("newPath")
+        if (isCone) {
+            path.addVector2(Pose.GROUND_INTAKE_CONE_NEAR.wristPosition)
+            path.addVector2(Pose.GROUND_INTAKE_CONE_MIDDLE.wristPosition)
+            path.addVector2(Pose.GROUND_INTAKE_CONE_FAR.wristPosition)
+        } else {
+            path.addVector2(Pose.GROUND_INTAKE_CUBE_NEAR.wristPosition)
+            path.addVector2(Pose.GROUND_INTAKE_CUBE_FAR.wristPosition)
+        }
+        val distance = path.length
+        val rate = 150.0  //  inches per second
+        val time = distance / rate
+        path.addEasePoint(0.0, 0.0)
+        path.addEasePoint(time, 1.0)
 
-            Drive.maxTranslation = 0.5
-            //go to close intake
-            if  (isCone) {
-                animateThroughPoses(true, Pose.GROUND_INTAKE_CONE_NEAR)
-            } else {
-                animateThroughPoses(true, Pose.GROUND_INTAKE_MID_CUBE, Pose.GROUND_INTAKE_CUBE_NEAR)
-            }
-            println("after, wristPos: ${Arm.shoulderSetpoint} ${Arm.elbowSetpoint}    actual: ${Arm.shoulderAngle} ${Arm.elbowAngle}")
+        Drive.maxTranslation = 0.5
+        //go to close intake
+        if (isCone) {
+            animateThroughPoses(true, Pose.GROUND_INTAKE_CONE_NEAR)
+        } else {
+            animateThroughPoses(true, Pose.GROUND_INTAKE_MID_CUBE, Pose.GROUND_INTAKE_CUBE_NEAR)
+        }
+
+        println("after, wristPos: ${Arm.shoulderSetpoint} ${Arm.elbowSetpoint}    actual: ${Arm.shoulderAngle} ${Arm.elbowAngle}")
 //            if (OI.operatorLeftTrigger < 0.05 && DriverStation.isTeleop()) {  // todo: should be able to early exit the animations above
 //                this.stop()
 //            }
-            val slewRateLimiter = SlewRateLimiter(10.0 * Drive.demoSpeed, -10.0 * Drive.demoSpeed, 0.0)
+        val slewRateLimiter = SlewRateLimiter(if (isCone) 0.5 else 10.0 * Drive.demoSpeed, -10.0 * Drive.demoSpeed, 0.0)
 
-            val timer = Timer()
-            timer.start()
+        val timer = Timer()
+        timer.start()
 
-            Intake.intakeMotor.setPercentOutput(if (isCone) Intake.INTAKE_CONE else Intake.INTAKE_CUBE) //intake bad
-            if (OI.operatorLeftTrigger > 0.05) { //animate through close and far pos
-                var tInitialHold = -1.0
-                var tHold = -1.0
-                var rumbleTimer = -1.0
-                parallel({
-                    periodic {
-                        tHold = if (tInitialHold != -1.0) timer.get() - tInitialHold else -1.0
-                        val alpha2 =
-                            if (DriverStation.isTeleop()) slewRateLimiter.calculate(linearMap(0.5, 1.0, 0.0, 1.0, OI.operatorLeftTrigger).coerceIn(0.0, 1.0)) else slewRateLimiter.calculate(1.0)
-                        val tPath = linearMap(0.0, 1.0, 0.0, time, alpha2)
-                        Arm.wristPosition =
-                            path.getPosition(tPath) + if (tHold > 0.25 && !isCone) Vector2(0.0, 15.0) else Vector2(0.0, 0.0) //test intake motor doesn't turn on as much, controlling intakeFromGround curved, rumble upon intake
-                        Intake.intakeMotor.setPercentOutput(if (isCone) (if (tHold > 3.0) Intake.HOLD_CONE else Intake.INTAKE_CONE) else (if (tHold > 2.0) Intake.HOLD_CUBE else Intake.INTAKE_CUBE))
-                        if (DriverStation.isTeleop() && OI.operatorLeftTrigger < 0.01) {
-                            this.stop()
+        Intake.intakeMotor.setPercentOutput(if (isCone) Intake.INTAKE_CONE else Intake.INTAKE_CUBE) //intake bad
+        if (OI.operatorLeftTrigger > 0.05) { //animate through close and far pos
+            var tInitialHold = -1.0
+            var tHold = -1.0
+            var rumbleTimer = -1.0
+            parallel({
+                periodic {
+                    tHold = if (tInitialHold != -1.0) timer.get() - tInitialHold else -1.0
+                    val alpha2 =
+                        if (DriverStation.isTeleop()) slewRateLimiter.calculate(
+                            linearMap(0.5, 1.0, 0.0, 1.0, OI.operatorLeftTrigger).coerceIn(0.0, 1.0)
+                        ) else slewRateLimiter.calculate(1.0)
+                    val tPath = linearMap(0.0, 1.0, 0.0, time, alpha2)
+                    Arm.wristPosition =
+                        path.getPosition(tPath) + if (tHold > 0.25 && !isCone) Vector2(0.0, 15.0) else Vector2(0.0, 0.0) //test intake motor doesn't turn on as much, controlling intakeFromGround curved, rumble upon intake
+                    Intake.intakeMotor.setPercentOutput(if (isCone) (if (tHold > 3.0) Intake.HOLD_CONE else Intake.INTAKE_CONE) else (if (tHold > 2.0) Intake.HOLD_CUBE else Intake.INTAKE_CUBE))
+                    if (DriverStation.isTeleop() && OI.operatorLeftTrigger < 0.01) {
+                        this.stop()
+                    }
+                }
+            }, {
+                periodic {//rumble if holding object
+                    if (Intake.holdingObject && tInitialHold == -1.0) {
+                        tInitialHold = timer.get()
+                        rumbleTimer = timer.get() + 2.0
+                        if (!DriverStation.isAutonomous() && timer.get() > 0.2) {
+                            OI.driverController.rumble = 1.0
+                            OI.operatorController.rumble = 1.0
                         }
                     }
-
-                }, {
-                    periodic {//rumble if holding object
-                        if (Intake.holdingObject && tInitialHold == -1.0) {
-                            tInitialHold = timer.get()
-                            rumbleTimer = timer.get() + 2.0
-                            if (!DriverStation.isAutonomous() && timer.get() > 0.2) {
-                                OI.driverController.rumble = 1.0
-                                OI.operatorController.rumble = 1.0
-                            }
-                        }
-                        if (!Intake.holdingObject) tInitialHold = -1.0
-                        if (timer.get() > rumbleTimer) {
-                            OI.operatorController.rumble = 0.0
-                            OI.driverController.rumble = 0.0
-                        }
-                        if (OI.operatorLeftTrigger < 0.1) {
-                            this.stop()
-                        }
+                    if (!Intake.holdingObject) tInitialHold = -1.0
+                    if (timer.get() > rumbleTimer) {
+                        OI.operatorController.rumble = 0.0
+                        OI.driverController.rumble = 0.0
                     }
-                })
-            }
-        } finally {//move back to drive pos
-            Drive.maxTranslation = 1.0
-
-            // don't flip if we don't have an object
-            groundBackToDrive(isCone)
+                    if (OI.operatorLeftTrigger < 0.1) {
+                        this.stop()
+                    }
+                }
+            })
         }
-    } else {
-        println("Wrong side--flip first!!")
+    } finally {//move back to drive pos
+        Drive.maxTranslation = 1.0
+
+        // don't flip if we don't have an object
+        groundBackToDrive(isCone)
     }
 }
 suspend fun groundBackToDrive(isCone: Boolean) {
@@ -441,7 +443,7 @@ suspend fun scoreObject(pieceNumber: Int = NodeDeckHub.selectedNode.toInt()) = u
 suspend fun toDrivePose() = use(Arm, Intake) {
     resetArmVars()
     if (Arm.wristPosition.x < -10.0 || Intake.wristAngle.asDegrees < -55.0) {
-        animateToPose(Pose.BACK_DRIVE_POSE, 1.5)
+        animateToPose(Pose.SHIFTED_DRIVE_POSE, 1.5)
     } else {
         println("too dangerous to animate, go to start pose")
     }

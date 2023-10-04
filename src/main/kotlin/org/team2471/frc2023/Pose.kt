@@ -25,7 +25,8 @@ data class Pose(val wristPosition: Vector2, val wristAngle: Angle) {
         val GROUND_INTAKE_CUBE_NEAR = Pose(Vector2(-20.0, -5.0), -75.0.degrees)
         val GROUND_INTAKE_CUBE_FAR = Pose(Vector2(-40.0, -3.0), -75.0.degrees)
         val GROUND_INTAKE_CONE_NEAR = Pose(Vector2(-20.0, 12.5), 20.0.degrees)
-        val GROUND_INTAKE_CONE_FAR = Pose(Vector2(-40.0, 15.0), 20.0.degrees)
+        val GROUND_INTAKE_CONE_MIDDLE = Pose(Vector2(-35.0, 12.5), 20.0.degrees)
+        val GROUND_INTAKE_CONE_FAR = Pose(Vector2(-45.0, 15.0), 20.0.degrees)
         val GROUND_INTAKE_CUBE_SAFE = Pose(Pose.GROUND_INTAKE_CONE_NEAR.wristPosition, -90.0.degrees)
 
         val BACK_LOW_SCORE_CONE_AWAY = Pose(Vector2(-5.0, 6.0), -40.0.degrees)
@@ -54,6 +55,7 @@ data class Pose(val wristPosition: Vector2, val wristAngle: Angle) {
 
 //        val FRONT_DRIVE_POSE_CENTER = Pose(Vector2(0.0, 9.0), 92.0.degrees)
         val BACK_DRIVE_POSE_CENTER = Pose(Vector2(0.0, 9.0), -92.0.degrees)
+        val SHIFTED_DRIVE_POSE = Pose(Vector2(-3.5, 9.0), -92.0.degrees)
 
 //        val FRONT_DRIVE_POSE = Pose(Vector2(-3.5, 8.5), 92.0.degrees)
         val BACK_DRIVE_POSE = Pose(Vector2(3.5, 8.5), -92.0.degrees)
@@ -91,6 +93,7 @@ data class Pose(val wristPosition: Vector2, val wristAngle: Angle) {
 
         val SHORT_POSE_TWO = Pose(Vector2(-15.0 , 9.0), -90.0.degrees)
 
+        var abortAnimation: Boolean = false
     }
 
     override fun toString(): String {
@@ -180,7 +183,7 @@ suspend fun animateThroughPoses(waituntilDone: Boolean = false, vararg poses: Pa
 //        println("t: $t  pivot: ${Intake.pivotAngle}")
         Arm.wristPosition = path.getPosition(t)
         Intake.wristSetpoint = wristCurve.getValue(t).degrees
-        if (t > totalT) {
+        if (t > totalT || Pose.abortAnimation) {
             this.stop()
         }
     }
