@@ -94,23 +94,34 @@ suspend fun intakeFromGround(isCone: Boolean = NodeDeckHub.isCone) = use(Arm, In
         path.addEasePoint(time, 1.0)
 
         Drive.maxTranslation = 0.5
-        //go to close intake
-        if (isCone) {
-            animateThroughPoses(true, Pose.GROUND_INTAKE_CONE_NEAR)
-        } else {
-            animateThroughPoses(true, Pose.GROUND_INTAKE_MID_CUBE, Pose.GROUND_INTAKE_CUBE_NEAR)
-        }
+        var animating = true
+        parallel({ //early exit from arm animation
+            periodic {
+                if (!animating) {
+                    this.stop()
+                }
+                if (OI.operatorLeftTrigger < 0.05) {
+                    Pose.abortAnimation = true
+                    animating = false
+                }
+            }
+        }, {
+            if (isCone) {
+                animateThroughPoses(true, Pose.GROUND_INTAKE_CONE_NEAR)
+            } else {
+                animateThroughPoses(true, Pose.GROUND_INTAKE_MID_CUBE, Pose.GROUND_INTAKE_CUBE_NEAR)
+            }
+            animating = false
+        })
 
         println("after, wristPos: ${Arm.shoulderSetpoint} ${Arm.elbowSetpoint}    actual: ${Arm.shoulderAngle} ${Arm.elbowAngle}")
-//            if (OI.operatorLeftTrigger < 0.05 && DriverStation.isTeleop()) {  // todo: should be able to early exit the animations above
-//                this.stop()
-//            }
+
         val slewRateLimiter = SlewRateLimiter(if (isCone) 0.5 else 10.0 * Drive.demoSpeed, -10.0 * Drive.demoSpeed, 0.0)
 
         val timer = Timer()
         timer.start()
 
-        Intake.intakeMotor.setPercentOutput(if (isCone) Intake.INTAKE_CONE else Intake.INTAKE_CUBE) //intake bad
+        Intake.intakeMotor.setPercentOutput(if (isCone) Intake.INTAKE_CONE else Intake.INTAKE_CUBE)
         if (OI.operatorLeftTrigger > 0.05) { //animate through close and far pos
             var tInitialHold = -1.0
             var tHold = -1.0

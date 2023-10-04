@@ -18,6 +18,7 @@ import kotlin.math.absoluteValue
 
 data class Pose(val wristPosition: Vector2, val wristAngle: Angle) {
     companion object {
+        var abortAnimation: Boolean = false
         val current: Pose
             get() = Pose(Arm.wristPosition, Intake.wristAngle)
         val START_POSE = Pose(Vector2(0.0, 9.0), -90.0.degrees)
@@ -93,7 +94,6 @@ data class Pose(val wristPosition: Vector2, val wristAngle: Angle) {
 
         val SHORT_POSE_TWO = Pose(Vector2(-15.0 , 9.0), -90.0.degrees)
 
-        var abortAnimation: Boolean = false
     }
 
     override fun toString(): String {
@@ -183,12 +183,16 @@ suspend fun animateThroughPoses(waituntilDone: Boolean = false, vararg poses: Pa
 //        println("t: $t  pivot: ${Intake.pivotAngle}")
         Arm.wristPosition = path.getPosition(t)
         Intake.wristSetpoint = wristCurve.getValue(t).degrees
-        if (t > totalT || Pose.abortAnimation) {
+        if (t > totalT) {
+            this.stop()
+        }
+        if (Pose.abortAnimation) {
+            println("aborting animation because 'abortAnimation' was true")
             this.stop()
         }
     }
 
-    if (waituntilDone) {
+    if (waituntilDone && !Pose.abortAnimation) {
         timer.reset()
         timer.start()
         periodic {
@@ -202,9 +206,7 @@ suspend fun animateThroughPoses(waituntilDone: Boolean = false, vararg poses: Pa
         }
         println("waited ${timer.get()} for the animation to finish")
     }
-    fun toString() {
-
-    }
+    Pose.abortAnimation = false
 }
 suspend fun animateAlongTrigger(endPose: Pose, startPose: Pose = Pose.current) = use(Arm, Intake) {
     println("inside animateAlongTrigger $startPose  to  $endPose")

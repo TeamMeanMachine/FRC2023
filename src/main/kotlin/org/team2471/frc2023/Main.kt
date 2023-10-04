@@ -2,7 +2,6 @@
 
 package org.team2471.frc2023
 
-import FRC____.BuildConfig
 import edu.wpi.first.wpilibj.DriverStation
 import edu.wpi.first.wpilibj.RobotBase
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard
@@ -44,7 +43,6 @@ object Robot : MeanlibRobot() {
             println("RANDOM NUMBER: ${Math.random()}")
         }
         println("NEVER GONNA GIVE YOU UP")
-        println(BuildConfig.BUILD_TIME)
 
         FieldManager
         OI
