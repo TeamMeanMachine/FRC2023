@@ -25,7 +25,7 @@ data class Pose(val wristPosition: Vector2, val wristAngle: Angle) {
         val GROUND_INTAKE_MID_CUBE = Pose(Vector2(-21.0, 9.0), -90.0.degrees)
         val GROUND_INTAKE_CUBE_NEAR = Pose(Vector2(-20.0, -5.0), -75.0.degrees)
         val GROUND_INTAKE_CUBE_FAR = Pose(Vector2(-40.0, -3.0), -75.0.degrees)
-        val GROUND_INTAKE_CONE_NEAR = Pose(Vector2(-20.0, 12.5), 20.0.degrees)
+        val GROUND_INTAKE_CONE_NEAR = Pose(Vector2(-20.0, 11.5), 20.0.degrees)
         val GROUND_INTAKE_CONE_MIDDLE = Pose(Vector2(-35.0, 12.5), 20.0.degrees)
         val GROUND_INTAKE_CONE_FAR = Pose(Vector2(-45.0, 15.0), 20.0.degrees)
         val GROUND_INTAKE_CUBE_SAFE = Pose(Pose.GROUND_INTAKE_CONE_NEAR.wristPosition, -90.0.degrees)
@@ -122,7 +122,7 @@ suspend fun animateThroughPoses(waituntilDone: Boolean = false, vararg poses: Pa
     val path = Path2D("Path")
 
     val wristPosRate = 30.0  //  inches per second
-    val wristAngleRate = 270.0 // deg per second
+    val wristAngleRate = 200.0 // deg per second
     val times = ArrayList<Double>(poses.size)
     val previousPose = Pose.current
     val timeMap = HashMap<String,Double>(poses.count())

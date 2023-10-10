@@ -279,7 +279,7 @@ suspend fun lineUpScoreCube(pieceNumber: Int = NodeDeckHub.selectedNode.toInt())
         when (FieldManager.nodeList[pieceNumber]?.level) {
             Level.HIGH -> {
                 animateThroughPoses(
-                    Pair(0.4, Pose.BACK_HIGH_SCORE_CUBE_MID),
+                    Pair(0.3, Pose.BACK_HIGH_SCORE_CUBE_MID),
                     Pair(0.0, Pose.BACK_HIGH_SCORE_CUBE)
                 )
                 autoArmToPose(Pose.BACK_HIGH_SCORE_CUBE)
@@ -423,7 +423,16 @@ suspend fun scoreObject(pieceNumber: Int = NodeDeckHub.selectedNode.toInt()) = u
                 else -> println("Currently can't score there.")
             }
         }
-        toBackDrivePose()
+        if (Robot.isAutonomous){
+            if (NodeDeckHub.chargeInAuto) {
+
+            } else {
+                toBackDrivePose()
+            }
+        } else {
+            toBackDrivePose()
+        }
+
 
         resetArmVars()
         Intake.intakeMotor.setPercentOutput(0.0)

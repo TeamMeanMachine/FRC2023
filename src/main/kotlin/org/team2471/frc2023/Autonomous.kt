@@ -224,17 +224,20 @@ object AutoChooser {
         }
         println("charge: ${NodeDeckHub.chargeInAuto}")
         if (NodeDeckHub.chargeInAuto) {
-//                Drive.dynamicGoToChargeCenter()
-            val chargeX = when(NodeDeckHub.startingPoint) {
-                StartingPoint.OUTSIDE -> -1
-                StartingPoint.INSIDE -> 1
-                StartingPoint.MIDDLE -> 0
-            }
-            val chargeDestination = Vector2(FieldManager.centerOfChargeX + (Drive.robotHalfWidth.asFeet * 1.7 * chargeX), FieldManager.reflectFieldByAlliance(15.25))
-            Drive.driveToPointsPercentSpeed(0.5, Drive.combinedPosition, Vector2(chargeDestination.x, FieldManager.reflectFieldByAlliance(7.0 + Drive.robotHalfWidth.asFeet)))
-            delay(0.2)
-            Drive.driveToPointsPercentSpeed(0.5, Drive.combinedPosition, chargeDestination)
-            Drive.autoBalance()
+            parallel({
+                toBackDrivePose()
+            },{
+                val chargeX = when(NodeDeckHub.startingPoint) {
+                    StartingPoint.OUTSIDE -> -1
+                    StartingPoint.INSIDE -> 1
+                    StartingPoint.MIDDLE -> 0
+                }
+                val chargeDestination = Vector2(FieldManager.centerOfChargeX + (Drive.robotHalfWidth.asFeet * 1.7 * chargeX), FieldManager.reflectFieldByAlliance(15.25))
+                Drive.driveToPointsPercentSpeed(0.5, Drive.combinedPosition, Vector2(chargeDestination.x, FieldManager.reflectFieldByAlliance(7.0 + Drive.robotHalfWidth.asFeet)))
+                delay(0.05)
+                Drive.driveToPointsPercentSpeed(0.5, Drive.combinedPosition, chargeDestination)
+                Drive.autoBalance()
+            })
         }
     }
     suspend fun nodeDeckPiece(pickupHeading: Angle, nodeID: Int, finishWithPiece: Boolean, prevPiece: Int) = use(Intake, Drive, Arm) {

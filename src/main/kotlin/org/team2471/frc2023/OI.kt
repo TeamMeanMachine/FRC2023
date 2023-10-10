@@ -144,6 +144,9 @@ object OI : Subsystem("OI") {
                 Arm.pointToTag()
             }
         }
+        operatorController::a.whenTrue {
+            Pose.abortAnimation = true
+        }
 //        operatorController::a.whenTrue {
 //            animateThroughPoses(Pose.SHORT_POSE_ONE, Pose.SHORT_POSE_TWO)
 //        }
