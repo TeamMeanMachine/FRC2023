@@ -74,7 +74,7 @@ object Intake : Subsystem("Intake") {
             }
         }
 
-
+    var testButton = AnalogInput(3)
 
     var prevWristAngle: Angle = -90.0.degrees
 
@@ -131,6 +131,9 @@ object Intake : Subsystem("Intake") {
     const val CONE_TOWARD_SPIT = 1.0
     const val CUBE_SPIT = -0.2
 
+    var buttonPressed = false
+        get() = testButton.voltage > 4
+
     init {
 //        initializePixy()
         wristMotor.restoreFactoryDefaults()
@@ -171,6 +174,9 @@ object Intake : Subsystem("Intake") {
 //            coneMinArea.setInteger(20)
 //            coneMinBlockY.setInteger(100)
             periodic {
+                println("button is pressed $buttonPressed")
+                println("Gahh! ${testButton.voltage}")
+
                 if (!isCompBot) {
                     if ((wristAngle.asDegrees - wristMotor.position).absoluteValue > 10) {
                         println("not resetting wrist motor offset to: ${wristAngle.asDegrees}  prev motor position: ${wristMotor.position}  ${wristMotor.analogAngle}!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
