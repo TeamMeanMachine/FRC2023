@@ -1,5 +1,6 @@
 package org.team2471.frc2023
 
+import edu.wpi.first.math.filter.Debouncer
 import edu.wpi.first.math.filter.LinearFilter
 import edu.wpi.first.networktables.NetworkTableInstance
 import edu.wpi.first.wpilibj.AnalogInput
@@ -132,7 +133,9 @@ object Intake : Subsystem("Intake") {
     const val CUBE_SPIT = -0.2
 
     var buttonPressed = false
-        get() = testButton.voltage > 4
+        get() = testButton.averageVoltage > 4
+
+    var buttonPressedBounced = Debouncer(0.04, Debouncer.DebounceType.kBoth)
 
     init {
 //        initializePixy()
@@ -175,7 +178,8 @@ object Intake : Subsystem("Intake") {
 //            coneMinBlockY.setInteger(100)
             periodic {
                 println("button is pressed $buttonPressed")
-                println("Gahh! ${testButton.voltage}")
+//                println("Gahh! ${testButton.voltage}")
+                println ("debouncer ${buttonPressedBounced.calculate(buttonPressed)}")
 
                 if (!isCompBot) {
                     if ((wristAngle.asDegrees - wristMotor.position).absoluteValue > 10) {
