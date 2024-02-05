@@ -63,54 +63,54 @@ object PoseEstimator {
             }
         }
     }
-    fun addVision(detection: AprilDetection, numTarget: Int, kApril: Double? = null) {
-        //Ignoring Vision data if timestamp is before the last zero
-        if (!Drive.demoMode) {
-            if (detection.timestamp < (lastZeroTimestamp + 0.3)) { // || Drive.position == Vector2(0.0,0.0)) {
-                println("Ignoring update during reset") // and initialization ...")
-                return
-            } else {
-                try {
-                    val kAprilFinal = ((kApril ?: (kAprilValue * if (numTarget < 2) 0.7 else 1.0)))
-//                val kHeading = if (kotlin.math.abs(currentPose.y) > 15.0) kHeadingEntry.getDouble(0.001) else 0.0
-                    val latencyPose = Drive.lookupPose(detection.timestamp)
-                    if (DriverStation.isDisabled() && latencyPose == null && FieldManager.beforeFirstEnable) {
-                        val apriltagPose = Vector2(detection.pose.x, detection.pose.y)
-                        preEnableHadTarget = true
-                        Drive.position = apriltagPose
-                        Drive.heading = detection.pose.rotation.radians.radians
-                    }
-                    if (latencyPose != null) {
-                        val odomDiff = Drive.position - latencyPose.position
-                        val headingDiff = Drive.heading - latencyPose.heading
-                        val apriltagPose = Vector2(detection.pose.x, detection.pose.y) + odomDiff
-                        //val apriltagHeading = (-(detection.pose.rotation.degrees.degrees + headingDiff)).wrap180()
-                        offset = offset * (1.0 - kAprilFinal) + (Drive.position - apriltagPose) * kAprilFinal
-                        //apriltagHeadingEntry.setDouble(apriltagHeading.asDegrees)
-                        //headingOffset = headingOffset * (1.0 - kHeading) + apriltagHeading.unWrap180(Drive.heading) * kHeading
-                        val coercedOffsetX = offset.x.coerceIn(
-                            -FieldManager.fieldHalfInFeet.x + Drive.position.x,
-                            FieldManager.fieldHalfInFeet.x + Drive.position.x
-                        )
-                        val coercedOffsetY = offset.y.coerceIn(
-                            -FieldManager.fieldHalfInFeet.y + Drive.position.y,
-                            FieldManager.fieldHalfInFeet.y + Drive.position.y
-                        )
-                        val coercedOffset = Vector2(coercedOffsetX, coercedOffsetY)
-                        if (coercedOffset.distance(offset) > 0.0) {
-                            offset = coercedOffset
-                            DriverStation.reportWarning("PoseEstimator: Offset coerced onto field", false)
-                            println("PoseEstimator: Offset coerced onto field")
-                        }
-                        //println("Heading Offset: ${apriltagHeading.unWrap(Drive.heading)}")
-
-                        //        println(offset)
-                    }
-                } catch (ex: Exception) {
-                }
-            }
-        }
-    }
+//    fun addVision(detection: AprilDetection, numTarget: Int, kApril: Double? = null) {
+//        //Ignoring Vision data if timestamp is before the last zero
+//        if (!Drive.demoMode) {
+//            if (detection.timestamp < (lastZeroTimestamp + 0.3)) { // || Drive.position == Vector2(0.0,0.0)) {
+//                println("Ignoring update during reset") // and initialization ...")
+//                return
+//            } else {
+//                try {
+//                    val kAprilFinal = ((kApril ?: (kAprilValue * if (numTarget < 2) 0.7 else 1.0)))
+////                val kHeading = if (kotlin.math.abs(currentPose.y) > 15.0) kHeadingEntry.getDouble(0.001) else 0.0
+//                    val latencyPose = Drive.lookupPose(detection.timestamp)
+//                    if (DriverStation.isDisabled() && latencyPose == null && FieldManager.beforeFirstEnable) {
+//                        val apriltagPose = Vector2(detection.pose.x, detection.pose.y)
+//                        preEnableHadTarget = true
+//                        Drive.position = apriltagPose
+//                        Drive.heading = detection.pose.rotation.radians.radians
+//                    }
+//                    if (latencyPose != null) {
+//                        val odomDiff = Drive.position - latencyPose.position
+//                        val headingDiff = Drive.heading - latencyPose.heading
+//                        val apriltagPose = Vector2(detection.pose.x, detection.pose.y) + odomDiff
+//                        //val apriltagHeading = (-(detection.pose.rotation.degrees.degrees + headingDiff)).wrap180()
+//                        offset = offset * (1.0 - kAprilFinal) + (Drive.position - apriltagPose) * kAprilFinal
+//                        //apriltagHeadingEntry.setDouble(apriltagHeading.asDegrees)
+//                        //headingOffset = headingOffset * (1.0 - kHeading) + apriltagHeading.unWrap180(Drive.heading) * kHeading
+//                        val coercedOffsetX = offset.x.coerceIn(
+//                            -FieldManager.fieldHalfInFeet.x + Drive.position.x,
+//                            FieldManager.fieldHalfInFeet.x + Drive.position.x
+//                        )
+//                        val coercedOffsetY = offset.y.coerceIn(
+//                            -FieldManager.fieldHalfInFeet.y + Drive.position.y,
+//                            FieldManager.fieldHalfInFeet.y + Drive.position.y
+//                        )
+//                        val coercedOffset = Vector2(coercedOffsetX, coercedOffsetY)
+//                        if (coercedOffset.distance(offset) > 0.0) {
+//                            offset = coercedOffset
+//                            DriverStation.reportWarning("PoseEstimator: Offset coerced onto field", false)
+//                            println("PoseEstimator: Offset coerced onto field")
+//                        }
+//                        //println("Heading Offset: ${apriltagHeading.unWrap(Drive.heading)}")
+//
+//                        //        println(offset)
+//                    }
+//                } catch (ex: Exception) {
+//                }
+//            }
+//        }
+//    }
     fun zeroOffset() {
         lastZeroTimestamp = Timer.getFPGATimestamp()
         offset = Vector2(0.0, 0.0)

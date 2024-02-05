@@ -1,6 +1,7 @@
 package org.team2471.frc2023
 
-import com.ctre.phoenix.sensors.CANCoder
+import com.ctre.phoenix6.configs.CANcoderConfiguration
+import com.ctre.phoenix6.hardware.CANcoder
 import edu.wpi.first.math.controller.PIDController
 import edu.wpi.first.networktables.NetworkTableEntry
 import edu.wpi.first.networktables.NetworkTableInstance
@@ -29,6 +30,7 @@ import org.team2471.frc.lib.units.*
 import org.team2471.frc2023.FieldManager.isBlueAlliance
 import org.team2471.frc2023.FieldManager.isRedAlliance
 import org.team2471.frc2023.FieldManager.reflectFieldByAlliance
+import org.team2471.frc2024.NavxWrapper
 import kotlin.math.absoluteValue
 import kotlin.math.min
 import kotlin.math.sign
@@ -44,14 +46,14 @@ object Drive : Subsystem("Drive"), SwerveDrive {
     val odometer1Entry = table.getEntry("Odometer 1")
     val odometer2Entry = table.getEntry("Odometer 2")
     val odometer3Entry = table.getEntry("Odometer 3")
-//    val absoluteAngle0Entry = table.getEntry("Analog Angle 0")
-//    val absoluteAngle1Entry = table.getEntry("Analog Angle 1")
-//    val absoluteAngle2Entry = table.getEntry("Analog Angle 2")
-//    val absoluteAngle3Entry = table.getEntry("Analog Angle 3")
-//    val motorAngle0Entry = table.getEntry("Motor Angle 0")
-//    val motorAngle1Entry = table.getEntry("Motor Angle 1")
-//    val motorAngle2Entry = table.getEntry("Motor Angle 2")
-//    val motorAngle3Entry = table.getEntry("Motor Angle 3")
+    val absoluteAngle0Entry = table.getEntry("Analog Angle 0")
+    val absoluteAngle1Entry = table.getEntry("Analog Angle 1")
+    val absoluteAngle2Entry = table.getEntry("Analog Angle 2")
+    val absoluteAngle3Entry = table.getEntry("Analog Angle 3")
+    val motorAngle0Entry = table.getEntry("Motor Angle 0")
+    val motorAngle1Entry = table.getEntry("Motor Angle 1")
+    val motorAngle2Entry = table.getEntry("Motor Angle 2")
+    val motorAngle3Entry = table.getEntry("Motor Angle 3")
 
 //    val motorPower0Entry = table.getEntry("Motor Power 0")
 //    val motorPower1Entry = table.getEntry("Motor Power 1")
@@ -278,10 +280,10 @@ object Drive : Subsystem("Drive"), SwerveDrive {
 
 
 //                if (FieldManager.homeField) {
-//                    absoluteAngle0Entry.setDouble((modules[0] as Module).absoluteAngle.asDegrees)
-//                    absoluteAngle1Entry.setDouble((modules[1] as Module).absoluteAngle.asDegrees)
-//                    absoluteAngle2Entry.setDouble((modules[2] as Module).absoluteAngle.asDegrees)
-//                    absoluteAngle3Entry.setDouble((modules[3] as Module).absoluteAngle.asDegrees)
+                    absoluteAngle0Entry.setDouble((modules[0] as Module).absoluteAngle.asDegrees)
+                    absoluteAngle1Entry.setDouble((modules[1] as Module).absoluteAngle.asDegrees)
+                    absoluteAngle2Entry.setDouble((modules[2] as Module).absoluteAngle.asDegrees)
+                    absoluteAngle3Entry.setDouble((modules[3] as Module).absoluteAngle.asDegrees)
 //
 //                    motorPower0Entry.setDouble((modules[0] as Module).driveCurrent)
 //                    motorPower1Entry.setDouble((modules[1] as Module).driveCurrent)
@@ -289,10 +291,10 @@ object Drive : Subsystem("Drive"), SwerveDrive {
 //                    motorPower3Entry.setDouble((modules[3] as Module).driveCurrent)
 //
 //                }
-//                motorAngle0Entry.setDouble((modules[0] as Module).angle.wrap().asDegrees)
-//                motorAngle1Entry.setDouble((modules[1] as Module).angle.wrap().asDegrees)
-//                motorAngle2Entry.setDouble((modules[2] as Module).angle.wrap().asDegrees)
-//                motorAngle3Entry.setDouble((modules[3] as Module).angle.wrap().asDegrees)
+                motorAngle0Entry.setDouble((modules[0] as Module).angle.wrap().asDegrees)
+                motorAngle1Entry.setDouble((modules[1] as Module).angle.wrap().asDegrees)
+                motorAngle2Entry.setDouble((modules[2] as Module).angle.wrap().asDegrees)
+                motorAngle3Entry.setDouble((modules[3] as Module).angle.wrap().asDegrees)
            //     for (moduleCount in 0..3) { //changed to modules.indices, untested
              //       val module = (modules[moduleCount] as Module)
             //    }
@@ -357,65 +359,65 @@ object Drive : Subsystem("Drive"), SwerveDrive {
             if (FieldManager.homeField) {
                 angleToNodeEntry.setDouble(angleToNode.asDegrees)
             }
-            if (demoBondingBox) {
-                if (!prevDemoBox){
-                    position = Vector2(0.0, 0.0)
-                }
-                val limit = demoLimitEntry.getDouble(1.0)
-                val goalPos = Vector2(
-                    linearMap(-1.0, 1.0, -limit, limit, OI.driveTranslation.x),
-                    linearMap(-1.0, 1.0, -limit, limit, OI.driveTranslation.y)
-                )
-                val posDiff = (goalPos - position)// / 30.0
+//            if (demoBondingBox) {
+//                if (!prevDemoBox){
+//                    position = Vector2(0.0, 0.0)
+//                }
+//                val limit = demoLimitEntry.getDouble(1.0)
+//                val goalPos = Vector2(
+//                    linearMap(-1.0, 1.0, -limit, limit, OI.driveTranslation.x),
+//                    linearMap(-1.0, 1.0, -limit, limit, OI.driveTranslation.y)
+//                )
+//                val posDiff = (goalPos - position)// / 30.0
 //                println(posDiff)
-                drive(
-                    posDiff,
-                    turn * maxRotation,
-                    useGyro2,
-                    useGyro2
-                )
-            } else if (demoAprilLookingAt) {
-
-                val tags = AprilTag.getAimingTarget()
-                drive(
-                    OI.driveTranslation * maxTranslation,
-                    turn * maxRotation,
-                    useGyro2,
-                    useGyro2
-                )
-
+//                drive(
+//                    posDiff,
+//                    turn * maxRotation,
+//                    useGyro2,
+//                    useGyro2
+//                )
+//            } else if (demoAprilLookingAt) {
+//
+//                val tags = AprilTag.getAimingTarget()
+//                drive(
+//                    OI.driveTranslation * maxTranslation,
+//                    turn * maxRotation,
+//                    useGyro2,
+//                    useGyro2
+//                )
+//
 //                }
 //                catch (ex: Exception) {
 //                    print(ex.message)
 //                    tag = null
 //                }
-                if (tags != null) {
-                    if (tags.first != null && tags.second != null) {
-                        for (tag in tags.first!!) {
-                            val tagYaw = tag.yaw.degrees + if (tags.second == AprilTag.camBack) -23.0.degrees else 23.0.degrees
-
-                            val aimTurn = tagYaw / 35.0
-
-                            println("turn: ${aimTurn.asDegrees}  heading: ${heading.asDegrees}   tagYaw: ${tagYaw}   camera ${tags.second?.name}")
-
-                            drive(
-                                OI.driveTranslation * maxTranslation,
-                                aimTurn.asDegrees,
-                                true
-                            )
-                        }
-                    } else {
-                        println("Tag is null")
-                    }
-                }
-            } else {
+//                if (tags != null) {
+//                    if (tags.first != null && tags.second != null) {
+//                        for (tag in tags.first!!) {
+//                            val tagYaw = tag.yaw.degrees + if (tags.second == AprilTag.camBack) -23.0.degrees else 23.0.degrees
+//
+//                            val aimTurn = tagYaw / 35.0
+//
+//                            println("turn: ${aimTurn.asDegrees}  heading: ${heading.asDegrees}   tagYaw: ${tagYaw}   camera ${tags.second?.name}")
+//
+//                            drive(
+//                                OI.driveTranslation * maxTranslation,
+//                                aimTurn.asDegrees,
+//                                true
+//                            )
+//                        }
+//                    } else {
+//                        println("Tag is null")
+//                    }
+//                }
+//            } else {
                 drive(
                     OI.driveTranslation * maxTranslation,
                     turn * maxRotation,
                     useGyro2,
                     useGyro2
                 )
-            }
+//            }
             prevDemoBox = demoBondingBox
             //println("heading=$heading useGyro=$useGyro2")
         }
@@ -479,11 +481,11 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         override val angle: Angle
             get() = turnMotor.position.degrees
 
-        val canCoder : CANCoder = CANCoder(canCoderID)
+        val canCoder : CANcoder = CANcoder(canCoderID)
 
         val absoluteAngle: Angle
             get() {
-                return (-canCoder.absolutePosition.degrees - angleOffset).wrap()
+                return (-canCoder.absolutePosition.value * 360.0).degrees//.degrees - angleOffset).wrap()
             }
 
         override val treadWear: Double
@@ -528,13 +530,13 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         init {
             println("Drive.module.init")
             turnMotor.config(20) {
-                feedbackCoefficient = 360.0 / 2048.0 / 21.428  // 21.451 for bunnybot with same gearing
+                feedbackCoefficient = 360.0 / 1.0 / 21.428  // 21.451 for bunnybot with same gearing
                 inverted(false)
-                setSensorPhase(false)
+//                setSensorPhase(false)
                 coastMode()
                 setRawOffsetConfig(absoluteAngle.asDegrees)
                 pid {
-                    p(0.000002)
+                    p(0.02)
 //                    d(0.0000025)
                 }
             }
@@ -559,7 +561,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         }
 
         fun setAngleOffset() {
-            val canAngle = -canCoder.absolutePosition
+            val canAngle = -canCoder.absolutePosition.value * 360.0
             Preferences.setDouble("Angle Offset $index", canAngle)
             angleOffset = canAngle.degrees
             println("Angle Offset $index = $canAngle")
@@ -576,19 +578,19 @@ object Drive : Subsystem("Drive"), SwerveDrive {
 //        val driveTimer = Timer()
         val holdTimer = Timer()
         var testBalanced = false
-        var prevPitch = gyro.getPitch()
+        var prevPitch = gyro.pitch
         val goalHeading = if (isBlueAlliance) 180.0 else 0.0
         periodic {
-            if (gyro.getPitch().absoluteValue > 3.0 && !testBalanced) {
+            if (gyro.pitch.absoluteValue > 3.0 && !testBalanced) {
                 //println("pitched")
 
                 var error = (goalHeading.degrees - heading).wrap()
                 val turn = 0.0 //aimPDController.update(error.asDegrees)
                 // constant part for a feed forward, so there's always enough power to move.
                 // plus a proportional part so that the power is higher when steep and less as it flattens.
-                drive(Vector2(0.0, gyro.getPitch().sign * 0.125), turn, fieldCentric = false)
+                drive(Vector2(0.0, gyro.pitch.sign * 0.125), turn, fieldCentric = false)
 
-                if ((gyro.getPitch() - prevPitch).absoluteValue > 0.23) {
+                if ((gyro.pitch - prevPitch).absoluteValue > 0.23) {
                     println("I'm leveling")
                     drive(Vector2(0.0, 0.0), 0.0)
                     xPose()
@@ -596,10 +598,10 @@ object Drive : Subsystem("Drive"), SwerveDrive {
                     testBalanced = true
                 }
 
-                prevPitch = gyro.getPitch()
+                prevPitch = gyro.pitch
             }
             else if (testBalanced && holdTimer.get() > 1.0) {
-                if (gyro.getPitch().absoluteValue < 3.0 ) {
+                if (gyro.pitch.absoluteValue < 3.0 ) {
                     println("balanced for more then 1 second. stopping autoBalance...")
                     this.stop()
                 } else {

@@ -148,7 +148,7 @@ object AutoChooser {
     }
 
     suspend fun outerThreeAuto() = use(Intake, Arm, Drive) {
-        val auto = if (DriverStation.getAlliance() == DriverStation.Alliance.Red) autonomi["Outer Red Auto"] else autonomi["Outer Blue Auto"]
+        val auto = if (DriverStation.getAlliance().get() == DriverStation.Alliance.Red) autonomi["Outer Red Auto"] else autonomi["Outer Blue Auto"]
         println("$numberOfObjects number of objects, and charging? $chargeStation")
         if (auto != null) {
             if (numberOfObjects > 1) {
@@ -163,7 +163,7 @@ object AutoChooser {
         }
     }
     suspend fun outerTwoAuto() = use(Intake, Arm, Drive) {
-        val auto = if (DriverStation.getAlliance() == DriverStation.Alliance.Red) autonomi["Outer Red Auto"] else autonomi["Outer Blue Auto"]
+        val auto = if (DriverStation.getAlliance().get() == DriverStation.Alliance.Red) autonomi["Outer Red Auto"] else autonomi["Outer Blue Auto"]
         if (auto != null) {
             Drive.driveAlongPath(auto["01 GetCube1"], true)
             Drive.driveAlongPath(auto["02 DropCube1"])
@@ -172,7 +172,7 @@ object AutoChooser {
     }
 
     suspend fun innerThreeAuto() = use(Drive, Intake, Arm) {
-        val auto = if (DriverStation.getAlliance() == DriverStation.Alliance.Red) autonomi["Inner Red Auto"] else autonomi["Inner Blue Auto"]
+        val auto = if (DriverStation.getAlliance().get() == DriverStation.Alliance.Red) autonomi["Inner Red Auto"] else autonomi["Inner Blue Auto"]
         if (auto != null) {
             Drive.driveAlongPath(auto["01 GetCube1"], true)
             Drive.driveAlongPath(auto["02 DropCube1"])
@@ -183,7 +183,7 @@ object AutoChooser {
     }
     suspend fun nodeDeckAuto() = use(Drive, Intake, Arm) {
         Intake.coneToward = true
-        AprilTag.resetCameras()
+//        AprilTag.resetCameras()
         if (FieldManager.nodeList[NodeDeckHub.firstAutoPiece]?.level?.equals(Level.LOW) == true) Intake.intakeMotor.setPercentOutput(Intake.CUBE_SPIT) else if (FieldManager.nodeList[NodeDeckHub.firstAutoPiece]?.coneOrCube == GamePiece.CONE) Intake.intakeMotor.setPercentOutput(Intake.HOLD_CONE) else Intake.intakeMotor.setPercentOutput(Intake.HOLD_CUBE)
         var gamePieceAngles = when (NodeDeckHub.startingPoint) {
             StartingPoint.INSIDE -> doubleArrayOf(0.0, -30.0, -45.0)

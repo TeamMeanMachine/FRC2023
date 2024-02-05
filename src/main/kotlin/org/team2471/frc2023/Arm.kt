@@ -292,17 +292,7 @@ object Arm : Subsystem("Arm") {
             currentLimit(0, 60, 0)
             burnSettings()
         }
-        shoulderFollowerMotor.config(20) {
-            feedbackCoefficient = 360.0 / 42.0 / 165.0  // ticks / degrees / gear ratio
-            brakeMode()
-            inverted(false)
-            pid {
-                p(0.000002)
-                d(0.000001)
-            }
-            currentLimit(0, 60, 0)
-            burnSettings()
-        }
+
         elbowMotor.config(20) {
             feedbackCoefficient = 360.0 / 42.0 / 75.0
             coastMode()
@@ -528,30 +518,30 @@ object Arm : Subsystem("Arm") {
 //    println("sh:$shoulderDegrees=$shoulderIKDegrees  el:$elbowDegrees=$elbowIKDegrees")
     }
     suspend fun pointToTag() = use(Arm) {
-        animateToPose(Pose.POINT_TO_TAG_POSE)
-        pointingSlew.reset(wristPosition.y)
-        var aimYOffset = Vector2(0.0, 0.0)
-        var goalY = 0.0
-        periodic {
-            if (!OI.operatorController.b){
-                stop()
-            }
-
-            val tags = AprilTag.getAimingTarget()
-            if (tags != null) {
-                if (tags.first != null) {
-                    if (tags != null) {
-                        for (tag in tags.first!!) {
-                            goalY = linearMap(-1.0, 14.0, 0.0, 35.0, tag.pitch.coerceIn(-1.0, 14.0))
-                        }
-                    }
-                }
-            }
-            aimYOffset = Vector2(0.0, pointingSlew.calculate(goalY))
-            wristPosition = Pose.POINT_TO_TAG_POSE.wristPosition + aimYOffset
-            println(wristPosition)
-        }
-        animateThroughPoses(Pair(0.5, Pose.POINT_TO_TAG_POSE), Pair(2.0, Pose.BACK_DRIVE_POSE))
+//        animateToPose(Pose.POINT_TO_TAG_POSE)
+//        pointingSlew.reset(wristPosition.y)
+//        var aimYOffset = Vector2(0.0, 0.0)
+//        var goalY = 0.0
+//        periodic {
+//            if (!OI.operatorController.b){
+//                stop()
+//            }
+//
+//            val tags = AprilTag.getAimingTarget()
+//            if (tags != null) {
+//                if (tags.first != null) {
+//                    if (tags != null) {
+//                        for (tag in tags.first!!) {
+//                            goalY = linearMap(-1.0, 14.0, 0.0, 35.0, tag.pitch.coerceIn(-1.0, 14.0))
+//                        }
+//                    }
+//                }
+//            }
+//            aimYOffset = Vector2(0.0, pointingSlew.calculate(goalY))
+//            wristPosition = Pose.POINT_TO_TAG_POSE.wristPosition + aimYOffset
+//            println(wristPosition)
+//        }
+//        animateThroughPoses(Pair(0.5, Pose.POINT_TO_TAG_POSE), Pair(2.0, Pose.BACK_DRIVE_POSE))
     }
 
 

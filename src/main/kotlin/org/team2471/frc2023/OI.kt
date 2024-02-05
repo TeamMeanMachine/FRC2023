@@ -136,9 +136,9 @@ object OI : Subsystem("OI") {
                 }
             }
         }
-        ({operatorController.dPad == Controller.Direction.DOWN}).whenTrue {
-            AprilTag.resetCameras()
-        }
+//        ({operatorController.dPad == Controller.Direction.DOWN}).whenTrue {
+//            AprilTag.resetCameras()
+//        }
         operatorController::b.whenTrue {
             if (Drive.demoMode) {
                 Arm.pointToTag()

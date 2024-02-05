@@ -56,8 +56,10 @@ object Robot : MeanlibRobot() {
         println("Activating AutoChooser! Is Red ${AutoChooser.redSide}")
         NodeDeckHub
         println("Activating NodeDeckHub! startingPoint ${NodeDeckHub.startingPoint.name}")
-        AprilTag
-        println("Activating AprilTags! Last Detection: ${AprilTag.lastBackDetection}")
+//        AprilTag
+        AprilTagTest
+        println("Apriltagtest ${AprilTagTest.cam.name}")
+//        println("Activating AprilTags! Last Detection: ${AprilTag.lastBackDetection}")
         PoseEstimator
         println("Activating PoseEstimator! currentPose ${PoseEstimator.currentPose}")
 
@@ -104,8 +106,11 @@ object Robot : MeanlibRobot() {
     override suspend fun test()  {
         println("test mode begin. Hi.")
 //        Intake.pidTestOne()
-        pathFollowTest()
-//        Drive.setAngleOffsets()
+//        pathFollowTest()
+        Drive.setAngleOffsets()
+//        Drive.steeringTests()
+//        Drive.driveTests()
+
     }
 
 
