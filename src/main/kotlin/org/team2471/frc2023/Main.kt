@@ -57,8 +57,8 @@ object Robot : MeanlibRobot() {
         NodeDeckHub
         println("Activating NodeDeckHub! startingPoint ${NodeDeckHub.startingPoint.name}")
 //        AprilTag
-        AprilTagTest
-        println("Apriltagtest ${AprilTagTest.cam.name}")
+//        AprilTagTest
+//        println("Apriltagtest ${AprilTagTest.cam.name}")
 //        println("Activating AprilTags! Last Detection: ${AprilTag.lastBackDetection}")
         PoseEstimator
         println("Activating PoseEstimator! currentPose ${PoseEstimator.currentPose}")
@@ -107,10 +107,10 @@ object Robot : MeanlibRobot() {
         println("test mode begin. Hi.")
 //        Intake.pidTestOne()
 //        pathFollowTest()
-        Drive.setAngleOffsets()
-//        Drive.steeringTests()
-//        Drive.driveTests()
-
+//        Drive.setAngleOffsets()
+//        useTest()
+        Drive.steeringTests()
+        println("finished testing")
     }
 
 

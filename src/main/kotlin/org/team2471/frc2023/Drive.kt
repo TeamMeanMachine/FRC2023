@@ -180,7 +180,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         kpHeading = 0.008,
         kdHeading = 0.01,
         kHeadingFeedForward = 0.001,
-        kMoveWhileSpin = 53.0,
+//        kMoveWhileSpin = 53.0,
     )
 
     override val carpetFlow = Vector2(0.0, 1.0)
@@ -485,7 +485,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
 
         val absoluteAngle: Angle
             get() {
-                return (-canCoder.absolutePosition.value * 360.0).degrees//.degrees - angleOffset).wrap()
+                return ((-canCoder.absolutePosition.value * 360.0).degrees - angleOffset).wrap()
             }
 
         override val treadWear: Double
@@ -530,8 +530,8 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         init {
             println("Drive.module.init")
             turnMotor.config(20) {
-                feedbackCoefficient = 360.0 / 1.0 / 21.428  // 21.451 for bunnybot with same gearing
-                inverted(false)
+                feedbackCoefficient = 360.0 / 21.428  // 21.451 for bunnybot with same gearing
+                inverted(true)
 //                setSensorPhase(false)
                 coastMode()
                 setRawOffsetConfig(absoluteAngle.asDegrees)
@@ -543,7 +543,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
             driveMotor.config {
                 brakeMode()
                 //                    wheel diam / 12 in per foot * pi / ticks / gear ratio
-                feedbackCoefficient = 4.0 / 12.0 * Math.PI / 2048.0 / 5.42 * (90.8/96.0)
+                feedbackCoefficient = 4.0 / 12.0 * Math.PI / 5.42 * (90.8/96.0)
                 currentLimit(70, 75, 1)
                 openLoopRamp(0.2)
             }

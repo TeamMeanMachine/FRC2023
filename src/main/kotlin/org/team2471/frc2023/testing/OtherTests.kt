@@ -123,3 +123,8 @@ suspend fun autoFeedForwardTest(motor: MotorController, motorAngle: () -> Angle,
     println("Angles: ${angleList}")
     println("Powers: ${powerList}")
 }
+
+
+suspend fun useTest() = use(Drive, Intake) {
+    println("hihiiii I'm being called!!")
+}
