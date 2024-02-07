@@ -90,7 +90,14 @@ object FieldManager {
     val doubleSubstationHeight = 37.375.inches
 
     val isRedAlliance: Boolean
-        get() = DriverStation.getAlliance().get() == Alliance.Red
+        get() {
+            if (DriverStation.getAlliance().isEmpty) {
+//                println("DriverStation.getAlliance() = null!!!!!!!!!!!!!!!!!! defaulting to isRedAlliance to true")
+                return true
+            } else {
+                return DriverStation.getAlliance().get() == Alliance.Red
+            }
+        }
     val isBlueAlliance: Boolean
         get() = !isRedAlliance
 

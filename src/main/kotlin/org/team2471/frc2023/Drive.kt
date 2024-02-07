@@ -180,7 +180,7 @@ object Drive : Subsystem("Drive"), SwerveDrive {
         kpHeading = 0.008,
         kdHeading = 0.01,
         kHeadingFeedForward = 0.001,
-//        kMoveWhileSpin = 53.0,
+        kMoveWhileSpin = 53.0,
     )
 
     override val carpetFlow = Vector2(0.0, 1.0)
