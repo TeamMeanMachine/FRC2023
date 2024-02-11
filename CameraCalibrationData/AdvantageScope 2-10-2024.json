@@ -1,0 +1,70 @@
+{
+  "hubs": [
+    {
+      "x": -8,
+      "y": -8,
+      "width": 1936,
+      "height": 1048,
+      "state": {
+        "sidebar": {
+          "width": 345,
+          "expanded": [
+            "/photonvision/Cam1/targetPose",
+            "/SmartDashboard",
+            "/AprilTagTest",
+            "/AprilTagTest/pvtest_pose",
+            "/photonvision",
+            "/photonvision/Arducam_OV9281_USB_Camera",
+            "/photonvision/Arducam_OV9281_USB_Camera/targetPose"
+          ]
+        },
+        "tabs": {
+          "selected": 1,
+          "tabs": [
+            {
+              "type": 0,
+              "path": "../docs/INDEX.md"
+            },
+            {
+              "type": 5,
+              "uuid": "u2dkykd47wx71kbg6q6056mw5v74tfqa",
+              "fields": [],
+              "listFields": [
+                [
+                  {
+                    "type": "Heatmap",
+                    "key": "NT:/AprilTagTest/pvtest_pose",
+                    "sourceTypeIndex": 0,
+                    "sourceType": 5
+                  }
+                ]
+              ],
+              "options": {
+                "game": "2024 Field",
+                "unitDistance": "meters",
+                "unitRotation": "degrees",
+                "origin": "right",
+                "size": 0.75,
+                "allianceBumpers": "auto",
+                "allianceOrigin": "blue",
+                "orientation": "blue left, red right"
+              },
+              "configHidden": false,
+              "visualizer": null,
+              "title": "Odometry"
+            },
+            {
+              "type": 2,
+              "fields": [
+                "NT:/photonvision/Cam1/hasTarget"
+              ],
+              "title": "Table"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "satellites": [],
+  "version": "3.1.0"
+}

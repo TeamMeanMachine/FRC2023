@@ -51,23 +51,23 @@ object Robot : MeanlibRobot() {
         println("Activating Drive!")
         Drive.zeroGyro()
         Drive.heading = 0.0.degrees
-
+        AprilTagTest
+        println("Apriltagtest ${AprilTagTest.poseEntry.name}")
         AutoChooser
         println("Activating AutoChooser! Is Red ${AutoChooser.redSide}")
         NodeDeckHub
         println("Activating NodeDeckHub! startingPoint ${NodeDeckHub.startingPoint.name}")
 //        AprilTag
-        AprilTagTest
-        println("Apriltagtest ${AprilTagTest.cam.name}")
+
 //        println("Activating AprilTags! Last Detection: ${AprilTag.lastBackDetection}")
         PoseEstimator
         println("Activating PoseEstimator! currentPose ${PoseEstimator.currentPose}")
 
 //        MAPoseEstimator
-        Arm
-        println("Activating Arm! currentPosition ${Arm.wristPosition}")
-        Intake
-        println("Activating Intake! wristAngle: ${Intake.wristAngle.asDegrees}")
+//        Arm
+//        println("Activating Arm! currentPosition ${Arm.wristPosition}")
+       // Intake
+       //// println("Activating Intake! wristAngle: ${Intake.wristAngle.asDegrees}")
 //        PowerInfo
     }
 
@@ -75,8 +75,9 @@ object Robot : MeanlibRobot() {
         println("starting enable")
         FieldManager.beforeFirstEnable = false
         Drive.enable()
-        Arm.enable()
-        Intake.enable()
+        AprilTagTest.enable()
+//        Arm.enable()
+//        Intake.enable()
 //        PowerInfo.enable()
 //        SignalLights.enable()
         println("field centric? ${SmartDashboard.getBoolean("Use Gyro", true) && !DriverStation.isAutonomous()}")
@@ -119,7 +120,7 @@ object Robot : MeanlibRobot() {
         OI.operatorController.rumble = 0.0
         Drive.disable()
         Arm.disable()
-        Intake.disable()
+//        Intake.disable()
 //        PowerInfo.disable()
 //        SignalLights.disable()
     }
